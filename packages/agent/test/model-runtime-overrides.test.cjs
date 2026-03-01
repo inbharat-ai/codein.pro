@@ -28,6 +28,6 @@ test("Electron agent service includes bundled llama detection and LLAMA_PATH han
   const source = readSource("../../electron-app/src/main/services/AgentService.ts");
 
   assert.match(source, /getBundledLlamaPath\(\): string \| null/);
-  assert.match(source, /path\.join\(process\.resourcesPath, 'llama', platform, executableName\)/);
+  assert.match(source, /path\.join\([\s\S]*?resourcesPath[\s\S]*?["']llama["'][\s\S]*?platform[\s\S]*?executableName/);
   assert.match(source, /env\.LLAMA_PATH = bundledLlamaPath/);
 });

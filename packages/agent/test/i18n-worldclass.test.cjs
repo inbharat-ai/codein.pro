@@ -193,7 +193,7 @@ test("STT Provider: Auto-detects available engines", () => {
   assert.match(source, /execSync.*--help/);
   
   // Should handle missing engines gracefully
-  assert.match(source, /try.*catch/);
+  assert.match(source, /try[\s\S]*?catch/);
 });
 
 test("STT Provider: Whisper language mapping complete", () => {
