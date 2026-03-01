@@ -1,5 +1,7 @@
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
+import ComputePanel from "./components/ComputePanel";
 import Layout from "./components/Layout";
+import { MCPToolsPanel } from "./components/MCPToolsPanel";
 import { MainEditorProvider } from "./components/mainInput/TipTapEditor";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
 import { VscThemeProvider } from "./context/VscTheme";
@@ -41,6 +43,14 @@ const router = createMemoryRouter([
       {
         path: ROUTES.THEME,
         element: <ThemePage />,
+      },
+      {
+        path: ROUTES.COMPUTE,
+        element: <ComputePanel />,
+      },
+      {
+        path: ROUTES.MCP,
+        element: <MCPToolsPanel />,
       },
     ],
   },

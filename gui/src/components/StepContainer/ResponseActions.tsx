@@ -12,10 +12,12 @@ import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { selectSelectedChatModel } from "../../redux/slices/configSlice";
 import { setDialogMessage, setShowDialog } from "../../redux/slices/uiSlice";
 import { useCompactConversation } from "../../util/compactConversation";
+import { ConfidenceBadge } from "../ConfidenceBadge";
 import { FeedbackButtons } from "../FeedbackButtons";
 import { GenerateRuleDialog } from "../GenerateRuleDialog";
 import { CopyIconButton } from "../gui/CopyIconButton";
 import HeaderButtonWithToolTip from "../gui/HeaderButtonWithToolTip";
+import { ModelBadge } from "../ModelBadge";
 
 export interface ResponseActionsProps {
   isTruncated: boolean;
@@ -59,8 +61,26 @@ export default function ResponseActions({
     dispatch(setDialogMessage(<GenerateRuleDialog />));
   };
 
+  const modelTitle = selectedModel?.title || selectedModel?.model || "";
+  const isLocalModel =
+    !modelTitle.includes("/") || modelTitle.startsWith("local/");
+
   return (
     <div className="text-description-muted mx-2 flex cursor-default items-center justify-end space-x-1 bg-transparent pb-0 text-xs">
+      {modelTitle && (
+        <ModelBadge
+          model={modelTitle}
+          provider={isLocalModel ? "local" : undefined}
+          compact
+        />
+      )}
+      {percent > 0 && (
+        <ConfidenceBadge
+          score={1 - (contextPercentage ?? 0)}
+          level={percent > 80 ? "low" : percent > 50 ? "medium" : "high"}
+          compact
+        />
+      )}
       <HeaderButtonWithToolTip
         testId={`compact-button-${index}`}
         text={

@@ -8,11 +8,11 @@ const directories = [
   // core
   "./core/node_modules",
   "./core/dist",
-  // extensions/vscode
-  "./extensions/vscode/node_modules",
-  "./extensions/vscode/bin",
-  "./extensions/vscode/build",
-  "./extensions/vscode/out",
+  // packages/extension
+  "./packages/extension/node_modules",
+  "./packages/extension/bin",
+  "./packages/extension/build",
+  "./packages/extension/out",
   // binary
   "./binary/node_modules",
   "./binary/bin",

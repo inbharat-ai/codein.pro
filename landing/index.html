@@ -1,0 +1,973 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeIn — AI Code Editor for Bharat</title>
+  <meta name="description" content="CodeIn is a multilingual AI-powered code editor built for Indian developers. Free, open-source, runs locally. Download for Windows, macOS, and Linux." />
+  <meta name="keywords" content="CodeIn, AI code editor, Indian developers, Bharat, multilingual, code assistant, open source, voice coding, offline AI" />
+  <meta property="og:title" content="CodeIn — AI Code Editor for Bharat" />
+  <meta property="og:description" content="Multilingual AI-powered code editor. Free, open-source, runs locally. 20+ Indian languages." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#0a0a0f" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: {
+              50:'#f8f9fa',100:'#e9ecef',200:'#dee2e6',300:'#ced4da',400:'#adb5bd',
+              500:'#6c757d',600:'#495057',700:'#343a40',800:'#1a1d23',900:'#12141a',950:'#0a0a0f',
+            },
+            brand: {
+              50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',
+              500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81',
+            },
+            saffron: {
+              50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',
+              500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12',
+            },
+            emerald: { 400:'#34d399', 500:'#10b981' },
+          },
+          fontFamily: {
+            sans: ['Inter','system-ui','-apple-system','sans-serif'],
+            mono: ['JetBrains Mono','Fira Code','Consolas','monospace'],
+          },
+          animation: {
+            'gradient':'gradient 8s ease infinite',
+            'float':'float 6s ease-in-out infinite',
+            'pulse-slow':'pulse 4s cubic-bezier(0.4,0,0.6,1) infinite',
+            'fade-in':'fadeIn 0.8s ease-out forwards',
+            'slide-up':'slideUp 0.6s ease-out forwards',
+            'blink':'blink 1s step-end infinite',
+            'shimmer':'shimmer 2.5s ease-in-out infinite',
+          },
+          keyframes: {
+            gradient:{  '0%,100%':{backgroundPosition:'0% 50%'},'50%':{backgroundPosition:'100% 50%'} },
+            float:{     '0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-20px)'} },
+            fadeIn:{    from:{opacity:'0'},to:{opacity:'1'} },
+            slideUp:{   from:{opacity:'0',transform:'translateY(30px)'},to:{opacity:'1',transform:'translateY(0)'} },
+            blink:{     '0%,100%':{opacity:'1'},'50%':{opacity:'0'} },
+            shimmer:{   '0%':{backgroundPosition:'-200% 0'},'100%':{backgroundPosition:'200% 0'} },
+          },
+        },
+      },
+    }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="dark bg-surface-950 text-gray-200 font-sans antialiased overflow-x-hidden">
+
+  <!-- NAVBAR -->
+  <nav id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3 group">
+        <img src="assets/codein-logo.png" alt="CodeIn" class="h-9 rounded-lg shadow-lg shadow-brand-500/25 group-hover:shadow-brand-500/40 transition-shadow" />
+        <span class="text-xl font-bold bg-gradient-to-r from-brand-400 to-saffron-400 bg-clip-text text-transparent">CodeIn</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features" class="text-sm text-gray-400 hover:text-white transition-colors" data-i18n="nav.features">Features</a>
+        <a href="#skills" class="text-sm text-gray-400 hover:text-white transition-colors" data-i18n="nav.skills">Superpowers</a>
+        <a href="#downloads" class="text-sm text-gray-400 hover:text-white transition-colors" data-i18n="nav.downloads">Downloads</a>
+        <a href="#faq" class="text-sm text-gray-400 hover:text-white transition-colors" data-i18n="nav.faq">FAQ</a>
+        <a href="https://github.com/AcodeAI/codein" target="_blank" rel="noopener" class="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          <span data-i18n="nav.github">GitHub</span>
+        </a>
+
+        <!-- Language Switcher -->
+        <div class="relative" id="lang-switcher">
+          <button onclick="toggleLangMenu()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-sm text-gray-300 hover:text-white transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802"/></svg>
+            <span id="current-lang-label">English</span>
+            <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="lang-menu" class="hidden absolute right-0 mt-2 w-48 py-2 rounded-xl border border-white/10 bg-surface-900/95 backdrop-blur-xl shadow-2xl shadow-black/40 z-50">
+          </div>
+        </div>
+      </div>
+
+      <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-400 hover:text-white transition-colors" aria-label="Toggle menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+
+    <div id="mobile-menu" class="hidden md:hidden bg-surface-900/95 backdrop-blur-xl border-t border-white/5">
+      <div class="px-6 py-4 flex flex-col gap-3">
+        <a href="#features" class="text-sm text-gray-400 hover:text-white py-2" data-i18n="nav.features">Features</a>
+        <a href="#skills" class="text-sm text-gray-400 hover:text-white py-2" data-i18n="nav.skills">Superpowers</a>
+        <a href="#downloads" class="text-sm text-gray-400 hover:text-white py-2" data-i18n="nav.downloads">Downloads</a>
+        <a href="#faq" class="text-sm text-gray-400 hover:text-white py-2" data-i18n="nav.faq">FAQ</a>
+        <div id="mobile-lang-list" class="flex flex-wrap gap-2 pt-2 border-t border-white/5"></div>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- HERO -->
+  <section class="relative min-h-screen flex flex-col items-center justify-center pt-20 pb-16 px-6 overflow-hidden">
+    <div class="hero-gradient absolute inset-0 opacity-30"></div>
+    <div class="grid-pattern absolute inset-0 opacity-[0.03]"></div>
+    <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-600/10 rounded-full blur-[120px]"></div>
+    <div class="absolute top-1/2 left-1/3 w-[400px] h-[400px] bg-saffron-500/8 rounded-full blur-[100px]"></div>
+
+    <div class="relative z-10 text-center max-w-4xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-300 text-sm font-medium animate-fade-in">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span data-i18n="hero.badge">v1.0.0 — Open Source &amp; Free Forever</span>
+      </div>
+
+      <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[1.05] mb-6 animate-slide-up">
+        <span class="bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent" data-i18n="hero.title1">Code in every</span>
+        <br />
+        <span class="bg-gradient-to-r from-saffron-400 via-brand-400 to-emerald-400 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%]" data-i18n="hero.title2">language of Bharat</span>
+      </h1>
+
+      <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed animate-slide-up" style="animation-delay:0.15s" data-i18n="hero.subtitle">
+        CodeIn is an AI-powered code editor that understands Hindi, Tamil, Bengali, and 20+ Indian languages. Built on open-source. Runs locally. Your code never leaves your machine.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6 animate-slide-up" style="animation-delay:0.3s">
+        <button id="hero-download-btn" onclick="downloadForCurrentOS()" class="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-semibold text-lg shadow-2xl shadow-brand-600/25 hover:shadow-brand-500/40 transition-all duration-300 hover:-translate-y-0.5">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span id="hero-btn-text">Download for your OS</span>
+          <svg class="w-4 h-4 opacity-60 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <a href="#downloads" class="inline-flex items-center gap-2 px-6 py-4 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white font-medium transition-all duration-300">
+          <span data-i18n="hero.all_platforms">All platforms</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </a>
+      </div>
+
+      <p class="text-xs text-gray-500 animate-fade-in" style="animation-delay:0.5s">
+        <span id="hero-os-label">Detecting your OS</span>  <span data-i18n="hero.license">Apache-2.0 License</span>  <span id="hero-size">~120 MB</span>
+      </p>
+    </div>
+
+    <!-- Editor mockup -->
+    <div class="relative z-10 mt-16 w-full max-w-5xl mx-auto animate-slide-up" style="animation-delay:0.5s">
+      <div class="rounded-2xl border border-white/10 bg-surface-900/80 backdrop-blur-xl shadow-2xl shadow-black/40 overflow-hidden">
+        <div class="flex items-center gap-2 px-4 py-3 bg-surface-800/80 border-b border-white/5">
+          <div class="flex gap-1.5">
+            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+          </div>
+          <div class="flex-1 text-center"><span class="text-xs text-gray-500 font-mono">main.py — CodeIn</span></div>
+        </div>
+        <div class="p-6 font-mono text-sm leading-relaxed">
+          <div class="flex">
+            <div class="text-gray-600 select-none pr-6 text-right" style="min-width:2.5rem">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12</div>
+            <div>
+              <span class="text-brand-400">from</span> <span class="text-emerald-400">codein</span> <span class="text-brand-400">import</span> <span class="text-gray-200">Agent</span><br>
+              <br>
+              <span class="text-gray-500"># Write code in Hindi</span><br>
+              <span class="text-saffron-400">agent</span> <span class="text-gray-400">=</span> <span class="text-gray-200">Agent</span><span class="text-gray-400">(</span><span class="text-emerald-400">lang</span><span class="text-gray-400">=</span><span class="text-saffron-300">"hi"</span><span class="text-gray-400">)</span><br>
+              <br>
+              <span class="text-brand-400">def</span> <span class="text-yellow-300">fibonacci</span><span class="text-gray-400">(</span><span class="text-gray-200">n</span><span class="text-gray-400">):</span><br>
+              <span class="text-gray-500">    """n-th Fibonacci number"""</span><br>
+              <span class="text-brand-400">    if</span> <span class="text-gray-200">n</span> <span class="text-gray-400">&lt;=</span> <span class="text-saffron-300">1</span><span class="text-gray-400">:</span><br>
+              <span class="text-brand-400">        return</span> <span class="text-gray-200">n</span><br>
+              <span class="text-brand-400">    return</span> <span class="text-yellow-300">fibonacci</span><span class="text-gray-400">(</span><span class="text-gray-200">n</span><span class="text-gray-400">-</span><span class="text-saffron-300">1</span><span class="text-gray-400">)</span> <span class="text-gray-400">+</span> <span class="text-yellow-300">fibonacci</span><span class="text-gray-400">(</span><span class="text-gray-200">n</span><span class="text-gray-400">-</span><span class="text-saffron-300">2</span><span class="text-gray-400">)</span><br>
+              <br>
+              <span class="text-gray-200">result</span> <span class="text-gray-400">=</span> <span class="text-saffron-400">agent</span><span class="text-gray-400">.</span><span class="text-yellow-300">run</span><span class="text-gray-400">(</span><span class="text-saffron-300">"10th Fibonacci number"</span><span class="text-gray-400">)</span>
+              <span class="inline-block w-0.5 h-5 bg-brand-400 animate-blink ml-0.5 align-middle"></span>
+            </div>
+          </div>
+          <div class="mt-4 ml-10 p-3 rounded-lg border border-brand-500/20 bg-brand-500/5">
+            <div class="flex items-center gap-2 mb-1.5">
+              <div class="w-4 h-4 rounded bg-gradient-to-br from-brand-500 to-saffron-500 flex items-center justify-center">
+                <span class="text-[8px] text-white font-bold">AI</span>
+              </div>
+              <span class="text-xs text-brand-300 font-medium">CodeIn Agent</span>
+            </div>
+            <p class="text-xs text-gray-400"><span class="text-saffron-300">fibonacci(10)</span> = <span class="text-emerald-400">55</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="absolute -bottom-px inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-500/50 to-transparent"></div>
+    </div>
+
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+    </div>
+  </section>
+
+
+  <!-- STATS BAR -->
+  <section class="relative py-12 px-6 border-y border-white/5 bg-surface-900/30">
+    <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      <div>
+        <div class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-saffron-400 to-saffron-300 bg-clip-text text-transparent">20+</div>
+        <p class="text-sm text-gray-400 mt-1" data-i18n="stats.languages">Indian Languages</p>
+      </div>
+      <div>
+        <div class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-brand-400 to-brand-300 bg-clip-text text-transparent">6+</div>
+        <p class="text-sm text-gray-400 mt-1" data-i18n="stats.models">Local AI Models</p>
+      </div>
+      <div>
+        <div class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent">35+</div>
+        <p class="text-sm text-gray-400 mt-1" data-i18n="stats.tools">Built-in Tools</p>
+      </div>
+      <div>
+        <div class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-purple-400 to-purple-300 bg-clip-text text-transparent">6</div>
+        <p class="text-sm text-gray-400 mt-1" data-i18n="stats.platforms">Platforms</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FEATURES -->
+  <section id="features" class="relative py-24 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-brand-400 tracking-widest uppercase mb-3" data-i18n="features.label">Features</p>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+          <span data-i18n="features.title1">Everything you need,</span><br class="hidden sm:block" />
+          <span data-i18n="features.title2">nothing you don't</span>
+        </h2>
+        <p class="text-gray-400 max-w-xl mx-auto" data-i18n="features.subtitle">Built from the ground up for Indian developers who think in their mother tongue but code for the world.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="feature-card group p-6 rounded-2xl border border-white/5 bg-surface-900/50 hover:bg-surface-800/60 hover:border-brand-500/20 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4 group-hover:bg-brand-500/20 transition-colors">
+            <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2" data-i18n="feat.languages.title">20+ Indian Languages</h3>
+          <p class="text-sm text-gray-400 leading-relaxed" data-i18n="feat.languages.desc">Code with comments, prompts, and AI chat in Hindi, Tamil, Bengali, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, and more.</p>
+        </div>
+
+        <div class="feature-card group p-6 rounded-2xl border border-white/5 bg-surface-900/50 hover:bg-surface-800/60 hover:border-saffron-500/20 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-saffron-500/10 flex items-center justify-center mb-4 group-hover:bg-saffron-500/20 transition-colors">
+            <svg class="w-6 h-6 text-saffron-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2" data-i18n="feat.offline.title">Offline AI Agent</h3>
+          <p class="text-sm text-gray-400 leading-relaxed" data-i18n="feat.offline.desc">Bundled llama.cpp inference engine. No API keys, no cloud bills. Your code and prompts never leave your machine.</p>
+        </div>
+
+        <div class="feature-card group p-6 rounded-2xl border border-white/5 bg-surface-900/50 hover:bg-surface-800/60 hover:border-emerald-500/20 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+            <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2" data-i18n="feat.autocomplete.title">Smart Autocomplete</h3>
+          <p class="text-sm text-gray-400 leading-relaxed" data-i18n="feat.autocomplete.desc">Context-aware ghost-text suggestions that understand your project structure, imports, and coding style. Lightning fast.</p>
+        </div>
+
+        <div class="feature-card group p-6 rounded-2xl border border-white/5 bg-surface-900/50 hover:bg-surface-800/60 hover:border-purple-500/20 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
+            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2" data-i18n="feat.chat.title">AI Chat & Edit</h3>
+          <p class="text-sm text-gray-400 leading-relaxed" data-i18n="feat.chat.desc">Ask questions, refactor code, generate tests — all in a conversational interface. Supports @-mentions for files and symbols.</p>
+        </div>
+
+        <div class="feature-card group p-6 rounded-2xl border border-white/5 bg-surface-900/50 hover:bg-surface-800/60 hover:border-rose-500/20 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center mb-4 group-hover:bg-rose-500/20 transition-colors">
+            <svg class="w-6 h-6 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2" data-i18n="feat.privacy.title">100% Private</h3>
+          <p class="text-sm text-gray-400 leading-relaxed" data-i18n="feat.privacy.desc">No telemetry, no tracking, no cloud dependency. Perfect for government, defense, and enterprise environments.</p>
+        </div>
+
+        <div class="feature-card group p-6 rounded-2xl border border-white/5 bg-surface-900/50 hover:bg-surface-800/60 hover:border-cyan-500/20 transition-all duration-300">
+          <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
+            <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2" data-i18n="feat.crossplatform.title">Cross-Platform</h3>
+          <p class="text-sm text-gray-400 leading-relaxed" data-i18n="feat.crossplatform.desc">Native builds for Windows, macOS (Intel + Apple Silicon), and Linux. One codebase, consistent experience everywhere.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- SUPERPOWERS -->
+  <section id="skills" class="relative py-24 px-6">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-saffron-500/30 to-transparent"></div>
+
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-saffron-400 tracking-widest uppercase mb-3" data-i18n="skills.label">Superpowers</p>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4" data-i18n="skills.title">What makes CodeIn extraordinary</h2>
+        <p class="text-gray-400 max-w-xl mx-auto" data-i18n="skills.subtitle">Not just another code editor. CodeIn has capabilities no other tool offers.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-saffron-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-saffron-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-saffron-500/10 flex items-center justify-center"><span class="text-xl">&#x1f6e1;&#xfe0f;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.sovereign.title">Sovereign Mode</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.sovereign.desc">Air-gapped, zero-telemetry computing. Every feature works without internet. Built for defense, government, and sensitive environments. AES-256 encrypted config.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-brand-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-brand-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center"><span class="text-xl">&#x1f399;&#xfe0f;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.voice.title">Voice Coding</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.voice.desc">Speak in Hindi, Tamil, Bengali, or 11 other Indian languages and watch code appear. Real-time speech-to-text, voice commands, and AI reads answers back to you.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-emerald-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center"><span class="text-xl">&#x1f5a5;&#xfe0f;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.compute.title">CodeIn Computer</h3>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">New</span>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.compute.desc">Full local compute engine with auto-setup on first launch. Give it a goal in any language, it plans, codes, tests, and delivers. Process isolation with pause, resume, cancel. LLM auto-installs or reuses existing model.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-purple-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center"><span class="text-xl">&#x1f916;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.agent.title">Autonomous Agent Mode</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.agent.desc">Reads files, writes code, runs terminal, self-corrects errors. 4 AI modes: Ask, Plan, Implement, Agent. Goes from idea to working code hands-free.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-cyan-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center"><span class="text-xl">&#x1f4dd;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.edit.title">Edit Contracts</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.edit.desc">AI produces precise JSON patches with unified diffs. Preview every change, one-click Apply, instant Rollback. No guesswork, full version control.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-rose-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-rose-500/10 flex items-center justify-center"><span class="text-xl">&#x1f50d;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.research.title">Built-in Web Research</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.research.desc">Search the web, fetch documentation, find code examples and bug solutions — all from inside the editor. 6 research modes, zero API keys needed.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-amber-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center"><span class="text-xl">&#x1f50c;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.mcp.title">MCP Tool Protocol</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.mcp.desc">Connect to any MCP server — GitHub, Slack, Jira, databases, Docker, Kubernetes, and hundreds more. The AI agent uses MCP tools autonomously: open PRs, query DBs, deploy apps, run CI pipelines. Infinite extensibility.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-indigo-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center"><span class="text-xl">&#x1f9e0;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.models.title">Model Management</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.models.desc">Download and manage GGUF models from HuggingFace. Smart router picks the right model for each task. Separate Coder and Reasoner model slots.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-teal-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center"><span class="text-xl">&#x1f33f;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.git.title">Full Git Integration</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.git.desc">Commit code, push to GitHub/GitLab/Bitbucket, pull, branch, merge, rebase, stash, tag — all from a beautiful GUI. AI writes your commit messages. Full blame, diff viewer, and history timeline. No terminal needed.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-orange-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center"><span class="text-xl">&#x1f41b;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.debug.title">Advanced Debugging</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.debug.desc">Breakpoints, watch expressions, call stack, variables inspector. Multi-language support: JS, Python, Java, C#, Go, Rust, and more.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-sky-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center"><span class="text-xl">&#x1f680;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.deploy.title">One-Click Deploy</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.deploy.desc">Auto-generate configs for Vercel, Netlify, Firebase. Deploy instructions and setup — no manual configuration needed.</p>
+          </div>
+        </div>
+
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-lime-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-lime-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-lime-500/10 flex items-center justify-center"><span class="text-xl">&#x2328;&#xfe0f;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.cli.title">CLI Agent (cn)</h3>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.cli.desc">Full coding agent in your terminal. Interactive TUI, headless mode for CI/CD, session management, JSON output. Works in Docker and VS Code.</p>
+          </div>
+        </div>
+
+        <!-- Media Toolkit (NEW) -->
+        <div class="skill-card group p-6 rounded-2xl border border-white/5 bg-gradient-to-br from-surface-900/80 to-surface-800/40 hover:border-pink-500/30 transition-all duration-300 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-pink-500/5 rounded-full blur-2xl"></div>
+          <div class="relative">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center"><span class="text-xl">&#x1f3a8;</span></div>
+              <h3 class="text-lg font-bold text-white" data-i18n="skill.media.title">Media Toolkit</h3>
+              <span class="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 text-[10px] font-bold uppercase tracking-wider">New</span>
+            </div>
+            <p class="text-sm text-gray-400 leading-relaxed" data-i18n="skill.media.desc">Generate diagrams, images, and videos — all locally on your CPU or GPU. Auto-detects hardware, picks optimal presets, and renders Mermaid, PlantUML, Stable Diffusion, and more. Zero cloud, full privacy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- AI MODES SHOWCASE -->
+  <section class="relative py-24 px-6">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-500/20 to-transparent"></div>
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-emerald-400 tracking-widest uppercase mb-3">4 AI Modes</p>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">One editor, four ways to code with AI</h2>
+        <p class="text-gray-400 max-w-lg mx-auto">Choose how deeply AI assists you — from gentle suggestions to fully autonomous coding.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="relative p-6 rounded-2xl border border-brand-500/20 bg-brand-500/5 hover:bg-brand-500/10 transition-all">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="px-3 py-1 rounded-full bg-brand-500/20 text-brand-300 text-xs font-bold">ASK</span>
+            <span class="text-white font-semibold">Chat & Explore</span>
+          </div>
+          <p class="text-sm text-gray-400">Open-ended AI conversation about your code. Context-aware from selected files. No file changes — purely assistant.</p>
+        </div>
+        <div class="relative p-6 rounded-2xl border border-saffron-500/20 bg-saffron-500/5 hover:bg-saffron-500/10 transition-all">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="px-3 py-1 rounded-full bg-saffron-500/20 text-saffron-300 text-xs font-bold">PLAN</span>
+            <span class="text-white font-semibold">Architecture & Strategy</span>
+          </div>
+          <p class="text-sm text-gray-400">Structured step-by-step breakdowns for complex tasks. Get detailed plans for migrations, refactors, and new features.</p>
+        </div>
+        <div class="relative p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold">IMPLEMENT</span>
+            <span class="text-white font-semibold">Precise Edit Contracts</span>
+          </div>
+          <p class="text-sm text-gray-400">AI produces strict JSON patches with unified diffs. Preview, one-click Apply, one-click Rollback. Deterministic and safe.</p>
+        </div>
+        <div class="relative p-6 rounded-2xl border border-purple-500/20 bg-purple-500/5 hover:bg-purple-500/10 transition-all">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold">AGENT</span>
+            <span class="text-white font-semibold">Fully Autonomous</span>
+          </div>
+          <p class="text-sm text-gray-400">Reads files, writes code, runs terminal commands, self-corrects. Goes from idea to working code completely hands-free.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FLAGSHIP FEATURES SHOWCASE -->
+  <section class="relative py-24 px-6 overflow-hidden">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-emerald-500/[0.02] via-transparent to-pink-500/[0.02]"></div>
+    <div class="max-w-6xl mx-auto relative">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-emerald-400 tracking-widest uppercase mb-3" data-i18n="flagship.label">Flagship Features</p>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4" data-i18n="flagship.title">Power tools no other editor has</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto" data-i18n="flagship.subtitle">Local compute and media generation — entirely on your machine, no cloud required.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- CodeIn Computer -->
+        <div class="relative group p-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-surface-900/80 hover:border-emerald-500/40 transition-all duration-300">
+          <div class="absolute top-4 right-4">
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold">NEW</span>
+          </div>
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+              <span class="text-3xl">&#x1f5a5;&#xfe0f;</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white" data-i18n="skill.compute.title">CodeIn Computer</h3>
+              <p class="text-sm text-emerald-400" data-i18n="flagship.compute.tag">Agentic Local Compute Engine</p>
+            </div>
+          </div>
+          <p class="text-gray-400 leading-relaxed mb-6" data-i18n="flagship.compute.desc">Give it a goal in any language — it plans, codes, tests, and delivers. Auto-installs LLM on first launch (requires llama.cpp or pre-downloaded model). Process isolation & control. No API keys, no cloud bills.</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-emerald-400">&#x2713;</span> <span data-i18n="flagship.compute.f1">Auto-setup LLM on first launch</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-emerald-400">&#x2713;</span> <span data-i18n="flagship.compute.f2">Process-level isolation & control</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-emerald-400">&#x2713;</span> <span data-i18n="flagship.compute.f3">Pause / Resume / Cancel jobs</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-emerald-400">&#x2713;</span> <span data-i18n="flagship.compute.f4">Accept goals in any Indian language</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-emerald-400">&#x2713;</span> <span data-i18n="flagship.compute.f5">Reads, writes, tests code autonomously</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-emerald-400">&#x2713;</span> <span data-i18n="flagship.compute.f6">100% offline after initial setup</span></div>
+          </div>
+        </div>
+
+        <!-- Media Toolkit -->
+        <div class="relative group p-8 rounded-2xl border border-pink-500/20 bg-gradient-to-br from-pink-500/[0.06] to-surface-900/80 hover:border-pink-500/40 transition-all duration-300">
+          <div class="absolute top-4 right-4">
+            <span class="px-2.5 py-1 rounded-full bg-pink-500/20 text-pink-300 text-xs font-bold">NEW</span>
+          </div>
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-xl bg-pink-500/10 flex items-center justify-center border border-pink-500/20">
+              <span class="text-3xl">&#x1f3a8;</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-white" data-i18n="skill.media.title">Media Toolkit</h3>
+              <p class="text-sm text-pink-400" data-i18n="flagship.media.tag">Local Image, Video & Diagram Generation</p>
+            </div>
+          </div>
+          <p class="text-gray-400 leading-relaxed mb-6" data-i18n="flagship.media.desc">Generate diagrams (Mermaid, PlantUML, D2), images (Stable Diffusion), and videos — all running locally on your CPU or GPU. Auto-detects your hardware and picks optimal presets. Full audit logging.</p>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-pink-400">&#x2713;</span> <span data-i18n="flagship.media.f1">CPU & GPU auto-detection</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-pink-400">&#x2713;</span> <span data-i18n="flagship.media.f2">Mermaid / PlantUML / D2</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-pink-400">&#x2713;</span> <span data-i18n="flagship.media.f3">Stable Diffusion images</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-pink-400">&#x2713;</span> <span data-i18n="flagship.media.f4">Video generation (SVD)</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-pink-400">&#x2713;</span> <span data-i18n="flagship.media.f5">Quality auto-advisor</span></div>
+            <div class="flex items-center gap-2 text-sm text-gray-300"><span class="text-pink-400">&#x2713;</span> <span data-i18n="flagship.media.f6">SHA-256 audit logging</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- LANGUAGE SUPPORT SHOWCASE -->
+  <section class="relative py-20 px-6 overflow-hidden">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-saffron-500/20 to-transparent"></div>
+    <div class="max-w-5xl mx-auto text-center">
+      <p class="text-sm font-semibold text-saffron-400 tracking-widest uppercase mb-3">Multilingual AI</p>
+      <h2 class="text-3xl sm:text-4xl font-bold text-white mb-8">Code in your mother tongue</h2>
+      <div class="flex flex-wrap justify-center gap-3 mb-8">
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0939;&#x093f;&#x0928;&#x094d;&#x0926;&#x0940;  Hindi</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0ba4;&#x0bae;&#x0bbf;&#x0bb4;&#x0bcd;  Tamil</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0c24;&#x0c46;&#x0c32;&#x0c41;&#x0c17;&#x0c41;  Telugu</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x09ac;&#x09be;&#x0982;&#x09b2;&#x09be;  Bengali</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x092e;&#x0930;&#x093e;&#x0920;&#x0940;  Marathi</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0a97;&#x0ac1;&#x0a9c;&#x0ab0;&#x0abe;&#x0aa4;&#x0ac0;  Gujarati</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0c95;&#x0ca8;&#x0ccd;&#x0ca8;&#x0ca1;  Kannada</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0d2e;&#x0d32;&#x0d2f;&#x0d3e;&#x0d33;&#x0d02;  Malayalam</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0a2a;&#x0a70;&#x0a1c;&#x0a3e;&#x0a2c;&#x0a40;  Punjabi</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0b13;&#x0b21;&#x0b3c;&#x0b3f;&#x0b06;  Odia</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0985;&#x09b8;&#x09ae;&#x09c0;&#x09af;&#x09bc;&#x09be;  Assamese</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0627;&#x0631;&#x062f;&#x0648;  Urdu</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">&#x0938;&#x0902;&#x0938;&#x094d;&#x0915;&#x0943;&#x0924;  Sanskrit</span>
+        <span class="px-4 py-2 rounded-xl border border-white/10 bg-surface-900/50 text-sm font-medium text-gray-300">English</span>
+      </div>
+      <p class="text-gray-500 text-sm max-w-2xl mx-auto">Voice commands, AI chat, code comments, error messages, documentation — all in your preferred language. Auto-translate bridge ensures the AI understands you perfectly.</p>
+    </div>
+  </section>
+
+
+  <!-- WHY CodeIn — COMPETITIVE COMPARISON -->
+  <section id="why-codein" class="relative py-24 px-6">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-emerald-400 tracking-widest uppercase mb-3" data-i18n="compare.label">Why CodeIn</p>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4" data-i18n="compare.title">How we compare to paid tools</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto" data-i18n="compare.subtitle">Cursor, Copilot, Windsurf, and others charge $10–$40/month. CodeIn gives you more — for free, forever.</p>
+      </div>
+
+      <!-- Comparison Table -->
+      <div class="overflow-x-auto rounded-2xl border border-white/10 bg-surface-900/60 backdrop-blur-sm">
+        <table class="w-full text-sm text-left">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="px-6 py-4 text-gray-400 font-medium" data-i18n="compare.feature">Feature</th>
+              <th class="px-6 py-4 text-center">
+                <span class="font-bold bg-gradient-to-r from-saffron-400 to-brand-400 bg-clip-text text-transparent text-base">CodeIn</span>
+                <span class="block text-xs text-emerald-400 font-semibold mt-0.5">FREE</span>
+              </th>
+              <th class="px-6 py-4 text-center text-gray-400 font-medium">Cursor<br><span class="text-xs text-gray-600">$20/mo</span></th>
+              <th class="px-6 py-4 text-center text-gray-400 font-medium">Copilot<br><span class="text-xs text-gray-600">$10/mo</span></th>
+              <th class="px-6 py-4 text-center text-gray-400 font-medium">Windsurf<br><span class="text-xs text-gray-600">$15/mo</span></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            <tr class="hover:bg-white/[0.02] transition-colors">
+              <td class="px-6 py-3.5 text-gray-300">AI Code Completion</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors">
+              <td class="px-6 py-3.5 text-gray-300">AI Chat &amp; Agent Mode</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">100% Free &amp; Open Source</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">Runs Fully Offline (Local AI)</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">20+ Indian Language Support</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">Voice Coding (Indian Languages)</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">Sovereign / Air-Gapped Mode</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors">
+              <td class="px-6 py-3.5 text-gray-300">MCP Tool Protocol</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-gray-600 text-lg">~</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">Git Commit &amp; Push to GitHub</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-gray-600 text-lg">~</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">Built-in Web Research</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-gray-600 text-lg">~</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">Zero Telemetry / No Tracking</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors">
+              <td class="px-6 py-3.5 text-gray-300">Local Compute Engine</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+            </tr>
+            <tr class="hover:bg-white/[0.02] transition-colors bg-emerald-500/[0.03]">
+              <td class="px-6 py-3.5 text-white font-medium">Local Media Generation (Images/Video)</td>
+              <td class="px-6 py-3.5 text-center text-emerald-400 text-lg font-bold">&#x2713;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+              <td class="px-6 py-3.5 text-center text-red-400/70 text-lg">&#x2717;</td>
+            </tr>
+            <tr class="border-t border-white/10 bg-surface-800/30">
+              <td class="px-6 py-4 text-white font-semibold" data-i18n="compare.price">Price</td>
+              <td class="px-6 py-4 text-center"><span class="text-lg font-extrabold bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent">$0</span><span class="block text-xs text-emerald-400/70">forever</span></td>
+              <td class="px-6 py-4 text-center text-gray-400">$20/mo</td>
+              <td class="px-6 py-4 text-center text-gray-400">$10/mo</td>
+              <td class="px-6 py-4 text-center text-gray-400">$15/mo</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-center text-gray-500 text-xs mt-4" data-i18n="compare.footnote">&#x2713; = Full support &nbsp; ~ = Partial &nbsp; &#x2717; = Not available. Comparison as of July 2025.</p>
+
+      <!-- Highlight Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+        <div class="p-6 rounded-2xl border border-saffron-500/20 bg-saffron-500/5">
+          <div class="text-3xl mb-3">&#x1f4b0;</div>
+          <h3 class="text-white font-semibold mb-2" data-i18n="compare.card1.title">Save $120–$480/year</h3>
+          <p class="text-sm text-gray-400" data-i18n="compare.card1.desc">Cursor costs $240/yr, Copilot $120/yr. CodeIn is free forever with no usage limits, no premium tiers, no locked features.</p>
+        </div>
+        <div class="p-6 rounded-2xl border border-brand-500/20 bg-brand-500/5">
+          <div class="text-3xl mb-3">&#x1f512;</div>
+          <h3 class="text-white font-semibold mb-2" data-i18n="compare.card2.title">Your Code Stays Yours</h3>
+          <p class="text-sm text-gray-400" data-i18n="compare.card2.desc">Paid tools send your code to their servers for processing. CodeIn's local AI means your proprietary code, API keys, and secrets never leave your machine.</p>
+        </div>
+        <div class="p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5">
+          <div class="text-3xl mb-3">&#x1f1ee;&#x1f1f3;</div>
+          <h3 class="text-white font-semibold mb-2" data-i18n="compare.card3.title">Built for Bharat</h3>
+          <p class="text-sm text-gray-400" data-i18n="compare.card3.desc">No other AI code editor supports 20+ Indian languages for voice, chat, and comments. CodeIn thinks in your mother tongue.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- DOWNLOADS -->
+  <section id="downloads" class="relative py-24 px-6">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-500/30 to-transparent"></div>
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-saffron-400 tracking-widest uppercase mb-3" data-i18n="downloads.label">Downloads</p>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4" data-i18n="downloads.title">Get CodeIn for your platform</h2>
+        <p class="text-gray-400 max-w-lg mx-auto" data-i18n="downloads.subtitle">All builds ship with the bundled AI engine. No extra downloads required.</p>
+      </div>
+
+      <div class="flex justify-center mb-12">
+        <div class="inline-flex rounded-xl border border-white/10 bg-surface-900/50 p-1 gap-1">
+          <button onclick="showPlatform('windows')" id="tab-windows" class="os-tab px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+            Windows
+          </button>
+          <button onclick="showPlatform('mac')" id="tab-mac" class="os-tab px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            macOS
+          </button>
+          <button onclick="showPlatform('linux')" id="tab-linux" class="os-tab px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            Linux
+          </button>
+        </div>
+      </div>
+
+      <div id="download-cards" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"></div>
+
+      <div class="mt-12 text-center">
+        <p class="text-sm text-gray-500">
+          Latest release: <span id="release-version" class="text-gray-400 font-mono">v1.0.0</span>
+           <span id="release-date" class="text-gray-400">March 2026</span>
+           <a id="release-notes-link" href="https://github.com/AcodeAI/codein/releases/latest" target="_blank" rel="noopener" class="text-brand-400 hover:text-brand-300 underline underline-offset-2">Release notes</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- SYSTEM REQUIREMENTS -->
+  <section id="requirements" class="relative py-24 px-6">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-saffron-500/20 to-transparent"></div>
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-emerald-400 tracking-widest uppercase mb-3" data-i18n="req.label">Requirements</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4" data-i18n="req.title">System Requirements</h2>
+        <p class="text-gray-400 max-w-lg mx-auto" data-i18n="req.subtitle">Lightweight enough for a laptop, powerful enough for serious work.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-6 rounded-2xl border border-white/5 bg-surface-900/50">
+          <div class="flex items-center gap-3 mb-4">
+            <svg class="w-6 h-6 text-brand-400" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+            <h3 class="text-lg font-semibold text-white">Windows</h3>
+          </div>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> Windows 10 or later (x64)</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> 8 GB RAM (16 GB recommended)</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> 500 MB free disk space</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> GPU optional (CUDA supported)</li>
+          </ul>
+        </div>
+        <div class="p-6 rounded-2xl border border-white/5 bg-surface-900/50">
+          <div class="flex items-center gap-3 mb-4">
+            <svg class="w-6 h-6 text-gray-300" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <h3 class="text-lg font-semibold text-white">macOS</h3>
+          </div>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> macOS 12 Monterey or later</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> Intel or Apple Silicon (M1+)</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> 8 GB RAM (16 GB recommended)</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> 500 MB free disk space</li>
+          </ul>
+        </div>
+        <div class="p-6 rounded-2xl border border-white/5 bg-surface-900/50">
+          <div class="flex items-center gap-3 mb-4">
+            <svg class="w-6 h-6 text-saffron-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            <h3 class="text-lg font-semibold text-white">Linux</h3>
+          </div>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> Ubuntu 20.04+ / Fedora 36+</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> x64 architecture</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> 8 GB RAM (16 GB recommended)</li>
+            <li class="flex items-start gap-2"><span class="text-gray-600 mt-0.5">&#x2022;</span> 500 MB free disk space</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- FAQ -->
+  <section id="faq" class="relative py-24 px-6">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-500/20 to-transparent"></div>
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-sm font-semibold text-brand-400 tracking-widest uppercase mb-3" data-i18n="faq.label">FAQ</p>
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4" data-i18n="faq.title">Frequently Asked Questions</h2>
+      </div>
+      <div class="space-y-4" id="faq-list">
+        <div class="faq-item rounded-xl border border-white/5 bg-surface-900/50 overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+            <span class="font-medium text-white" data-i18n="faq.q1">Is CodeIn really free?</span>
+            <svg class="faq-chevron w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer hidden px-5 pb-5"><p class="text-sm text-gray-400 leading-relaxed" data-i18n="faq.a1">Yes! CodeIn is 100% free and open-source under the Apache-2.0 license. No subscription, no premium tier, no locked features. The bundled AI runs locally on your hardware — there are no API costs.</p></div>
+        </div>
+        <div class="faq-item rounded-xl border border-white/5 bg-surface-900/50 overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+            <span class="font-medium text-white" data-i18n="faq.q2">Does it send my code to the cloud?</span>
+            <svg class="faq-chevron w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer hidden px-5 pb-5"><p class="text-sm text-gray-400 leading-relaxed" data-i18n="faq.a2">No. CodeIn ships with a bundled llama.cpp inference engine that runs entirely on your machine. Your code, prompts, and AI responses never leave your computer. You can optionally connect cloud providers like OpenAI or Anthropic, but that is entirely your choice.</p></div>
+        </div>
+        <div class="faq-item rounded-xl border border-white/5 bg-surface-900/50 overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+            <span class="font-medium text-white" data-i18n="faq.q3">Which Indian languages are supported?</span>
+            <svg class="faq-chevron w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer hidden px-5 pb-5"><p class="text-sm text-gray-400 leading-relaxed" data-i18n="faq.a3">Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more — over 20 languages. The AI agent can understand prompts, generate comments, and explain code in all of these.</p></div>
+        </div>
+        <div class="faq-item rounded-xl border border-white/5 bg-surface-900/50 overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+            <span class="font-medium text-white" data-i18n="faq.q4">Do I need a GPU?</span>
+            <svg class="faq-chevron w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer hidden px-5 pb-5"><p class="text-sm text-gray-400 leading-relaxed" data-i18n="faq.a4">No. CodeIn works on CPU-only machines. However, if you have an NVIDIA GPU with CUDA support, the inference engine will automatically use it for significantly faster AI responses.</p></div>
+        </div>
+        <div class="faq-item rounded-xl border border-white/5 bg-surface-900/50 overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+            <span class="font-medium text-white" data-i18n="faq.q5">Can I use cloud AI providers instead?</span>
+            <svg class="faq-chevron w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer hidden px-5 pb-5"><p class="text-sm text-gray-400 leading-relaxed" data-i18n="faq.a5">Absolutely. CodeIn supports OpenAI, Anthropic, Google Gemini, Ollama, and many other providers. Just add your API key in Settings. The local engine is the default, but you can switch anytime.</p></div>
+        </div>
+        <div class="faq-item rounded-xl border border-white/5 bg-surface-900/50 overflow-hidden">
+          <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+            <span class="font-medium text-white" data-i18n="faq.q6">What makes CodeIn different from Cursor or Copilot?</span>
+            <svg class="faq-chevron w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div class="faq-answer hidden px-5 pb-5"><p class="text-sm text-gray-400 leading-relaxed" data-i18n="faq.a6">CodeIn is built for Bharat. It supports 20+ Indian languages for voice coding, AI chat, and comments. It runs fully offline with Sovereign Mode. It has a built-in compute engine, web research, and MCP tools — all free, open-source, and private.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- CTA -->
+  <section class="relative py-24 px-6">
+    <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-saffron-500/20 to-transparent"></div>
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="tricolor-line w-24 mx-auto mb-10"></div>
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
+        <span data-i18n="cta.title1">Ready to code in</span><br class="hidden sm:block" />
+        <span class="bg-gradient-to-r from-saffron-400 via-brand-400 to-emerald-400 bg-clip-text text-transparent" data-i18n="cta.title2">your language?</span>
+      </h2>
+      <p class="text-gray-400 max-w-lg mx-auto mb-10" data-i18n="cta.subtitle">Join thousands of Indian developers already using CodeIn. Free, open-source, privacy-first.</p>
+      <button onclick="downloadForCurrentOS()" class="group inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-saffron-500 to-brand-500 hover:from-saffron-400 hover:to-brand-400 text-white font-semibold text-lg shadow-2xl shadow-saffron-600/20 hover:shadow-saffron-500/30 transition-all duration-300 hover:-translate-y-0.5">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span id="cta-btn-text">Download CodeIn</span>
+      </button>
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/5 py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+        <div class="col-span-2 md:col-span-1">
+          <div class="flex items-center gap-2 mb-4">
+            <img src="assets/codein-logo.png" alt="CodeIn" class="h-7 rounded" />
+            <span class="font-bold text-white">CodeIn</span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">
+            <span data-i18n="footer.tagline">AI-powered code editor for Bharat.</span><br>
+            <span data-i18n="footer.madeWith">Made with &#x2764;&#xfe0f; in India.</span>
+          </p>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-4" data-i18n="footer.product">Product</h4>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="#features" class="hover:text-gray-300 transition-colors" data-i18n="nav.features">Features</a></li>
+            <li><a href="#skills" class="hover:text-gray-300 transition-colors" data-i18n="nav.skills">Superpowers</a></li>
+            <li><a href="#downloads" class="hover:text-gray-300 transition-colors" data-i18n="nav.downloads">Downloads</a></li>
+            <li><a href="#faq" class="hover:text-gray-300 transition-colors" data-i18n="nav.faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-4" data-i18n="footer.community">Community</h4>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="https://github.com/AcodeAI/codein" target="_blank" rel="noopener" class="hover:text-gray-300 transition-colors">GitHub</a></li>
+            <li><a href="https://github.com/AcodeAI/codein/issues" target="_blank" rel="noopener" class="hover:text-gray-300 transition-colors">Report a Bug</a></li>
+            <li><a href="https://github.com/AcodeAI/codein/discussions" target="_blank" rel="noopener" class="hover:text-gray-300 transition-colors">Discussions</a></li>
+            <li><a href="CONTRIBUTING.md" class="hover:text-gray-300 transition-colors">Contributing</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-4" data-i18n="footer.legal">Legal</h4>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="LICENSE" class="hover:text-gray-300 transition-colors">Apache-2.0 License</a></li>
+            <li><a href="SECURITY.md" class="hover:text-gray-300 transition-colors">Security Policy</a></li>
+            <li><a href="CODE_OF_CONDUCT.md" class="hover:text-gray-300 transition-colors">Code of Conduct</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row items-center justify-between pt-8 border-t border-white/5">
+        <p class="text-xs text-gray-600 mb-4 sm:mb-0">&#xa9; 2025-2026 CodeIn Project. Open-source under Apache-2.0.</p>
+        <div class="flex items-center gap-1 text-xs text-gray-600">
+          <span data-i18n="footer.builtFor">Built for</span>
+          <span class="inline-flex gap-0.5 mx-1">
+            <span class="w-3 h-0.5 rounded bg-saffron-500"></span>
+            <span class="w-3 h-0.5 rounded bg-white"></span>
+            <span class="w-3 h-0.5 rounded bg-emerald-500"></span>
+          </span>
+          <span data-i18n="footer.bharat">Bharat</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script src="i18n.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -3,7 +3,7 @@ import { IdeMessengerContext } from "../../context/IdeMessenger";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { setInlineErrorMessage } from "../../redux/slices/sessionSlice";
 
-export type InlineErrorMessageType = "out-of-context";
+export type InlineErrorMessageType = "out-of-context" | "invalid-contract";
 
 export default function InlineErrorMessage() {
   const dispatch = useAppDispatch();
@@ -32,6 +32,27 @@ export default function InlineErrorMessage() {
             <span className="xs:hidden">Config</span>
           </div>
           |
+          <span
+            className="cursor-pointer text-xs hover:underline"
+            onClick={() => {
+              dispatch(setInlineErrorMessage(undefined));
+            }}
+          >
+            Hide
+          </span>
+        </div>
+      </div>
+    );
+  }
+  if (inlineErrorMessage === "invalid-contract") {
+    return (
+      <div
+        className={`border-border relative m-2 flex flex-col rounded-md border border-solid bg-transparent p-4`}
+      >
+        <p className={`thread-message text-error text-center`}>
+          {`Implement mode requires strict JSON output. The response was invalid and no changes were applied.`}
+        </p>
+        <div className="text-description flex flex-row items-center justify-center gap-1.5 px-3">
           <span
             className="cursor-pointer text-xs hover:underline"
             onClick={() => {

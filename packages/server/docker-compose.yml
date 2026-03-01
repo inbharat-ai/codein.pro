@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  codin-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codin-agent
+    ports:
+      - "43120:43120"
+    environment:
+      - NODE_ENV=production
+      - PORT=43120
+      - LOG_LEVEL=info
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://codin:codin@postgres:5432/codin
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - LLM_MODEL=qwen
+      - CACHE_TTL=3600000
+      - MAX_WORKERS=4
+    volumes:
+      - ./logs:/app/logs
+      - ./plugins:/app/plugins
+      - ./models:/app/models
+      - ./config:/app/config
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - codin-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:43120/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+  ai4bharat:
+    image: ai4bharat/indic-transformers:latest
+    container_name: ai4bharat-service
+    ports:
+      - "43121:5000"
+    environment:
+      - FLASK_ENV=production
+      - LANGUAGE_MODEL=indicbert
+      - CACHE_DIR=/models
+    volumes:
+      - ./models:/models
+      - ./logs/ai4bharat:/logs
+    networks:
+      - codin-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7-alpine
+    container_name: codin-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - codin-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis-password}
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: codin-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=codin
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-codin}
+      - POSTGRES_DB=codin
+      - POSTGRES_INITDB_ARGS=-c shared_preload_libraries=pg_stat_statements
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - codin-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codin"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+
+networks:
+  codin-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

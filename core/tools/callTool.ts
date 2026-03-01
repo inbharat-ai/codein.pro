@@ -12,6 +12,12 @@ import { fetchUrlContentImpl } from "./implementations/fetchUrlContent";
 import { fileGlobSearchImpl } from "./implementations/globSearch";
 import { grepSearchImpl } from "./implementations/grepSearch";
 import { lsToolImpl } from "./implementations/lsTool";
+import {
+  generateImageImpl,
+  generateVideoImpl,
+  imageToVideoImpl,
+  renderDiagramImpl,
+} from "./implementations/mediaTools";
 import { readCurrentlyOpenFileImpl } from "./implementations/readCurrentlyOpenFile";
 import { readFileImpl } from "./implementations/readFile";
 
@@ -220,6 +226,14 @@ export async function callBuiltInTool(
       return await viewRepoMapImpl(args, extras);
     case BuiltInToolNames.ViewSubdirectory:
       return await viewSubdirectoryImpl(args, extras);
+    case BuiltInToolNames.RenderDiagram:
+      return await renderDiagramImpl(args, extras);
+    case BuiltInToolNames.GenerateImage:
+      return await generateImageImpl(args, extras);
+    case BuiltInToolNames.GenerateVideo:
+      return await generateVideoImpl(args, extras);
+    case BuiltInToolNames.ImageToVideo:
+      return await imageToVideoImpl(args, extras);
     default:
       throw new Error(`Tool "${functionName}" not found`);
   }

@@ -1,0 +1,21 @@
+{
+  "name": "@codein/media",
+  "version": "0.1.0",
+  "description": "CodeIn Media Toolkit — local-only diagram, image, and video generation tools",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test src/__tests__/*.test.js",
+    "smoke": "node src/__tests__/smoke.test.js"
+  },
+  "keywords": [
+    "codein",
+    "media",
+    "diagrams",
+    "image-generation",
+    "video-generation",
+    "local-ai"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {}
+}

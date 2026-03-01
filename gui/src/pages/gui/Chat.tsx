@@ -48,10 +48,16 @@ import { useStore } from "react-redux";
 import { BackgroundModeView } from "../../components/BackgroundMode/BackgroundModeView";
 import { CliInstallBanner } from "../../components/CliInstallBanner";
 import FeedbackDialog from "../../components/dialogs/FeedbackDialog";
+import { ImplementPreviewPanel } from "../../components/ImplementPreviewPanel";
+import { ModeSelector } from "../../components/ModeSelector";
+import { VoicePanel } from "../../components/VoicePanel";
 
 import { FatalErrorIndicator } from "../../components/config/FatalErrorNotice";
 import InlineErrorMessage from "../../components/mainInput/InlineErrorMessage";
 import { resolveEditorContent } from "../../components/mainInput/TipTapEditor/utils/resolveEditorContent";
+import { ModelBadge } from "../../components/ModelBadge";
+import { SovereignModeBadge } from "../../components/SovereignModeBadge";
+import { selectSelectedChatModel } from "../../redux/slices/configSlice";
 import { setDialogMessage, setShowDialog } from "../../redux/slices/uiSlice";
 import { RootState } from "../../redux/store";
 import { cancelStream } from "../../redux/thunks/cancelStream";
@@ -433,10 +439,22 @@ export function Chat() {
 
   const showScrollbar = showChatScrollbar ?? window.innerHeight > 5000;
 
+  const selectedChatModel = useAppSelector(selectSelectedChatModel);
+  const modelTitle = selectedChatModel?.title || selectedChatModel?.model || "";
+
   return (
     <>
       {!!showSessionTabs && !isInEdit && <TabBar ref={tabsRef} />}
       {widget}
+      {!isInEdit && (
+        <div className="flex items-center gap-2 px-2 py-1">
+          <ModeSelector />
+          <div className="ml-auto flex items-center gap-1.5">
+            {modelTitle && <ModelBadge model={modelTitle} compact />}
+            <SovereignModeBadge compact alwaysShow />
+          </div>
+        </div>
+      )}
 
       <StepsDiv
         ref={stepsDivRef}
@@ -464,6 +482,7 @@ export function Chat() {
             </div>
           ))}
       </StepsDiv>
+      <ImplementPreviewPanel />
       <div className={"relative"}>
         <ContinueInputBox
           isMainInput
@@ -499,6 +518,7 @@ export function Chat() {
                 </NewSessionButton>
               )}
             </div>
+            <VoicePanel />
           </div>
           <FatalErrorIndicator />
           {!hasDismissedExploreDialog && <ExploreDialogWatcher />}

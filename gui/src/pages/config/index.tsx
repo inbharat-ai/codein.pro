@@ -2,13 +2,14 @@ import { isOnPremSession } from "core/control-plane/AuthTypes";
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AssistantAndOrgListbox } from "../../components/AssistantAndOrgListbox";
+import { CliInstallBanner } from "../../components/CliInstallBanner";
 import Alert from "../../components/gui/Alert";
+import { LocalModulesBootstrapBanner } from "../../components/LocalModulesBootstrapBanner";
 import { Divider } from "../../components/ui/Divider";
 import { TabGroup } from "../../components/ui/TabGroup";
 import { useAuth } from "../../context/Auth";
 import { useNavigationListener } from "../../hooks/useNavigationListener";
 import { bottomTabSections, getAllTabs, topTabSections } from "./configTabs";
-import { CliInstallBanner } from "../../components/CliInstallBanner";
 import { AccountDropdown } from "./features/account/AccountDropdown";
 
 function ConfigPage() {
@@ -92,6 +93,7 @@ function ConfigPage() {
         {/* Tab Content for larger screens (md and above) */}
         <div className="thin-scrollbar relative hidden flex-1 overflow-y-auto sm:block">
           <div className="space-y-6 px-4 py-4">
+            <LocalModulesBootstrapBanner />
             {allTabs.find((tab) => tab.id === activeTab)?.component}
           </div>
           <CliInstallBanner permanentDismissal={true} />

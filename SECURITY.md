@@ -1,16 +1,17 @@
-# Security Policy
+# Security
 
-## Reporting a Vulnerability
+## Key Handling
 
-If you discover a security vulnerability, please do not open a public issue. Instead, please report it by emailing security@continue.dev. We will be highly responsive to all security concerns and ask that you give us sufficient time to investigate and address the vulnerability before disclosing it publicly.
+- API keys are stored in VS Code SecretStorage.
+- BharatAgent receives only temporary session tokens when possible.
+- Keys are never logged.
 
-Please include the following details in your report:
+## Permissions
 
-- A description of the vulnerability
-- Steps to reproduce the issue
-- Your assessment of the potential impact
-- Any possible mitigations
+- Tool execution requires explicit confirmation.
+- Git actions and deploy commands require confirmation.
+- Run commands are gated by per-workspace allow lists.
 
-## Contact
+## Telemetry
 
-For any other questions or concerns related to security, please contact us at security@continue.dev.
+Telemetry is OFF by default. When enabled, only anonymized events are sent.

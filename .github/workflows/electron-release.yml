@@ -1,0 +1,227 @@
+# CodeIn Electron Multi-OS Release Build
+#
+# Builds distributable artifacts for Windows, macOS, and Linux.
+# Triggers: manual dispatch or tag push matching v*.
+#
+# Prerequisites (GitHub Secrets):
+#   - APPLE_ID, APPLE_ID_PASSWORD, APPLE_TEAM_ID (macOS notarization)
+#   - CSC_LINK, CSC_KEY_PASSWORD (Windows code signing, optional)
+#
+# Outputs: Artifacts uploaded to GitHub Actions run, plus GitHub Release.
+
+name: "CodeIn Electron Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version tag (e.g. v1.0.0-beta)"
+        required: true
+        default: "v1.0.0-beta"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  # ─── STEP 1: Download llama-server binaries for all OS ───
+  fetch-llama:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download llama-server (win32)
+        run: |
+          mkdir -p electron-app/assets/llama/win32
+          if [ ! -f electron-app/assets/llama/win32/llama-server.exe ]; then
+            echo "⚠ win32 llama-server.exe not in repo. Download from llama.cpp releases."
+            echo "Placeholder — replace with real download URL"
+          fi
+
+      - name: Download llama-server (darwin)
+        run: |
+          mkdir -p electron-app/assets/llama/darwin
+          # Example: curl -L -o llama-server https://github.com/ggml-org/llama.cpp/releases/download/<tag>/llama-server-macos-arm64
+          echo "TODO: Download darwin llama-server from llama.cpp releases"
+
+      - name: Download llama-server (linux)
+        run: |
+          mkdir -p electron-app/assets/llama/linux
+          # Example: curl -L -o llama-server https://github.com/ggml-org/llama.cpp/releases/download/<tag>/llama-server-linux-x64
+          echo "TODO: Download linux llama-server from llama.cpp releases"
+
+      - name: Upload llama assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: llama-binaries
+          path: electron-app/assets/llama/
+
+  # ─── STEP 2: Build Windows ───
+  build-windows:
+    needs: fetch-llama
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: llama-binaries
+          path: electron-app/assets/llama/
+
+      - name: Install dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: electron-app
+        run: npm run build
+
+      - name: Build Electron (Windows NSIS + Portable)
+        working-directory: electron-app
+        run: npx electron-builder --win nsis portable --x64
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: List artifacts
+        working-directory: electron-app/release
+        run: Get-ChildItem -Recurse -File | Where-Object { $_.Extension -in '.exe','.zip','.blockmap','.yml' } | Select-Object Name, Length
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: codin-windows
+          path: |
+            electron-app/release/*.exe
+            electron-app/release/*.zip
+            electron-app/release/*.blockmap
+            electron-app/release/*.yml
+
+  # ─── STEP 3: Build macOS ───
+  build-macos:
+    needs: fetch-llama
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: llama-binaries
+          path: electron-app/assets/llama/
+
+      - name: Install dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: electron-app
+        run: npm run build
+
+      - name: Build Electron (macOS DMG + ZIP)
+        working-directory: electron-app
+        run: npx electron-builder --mac dmg zip --x64 --arm64
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # Uncomment for notarization:
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: List artifacts
+        working-directory: electron-app/release
+        run: ls -la *.dmg *.zip 2>/dev/null || echo "No DMG/ZIP found"
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: codin-macos
+          path: |
+            electron-app/release/*.dmg
+            electron-app/release/*.zip
+
+  # ─── STEP 4: Build Linux ───
+  build-linux:
+    needs: fetch-llama
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: llama-binaries
+          path: electron-app/assets/llama/
+
+      - name: Install dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: electron-app
+        run: npm run build
+
+      - name: Build Electron (Linux AppImage + deb + rpm)
+        working-directory: electron-app
+        run: npx electron-builder --linux AppImage deb --x64
+
+      - name: List artifacts
+        working-directory: electron-app/release
+        run: ls -la *.AppImage *.deb 2>/dev/null || echo "No AppImage/deb found"
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: codin-linux
+          path: |
+            electron-app/release/*.AppImage
+            electron-app/release/*.deb
+
+  # ─── STEP 5: Checksums + GitHub Release ───
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Generate SHA256 checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) | while read f; do
+            sha256sum "$f" >> ../SHA256SUMS.txt
+          done
+          cat ../SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          name: "CodeIn ${{ github.event.inputs.version || github.ref_name }}"
+          body_path: docs/RELEASE_NOTES.md
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.dmg
+            artifacts/**/*.zip
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            SHA256SUMS.txt
+          draft: false
+          prerelease: true

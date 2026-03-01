@@ -36,6 +36,14 @@ export const getConfigDependentToolDefinitions = async (
       toolDefinitions.codebaseTool,
       toolDefinitions.readFileRangeTool,
     );
+
+    // Media toolkit tools (diagrams, images, videos)
+    tools.push(
+      toolDefinitions.renderDiagramTool,
+      toolDefinitions.generateImageTool,
+      toolDefinitions.generateVideoTool,
+      toolDefinitions.imageToVideoTool,
+    );
   }
 
   if (modelName && isRecommendedAgentModel(modelName)) {

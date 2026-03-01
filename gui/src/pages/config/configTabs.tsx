@@ -2,22 +2,32 @@ import {
   ArrowLeftIcon,
   BuildingOfficeIcon,
   CircleStackIcon,
+  ClipboardDocumentListIcon,
+  CodeBracketSquareIcon,
   Cog6ToothIcon,
   CubeIcon,
   DocumentIcon,
   PencilIcon,
+  PlayCircleIcon,
   QuestionMarkCircleIcon,
+  RocketLaunchIcon,
+  ServerStackIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { ConfigSection } from "./components/ConfigSection";
 import { ConfigsSection } from "./sections/ConfigsSection";
+import { DeploySection } from "./sections/DeploySection";
+import { GitSection } from "./sections/GitSection";
 import { HelpSection } from "./sections/HelpSection";
 import { IndexingSettingsSection } from "./sections/IndexingSettingsSection";
+import { McpSection } from "./sections/McpSection";
 import { ModelsSection } from "./sections/ModelsSection";
 import { OrganizationsSection } from "./sections/OrganizationsSection";
 import { RulesSection } from "./sections/RulesSection";
+import { RunSection } from "./sections/RunSection";
 import { ToolsSection } from "./sections/ToolsSection";
 import { UserSettingsSection } from "./sections/UserSettingsSection";
+import { AgentActivitySection } from "./sections/AgentActivitySection";
 
 interface TabOption {
   id: string;
@@ -80,6 +90,72 @@ export const topTabSections: TabSection[] = [
         ),
         icon: (
           <WrenchScrewdriverIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
+        ),
+      },
+    ],
+  },
+  {
+    id: "actions",
+    showTopDivider: true,
+    tabs: [
+      {
+        id: "agent-activity",
+        label: "Agent Activity",
+        component: (
+          <ConfigSection>
+            <AgentActivitySection />
+          </ConfigSection>
+        ),
+        icon: (
+          <ClipboardDocumentListIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
+        ),
+      },
+      {
+        id: "run",
+        label: "Run",
+        component: (
+          <ConfigSection>
+            <RunSection />
+          </ConfigSection>
+        ),
+        icon: (
+          <PlayCircleIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
+        ),
+      },
+      {
+        id: "git",
+        label: "Git",
+        component: (
+          <ConfigSection>
+            <GitSection />
+          </ConfigSection>
+        ),
+        icon: (
+          <CodeBracketSquareIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
+        ),
+      },
+      {
+        id: "deploy",
+        label: "Deploy",
+        component: (
+          <ConfigSection>
+            <DeploySection />
+          </ConfigSection>
+        ),
+        icon: (
+          <RocketLaunchIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
+        ),
+      },
+      {
+        id: "mcp",
+        label: "MCP",
+        component: (
+          <ConfigSection>
+            <McpSection />
+          </ConfigSection>
+        ),
+        icon: (
+          <ServerStackIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
         ),
       },
     ],

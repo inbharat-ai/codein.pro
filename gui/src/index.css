@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* CodeIn India-Tech Design System */
+@import "./styles/codin-theme.css";
+
 @font-face {
   font-family: "Inter";
   src: url("/fonts/Inter/InterDisplay-Light.woff2") format("woff2");
@@ -25,8 +28,9 @@ body,
 #root {
   height: 100%;
   line-height: 1.3;
-  background-color: var(--vscode-editor-background);
-  font-family:
+  background-color: var(--codin-bg-primary, var(--vscode-editor-background));
+  font-family: var(
+    --codin-font-sans,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
@@ -37,7 +41,15 @@ body,
     Cantarell,
     "Open Sans",
     "Helvetica Neue",
-    sans-serif;
+    sans-serif
+  );
+  /* Enable multilingual script rendering */
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {

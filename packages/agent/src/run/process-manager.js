@@ -1,0 +1,384 @@
+/**
+ * Process Manager
+ * Manages running dev servers and captures logs
+ */
+
+const { spawn } = require("node:child_process");
+const { EventEmitter } = require("node:events");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+
+const CODIN_DIR = path.join(os.homedir(), ".codin");
+const RUN_PROFILES_DIR = path.join(CODIN_DIR, "run_profiles");
+
+// Safe command allowlist
+const SAFE_COMMANDS = [
+  "npm",
+  "pnpm",
+  "yarn",
+  "bun",
+  "node",
+  "python",
+  "python3",
+  "pip",
+  "pip3",
+  "go",
+  "cargo",
+  "rustc",
+];
+
+class ProcessManager extends EventEmitter {
+  constructor() {
+    super();
+    this.processes = new Map(); // runId -> { process, profile, logs, status, url }
+    this.timeout = 300000; // 5 minutes default timeout
+    this.maxWorkers = 5; // Max concurrent processes
+    this.ensureDirectories();
+  }
+
+  ensureDirectories() {
+    if (!fs.existsSync(RUN_PROFILES_DIR)) {
+      fs.mkdirSync(RUN_PROFILES_DIR, { recursive: true });
+    }
+  }
+
+  /**
+   * Load run profile for workspace
+   */
+  loadProfile(workspaceHash) {
+    const profilePath = path.join(RUN_PROFILES_DIR, `${workspaceHash}.json`);
+
+    if (!fs.existsSync(profilePath)) {
+      return null;
+    }
+
+    return JSON.parse(fs.readFileSync(profilePath, "utf8"));
+  }
+
+  /**
+   * Save run profile for workspace
+   */
+  saveProfile(workspaceHash, profile) {
+    const profilePath = path.join(RUN_PROFILES_DIR, `${workspaceHash}.json`);
+    fs.writeFileSync(profilePath, JSON.stringify(profile, null, 2));
+  }
+
+  /**
+   * Check if command is safe
+   */
+  isSafeCommand(command) {
+    const baseCommand = command.split(" ")[0].toLowerCase();
+    return SAFE_COMMANDS.includes(baseCommand);
+  }
+
+  /**
+   * Start process
+   */
+  async start(profile, options = {}) {
+    const { runCmd, cwd, env = {}, port } = profile;
+
+    if (!runCmd) {
+      throw new Error("No run command specified");
+    }
+
+    // Check command safety
+    if (!this.isSafeCommand(runCmd) && !options.approved) {
+      throw new Error("Command requires approval: " + runCmd);
+    }
+
+    // Check max concurrent processes (fail-closed)
+    if (this.processes.size >= this.maxWorkers) {
+      throw new Error(
+        `Maximum concurrent processes (${this.maxWorkers}) reached. Stop a process and try again.`,
+      );
+    }
+
+    const runId = `run-${Date.now()}`;
+    const timeout = options.timeout || this.timeout;
+
+    console.log(`[ProcessManager] Starting: ${runCmd} in ${cwd}`);
+
+    // Parse command
+    const parts = runCmd.split(" ");
+    const command = parts[0];
+    const args = parts.slice(1);
+
+    // Setup timeout - Critical for Step 2.5
+    let timeoutHandle = null;
+    const timeoutError = new Error(`Process exceeded timeout of ${timeout}ms`);
+
+    // Spawn process
+    const child = spawn(command, args, {
+      cwd,
+      env: { ...process.env, ...env },
+      stdio: ["ignore", "pipe", "pipe"],
+      shell: true,
+    });
+
+    const runInfo = {
+      runId,
+      process: child,
+      profile,
+      logs: [],
+      status: "running",
+      url: null,
+      startedAt: new Date().toISOString(),
+      timeout,
+      timedOut: false,
+    };
+
+    this.processes.set(runId, runInfo);
+
+    // Set timeout - Kill process if it takes too long
+    timeoutHandle = setTimeout(() => {
+      console.warn(
+        `[ProcessManager] Process ${runId} exceeded timeout (${timeout}ms). Killing...`,
+      );
+      runInfo.timedOut = true;
+      runInfo.logs.push({
+        type: "system",
+        text: `TIMEOUT: Process exceeded ${timeout}ms limit`,
+        timestamp: Date.now(),
+      });
+
+      if (child && !child.killed) {
+        child.kill("SIGTERM");
+        // Force kill after 2 seconds
+        setTimeout(() => {
+          if (child && !child.killed) {
+            child.kill("SIGKILL");
+          }
+        }, 2000);
+      }
+    }, timeout);
+
+    // Capture stdout
+    child.stdout.on("data", (data) => {
+      const text = data.toString();
+      runInfo.logs.push({ type: "stdout", text, timestamp: Date.now() });
+      this.emit("log", { runId, type: "stdout", text });
+
+      // Try to detect URL
+      if (!runInfo.url) {
+        const url = this.detectURL(text, port);
+        if (url) {
+          runInfo.url = url;
+          this.emit("url-detected", { runId, url });
+        }
+      }
+    });
+
+    // Capture stderr
+    child.stderr.on("data", (data) => {
+      const text = data.toString();
+      runInfo.logs.push({ type: "stderr", text, timestamp: Date.now() });
+      this.emit("log", { runId, type: "stderr", text });
+    });
+
+    // Handle exit
+    child.on("close", (code) => {
+      clearTimeout(timeoutHandle);
+      const exitMsg = runInfo.timedOut
+        ? `Process ${runId} killed due to timeout. Exit code: ${code}`
+        : `Process ${runId} exited with code ${code}`;
+      console.log(`[ProcessManager] ${exitMsg}`);
+      runInfo.status = code === 0 || runInfo.timedOut ? "stopped" : "failed";
+      runInfo.exitCode = code;
+      this.emit("exited", { runId, code, timedOut: runInfo.timedOut });
+
+      // Clean up process reference
+      setTimeout(() => {
+        this.processes.delete(runId);
+      }, 60000); // Keep logs for 60 seconds after process ends
+    });
+
+    child.on("error", (err) => {
+      clearTimeout(timeoutHandle);
+      console.error(`[ProcessManager] Process ${runId} error:`, err.message);
+      runInfo.logs.push({
+        type: "error",
+        text: `ERROR: ${err.message}`,
+        timestamp: Date.now(),
+      });
+      runInfo.status = "failed";
+      runInfo.error = err.message;
+    });
+
+    return {
+      runId,
+      url: port ? `http://localhost:${port}` : null,
+    };
+  }
+
+  /**
+   * Detect URL from logs
+   */
+  detectURL(text, expectedPort) {
+    // Common patterns
+    const patterns = [
+      /https?:\/\/localhost:\d+/,
+      /https?:\/\/127\.0\.0\.1:\d+/,
+      /Local:\s+(https?:\/\/[^\s]+)/,
+      /listening on (https?:\/\/[^\s]+)/i,
+      /started server on (https?:\/\/[^\s]+)/i,
+    ];
+
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match) {
+        return match[1] || match[0];
+      }
+    }
+
+    // Fallback: check for port mentions
+    if (expectedPort) {
+      const portPattern = new RegExp(`:(${expectedPort})\\b`);
+      if (portPattern.test(text)) {
+        return `http://localhost:${expectedPort}`;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Stop process
+   */
+  async stop(runId) {
+    const runInfo = this.processes.get(runId);
+
+    if (!runInfo) {
+      throw new Error("Process not found");
+    }
+
+    console.log(`[ProcessManager] Stopping ${runId}...`);
+
+    // Kill process
+    if (runInfo.process && !runInfo.process.killed) {
+      runInfo.process.kill("SIGTERM");
+
+      // Force kill after 5s
+      setTimeout(() => {
+        if (runInfo.process && !runInfo.process.killed) {
+          runInfo.process.kill("SIGKILL");
+        }
+      }, 5000);
+    }
+
+    runInfo.status = "stopped";
+
+    return { success: true };
+  }
+
+  /**
+   * Restart process
+   */
+  async restart(runId) {
+    const runInfo = this.processes.get(runId);
+
+    if (!runInfo) {
+      throw new Error("Process not found");
+    }
+
+    await this.stop(runId);
+
+    // Wait a bit
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return this.start(runInfo.profile);
+  }
+
+  /**
+   * Get logs
+   */
+  getLogs(runId, options = {}) {
+    const runInfo = this.processes.get(runId);
+
+    if (!runInfo) {
+      throw new Error("Process not found");
+    }
+
+    const { tail = 100, follow = false } = options;
+
+    const logs = runInfo.logs.slice(-tail);
+
+    if (follow) {
+      // Return logs + setup listener
+      return {
+        logs,
+        subscribe: (callback) => {
+          this.on("log", (data) => {
+            if (data.runId === runId) {
+              callback(data);
+            }
+          });
+        },
+      };
+    }
+
+    return { logs };
+  }
+
+  /**
+   * Get process status
+   */
+  getStatus(runId) {
+    const runInfo = this.processes.get(runId);
+
+    if (!runInfo) {
+      return null;
+    }
+
+    return {
+      runId: runInfo.runId,
+      status: runInfo.status,
+      url: runInfo.url,
+      startedAt: runInfo.startedAt,
+      exitCode: runInfo.exitCode,
+      logsCount: runInfo.logs.length,
+    };
+  }
+
+  /**
+   * Get all running processes
+   */
+  getAllProcesses() {
+    const processes = [];
+
+    for (const [runId, runInfo] of this.processes.entries()) {
+      processes.push({
+        runId,
+        status: runInfo.status,
+        url: runInfo.url,
+        startedAt: runInfo.startedAt,
+        command: runInfo.profile.runCmd,
+      });
+    }
+
+    return processes;
+  }
+
+  /**
+   * Get sandbox statistics
+   */
+  getStats() {
+    return {
+      activeProcesses: this.processes.size,
+      maxWorkers: this.maxWorkers,
+      timeout: this.timeout,
+      processes: Array.from(this.processes.values()).map((p) => ({
+        runId: p.runId,
+        status: p.status,
+        command: p.profile.runCmd,
+        duration: Date.now() - new Date(p.startedAt).getTime(),
+        timedOut: p.timedOut || false,
+        logsCount: p.logs.length,
+      })),
+    };
+  }
+}
+
+const processManager = new ProcessManager();
+
+module.exports = { processManager };

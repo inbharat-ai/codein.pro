@@ -18,6 +18,12 @@ export enum BuiltInToolNames {
   CodebaseTool = "codebase",
   ReadSkill = "read_skill",
 
+  // Media toolkit
+  RenderDiagram = "media.render_diagram",
+  GenerateImage = "media.generate_image",
+  GenerateVideo = "media.generate_video",
+  ImageToVideo = "media.image_to_video",
+
   // excluded from allTools for now
   ViewRepoMap = "view_repo_map",
   ViewSubdirectory = "view_subdirectory",

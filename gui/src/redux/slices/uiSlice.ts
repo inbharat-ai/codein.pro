@@ -29,6 +29,7 @@ type UIState = {
   ruleSettings: RulePolicies;
   reasoningSettings: ReasoningSettings;
   ttsActive: boolean;
+  activePanel: string;
 };
 
 export const DEFAULT_TOOL_SETTING: ToolPolicy = "allowedWithPermission";
@@ -49,6 +50,7 @@ export const DEFAULT_UI_SLICE: UIState = {
   },
   ruleSettings: {},
   reasoningSettings: {},
+  activePanel: "explorer",
 };
 
 export const uiSlice = createSlice({
@@ -149,6 +151,9 @@ export const uiSlice = createSlice({
       state.reasoningSettings[action.payload.modelTitle] =
         action.payload.enabled;
     },
+    setActivePanel: (state, action: PayloadAction<string>) => {
+      state.activePanel = action.payload;
+    },
   },
 });
 
@@ -166,6 +171,7 @@ export const {
   toggleRuleSetting,
   setTTSActive,
   setReasoningSetting,
+  setActivePanel,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

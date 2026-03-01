@@ -36,3 +36,30 @@ export abstract class BaseContextProvider implements IContextProvider {
     return null;
   }
 }
+
+// Context intelligence exports
+export { routeFromBudget, routeWithContext } from "./ContextAwareRouter.js";
+export type {
+  ContextRoutingConfig,
+  ContextRoutingDecision,
+} from "./ContextAwareRouter.js";
+export { ContextBudgetManager } from "./ContextBudgetManager.js";
+export type {
+  BudgetAllocation,
+  BudgetUtilization,
+  ContextBudgetConfig,
+} from "./ContextBudgetManager.js";
+export { pruneByRelevance, scoreMessages } from "./RelevancePruner.js";
+export type { PruneResult, ScoredMessage } from "./RelevancePruner.js";
+
+// Multi-file reasoning
+export { MultiFileReasoningEngine } from "./MultiFileReasoningEngine.js";
+export type {
+  ChangeImpact,
+  CrossReference,
+  DependencyGraph,
+  FileNode,
+  ImportEdge,
+  RankedFile,
+  ReasoningContext,
+} from "./MultiFileReasoningEngine.js";

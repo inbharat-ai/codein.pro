@@ -14,11 +14,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "noEmitOnError": false,
     "types": ["vitest/globals"]
     // Disabled for now since it's causing too many errors
   },
-  "include": ["src", "../src/util/messenger.ts"],
+  "include": ["src", "../src/util/messenger.ts", "../packages/shared/src"],
+  "exclude": ["src/components/_dead", "src/redux/slices/_dead"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

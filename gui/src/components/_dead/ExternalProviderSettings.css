@@ -1,0 +1,302 @@
+/* ExternalProviderSettings — Cloud API configuration panel */
+
+.ext-provider-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ext-header {
+  margin-bottom: 4px;
+}
+
+.ext-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ext-subtitle {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.6;
+  line-height: 1.5;
+}
+
+.ext-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(243, 139, 168, 0.1);
+  border: 1px solid rgba(243, 139, 168, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #f38ba8;
+}
+
+.ext-error button {
+  background: none;
+  border: none;
+  color: #f38ba8;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Provider cards */
+.provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.provider-card {
+  background: var(--vscode-input-background, #313244);
+  border: 1px solid var(--vscode-input-border, #45475a);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.provider-card:hover {
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.provider-card.configured {
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+.provider-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.provider-card-header:hover {
+  background: rgba(102, 126, 234, 0.04);
+}
+
+.provider-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.provider-icon {
+  font-size: 22px;
+}
+
+.provider-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.provider-desc {
+  display: block;
+  font-size: 11px;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+.provider-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.status-badge.configured {
+  background: rgba(166, 227, 161, 0.15);
+  color: #a6e3a1;
+}
+
+.status-badge.unconfigured {
+  background: rgba(205, 214, 244, 0.08);
+  color: rgba(205, 214, 244, 0.5);
+}
+
+.expand-arrow {
+  font-size: 10px;
+  opacity: 0.4;
+}
+
+/* Provider details */
+.provider-details {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--vscode-panel-border, #313244);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.configure-section {
+  padding-top: 12px;
+}
+
+.api-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.api-input {
+  flex: 1;
+  padding: 10px 14px;
+  background: var(--vscode-editor-background, #1e1e2e);
+  color: var(--vscode-input-foreground, #cdd6f4);
+  border: 1px solid var(--vscode-input-border, #45475a);
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.api-input:focus {
+  border-color: #667eea;
+}
+
+.btn-configure {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+
+.btn-configure:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.connected-section {
+  padding-top: 12px;
+}
+
+.connected-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-test,
+.btn-remove {
+  padding: 8px 16px;
+  border: 1px solid var(--vscode-input-border, #45475a);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--vscode-editor-background, #1e1e2e);
+  color: var(--vscode-input-foreground, #cdd6f4);
+}
+
+.btn-test:hover {
+  border-color: #667eea;
+}
+.btn-remove:hover {
+  border-color: #f38ba8;
+  color: #f38ba8;
+}
+.btn-test:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.test-result {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+
+.test-result.success {
+  background: rgba(166, 227, 161, 0.1);
+  border: 1px solid rgba(166, 227, 161, 0.2);
+}
+
+.test-result.failure {
+  background: rgba(243, 139, 168, 0.1);
+  border: 1px solid rgba(243, 139, 168, 0.2);
+}
+
+.test-status {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.test-detail {
+  display: block;
+  opacity: 0.7;
+  font-size: 11px;
+}
+
+/* Models table */
+.models-table {
+  margin-top: 12px;
+}
+
+.table-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.model-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.model-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  background: var(--vscode-editor-background, #1e1e2e);
+}
+
+.model-id {
+  font-weight: 500;
+}
+.model-ctx {
+  text-align: center;
+  opacity: 0.7;
+}
+.model-quality {
+  text-align: center;
+}
+.model-speed {
+  text-align: right;
+  opacity: 0.6;
+  text-transform: capitalize;
+}

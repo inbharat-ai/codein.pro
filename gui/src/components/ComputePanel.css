@@ -1,0 +1,460 @@
+/* ====================================================================
+   CodeIn Compute Panel Styles
+   Uses .codin-* design system from codin-theme.css
+   ==================================================================== */
+
+.compute-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--codin-space-md);
+  gap: var(--codin-space-md);
+  font-family: var(--codin-font-sans);
+  overflow-y: auto;
+}
+
+/* ─── Header ──────────────────────────────────────────────── */
+
+.compute-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--codin-space-sm);
+  border-bottom: 1px solid var(--codin-border);
+}
+
+.compute-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--codin-space-sm);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--codin-fg);
+}
+
+.compute-header__icon {
+  width: 20px;
+  height: 20px;
+  color: var(--codin-saffron);
+}
+
+.compute-header__badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: var(--codin-radius-full);
+  background: var(--codin-saffron-subtle);
+  color: var(--codin-saffron);
+  font-weight: 500;
+}
+
+.compute-header__offline {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: var(--codin-radius-full);
+  background: var(--codin-warning-subtle, rgba(245, 158, 11, 0.15));
+  color: var(--codin-warning, #f59e0b);
+  font-weight: 500;
+}
+
+/* ─── Goal Input ──────────────────────────────────────────── */
+
+.compute-goal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-sm);
+}
+
+.compute-goal__label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--codin-fg-muted);
+}
+
+.compute-goal__input-row {
+  display: flex;
+  gap: var(--codin-space-sm);
+}
+
+.compute-goal__textarea {
+  flex: 1;
+  min-height: 60px;
+  max-height: 200px;
+  padding: var(--codin-space-sm);
+  border: 1px solid var(--codin-border);
+  border-radius: var(--codin-radius-md);
+  background: var(--codin-bg-secondary);
+  color: var(--codin-fg);
+  font-family: var(--codin-font-sans);
+  font-size: 0.9rem;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--codin-transition-fast);
+}
+
+.compute-goal__textarea:focus {
+  border-color: var(--codin-saffron);
+  box-shadow: 0 0 0 2px var(--codin-saffron-subtle);
+}
+
+.compute-goal__textarea::placeholder {
+  color: var(--codin-fg-muted);
+  opacity: 0.6;
+}
+
+.compute-goal__actions {
+  display: flex;
+  gap: var(--codin-space-sm);
+  align-items: flex-end;
+}
+
+/* ─── Policy Toggles ──────────────────────────────────────── */
+
+.compute-policy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--codin-space-sm);
+  padding: var(--codin-space-sm);
+  border-radius: var(--codin-radius-md);
+  background: var(--codin-bg-secondary);
+  border: 1px solid var(--codin-border);
+}
+
+.compute-policy__toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--codin-fg-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.compute-policy__toggle--active {
+  color: var(--codin-saffron);
+}
+
+.compute-policy__toggle input[type="checkbox"] {
+  accent-color: var(--codin-saffron);
+}
+
+/* ─── Plan Preview ────────────────────────────────────────── */
+
+.compute-plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-xs);
+  padding: var(--codin-space-sm);
+  border-radius: var(--codin-radius-md);
+  background: var(--codin-bg-secondary);
+  border: 1px solid var(--codin-border);
+}
+
+.compute-plan__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--codin-fg);
+  margin-bottom: var(--codin-space-xs);
+}
+
+.compute-plan__step {
+  display: flex;
+  align-items: center;
+  gap: var(--codin-space-sm);
+  padding: var(--codin-space-xs) var(--codin-space-sm);
+  border-radius: var(--codin-radius-sm);
+  font-size: 0.8rem;
+  transition: background var(--codin-transition-fast);
+}
+
+.compute-plan__step:hover {
+  background: var(--codin-bg-hover);
+}
+
+.compute-plan__step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.compute-plan__step--pending .compute-plan__step-num {
+  background: var(--codin-bg-tertiary, rgba(128, 128, 128, 0.2));
+  color: var(--codin-fg-muted);
+}
+
+.compute-plan__step--running .compute-plan__step-num {
+  background: var(--codin-saffron-subtle);
+  color: var(--codin-saffron);
+  animation: compute-pulse 1.5s ease-in-out infinite;
+}
+
+.compute-plan__step--completed .compute-plan__step-num {
+  background: var(--codin-success-subtle, rgba(34, 197, 94, 0.15));
+  color: var(--codin-success, #22c55e);
+}
+
+.compute-plan__step--failed .compute-plan__step-num {
+  background: var(--codin-error-subtle, rgba(239, 68, 68, 0.15));
+  color: var(--codin-error, #ef4444);
+}
+
+.compute-plan__step-desc {
+  flex: 1;
+  color: var(--codin-fg);
+}
+
+.compute-plan__step--completed .compute-plan__step-desc {
+  color: var(--codin-fg-muted);
+}
+
+.compute-plan__step-badge {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: var(--codin-radius-full);
+  background: var(--codin-bg-tertiary, rgba(128, 128, 128, 0.15));
+  color: var(--codin-fg-muted);
+}
+
+/* ─── Artifacts Panel ─────────────────────────────────────── */
+
+.compute-artifacts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-xs);
+}
+
+.compute-artifacts__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--codin-fg);
+}
+
+.compute-artifact {
+  display: flex;
+  align-items: center;
+  gap: var(--codin-space-sm);
+  padding: var(--codin-space-xs) var(--codin-space-sm);
+  border-radius: var(--codin-radius-sm);
+  background: var(--codin-bg-secondary);
+  border: 1px solid var(--codin-border);
+  cursor: pointer;
+  transition: all var(--codin-transition-fast);
+}
+
+.compute-artifact:hover {
+  border-color: var(--codin-saffron);
+  background: var(--codin-bg-hover);
+}
+
+.compute-artifact__icon {
+  font-size: 1rem;
+}
+
+.compute-artifact__name {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--codin-fg);
+}
+
+.compute-artifact__size {
+  font-size: 0.7rem;
+  color: var(--codin-fg-muted);
+}
+
+/* ─── Job Controls ─────────────────────────────────────────── */
+
+.compute-controls {
+  display: flex;
+  gap: var(--codin-space-sm);
+  align-items: center;
+}
+
+/* ─── Job List ────────────────────────────────────────────── */
+
+.compute-jobs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-xs);
+}
+
+.compute-job-card {
+  display: flex;
+  align-items: center;
+  gap: var(--codin-space-sm);
+  padding: var(--codin-space-sm);
+  border-radius: var(--codin-radius-md);
+  background: var(--codin-bg-secondary);
+  border: 1px solid var(--codin-border);
+  cursor: pointer;
+  transition: all var(--codin-transition-fast);
+}
+
+.compute-job-card:hover {
+  border-color: var(--codin-saffron-subtle);
+}
+
+.compute-job-card__status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.compute-job-card__status--running {
+  background: var(--codin-saffron);
+  animation: compute-pulse 1.5s ease-in-out infinite;
+}
+.compute-job-card__status--completed {
+  background: var(--codin-success, #22c55e);
+}
+.compute-job-card__status--failed {
+  background: var(--codin-error, #ef4444);
+}
+.compute-job-card__status--queued {
+  background: var(--codin-fg-muted);
+}
+.compute-job-card__status--paused {
+  background: var(--codin-warning, #f59e0b);
+}
+
+.compute-job-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.compute-job-card__goal {
+  font-size: 0.8rem;
+  color: var(--codin-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compute-job-card__meta {
+  font-size: 0.7rem;
+  color: var(--codin-fg-muted);
+}
+
+/* ─── Logs ────────────────────────────────────────────────── */
+
+.compute-logs {
+  max-height: 150px;
+  overflow-y: auto;
+  padding: var(--codin-space-sm);
+  border-radius: var(--codin-radius-md);
+  background: var(--codin-bg-secondary);
+  border: 1px solid var(--codin-border);
+  font-family: var(--codin-font-mono);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.compute-log {
+  display: flex;
+  gap: var(--codin-space-xs);
+}
+
+.compute-log__time {
+  color: var(--codin-fg-muted);
+  flex-shrink: 0;
+}
+
+.compute-log--error {
+  color: var(--codin-error, #ef4444);
+}
+.compute-log--warn {
+  color: var(--codin-warning, #f59e0b);
+}
+.compute-log--info {
+  color: var(--codin-fg);
+}
+
+/* ─── Animations ──────────────────────────────────────────── */
+
+@keyframes compute-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ─── Empty State ─────────────────────────────────────────── */
+
+.compute-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--codin-space-md);
+  padding: var(--codin-space-xl) var(--codin-space-md);
+  text-align: center;
+  color: var(--codin-fg-muted);
+}
+
+.compute-empty__icon {
+  font-size: 2.5rem;
+  opacity: 0.4;
+}
+
+.compute-empty__text {
+  font-size: 0.9rem;
+  max-width: 300px;
+}
+
+/* ─── Workflows Section ───────────────────────────────────── */
+
+.compute-workflows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-sm);
+}
+
+.compute-workflows__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--codin-fg);
+}
+
+.compute-workflow-card {
+  display: flex;
+  align-items: center;
+  gap: var(--codin-space-sm);
+  padding: var(--codin-space-sm);
+  border-radius: var(--codin-radius-md);
+  background: var(--codin-bg-secondary);
+  border: 1px solid var(--codin-border);
+  cursor: pointer;
+  transition: all var(--codin-transition-fast);
+}
+
+.compute-workflow-card:hover {
+  border-color: var(--codin-saffron);
+  transform: translateY(-1px);
+}
+
+.compute-workflow-card__icon {
+  font-size: 1.2rem;
+}
+
+.compute-workflow-card__info {
+  flex: 1;
+}
+
+.compute-workflow-card__name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--codin-fg);
+}
+
+.compute-workflow-card__desc {
+  font-size: 0.75rem;
+  color: var(--codin-fg-muted);
+}

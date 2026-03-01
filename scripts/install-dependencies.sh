@@ -50,7 +50,7 @@ popd
 
 # VSCode Extension (will also package GUI)
 echo "Installing VSCode extension dependencies..."
-pushd extensions/vscode
+pushd packages/extension
 # This does way too many things inline but is the common denominator between many of the scripts
 npm install
 npm link @continuedev/core

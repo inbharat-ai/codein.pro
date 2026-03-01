@@ -1,0 +1,505 @@
+/**
+ * CodeIn India-Tech Design System
+ * ──────────────────────────────────────────────────────────────────
+ * A modern, premium dark theme with deep indigo primary and
+ * subtle saffron accents — reflecting India's tech identity.
+ *
+ * Design principles:
+ *   - Dark-first, minimal, high-contrast readability
+ *   - Indigo (#312e81) as primary identity color
+ *   - Saffron (#f59e0b) as selective accent (badges, focus, active states)
+ *   - Clean geometric aesthetic inspired by Indian symmetry
+ *   - Cursor-level polish: smooth transitions, consistent spacing
+ *
+ * Usage:
+ *   Import the CSS file, then use CSS custom properties:
+ *     color: var(--codin-accent-saffron);
+ *     background: var(--codin-bg-primary);
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   1. COLOR TOKENS (CSS Custom Properties)
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Core Palette ──────────────────────────────────────────────── */
+  --codin-indigo-50: #eef2ff;
+  --codin-indigo-100: #e0e7ff;
+  --codin-indigo-200: #c7d2fe;
+  --codin-indigo-300: #a5b4fc;
+  --codin-indigo-400: #818cf8;
+  --codin-indigo-500: #6366f1;
+  --codin-indigo-600: #4f46e5;
+  --codin-indigo-700: #4338ca;
+  --codin-indigo-800: #3730a3;
+  --codin-indigo-900: #312e81;
+  --codin-indigo-950: #1e1b4b;
+
+  --codin-saffron-50: #fffbeb;
+  --codin-saffron-100: #fef3c7;
+  --codin-saffron-200: #fde68a;
+  --codin-saffron-300: #fcd34d;
+  --codin-saffron-400: #fbbf24;
+  --codin-saffron-500: #f59e0b;
+  --codin-saffron-600: #d97706;
+  --codin-saffron-700: #b45309;
+
+  /* ── Semantic Background ───────────────────────────────────────── */
+  --codin-bg-primary: #0f0e17; /* deep dark — near-black with slight indigo */
+  --codin-bg-secondary: #141320; /* panel/sidebar dark */
+  --codin-bg-tertiary: #1a1832; /* elevated surfaces (cards, modals) */
+  --codin-bg-surface: #201e3a; /* input fields, code blocks */
+  --codin-bg-hover: #262450; /* hover state */
+  --codin-bg-active: #312e81; /* active/selected — indigo-900 */
+
+  /* ── Semantic Foreground ───────────────────────────────────────── */
+  --codin-fg-primary: #e8e6f0; /* main text — warm white with indigo tint */
+  --codin-fg-secondary: #a8a5c0; /* secondary text */
+  --codin-fg-muted: #6b6890; /* muted/subtle text */
+  --codin-fg-inverse: #0f0e17; /* text on light backgrounds */
+
+  /* ── Accent Colors ─────────────────────────────────────────────── */
+  --codin-accent-primary: #6366f1; /* indigo-500 — primary actions */
+  --codin-accent-primary-hover: #818cf8; /* indigo-400 */
+  --codin-accent-saffron: #f59e0b; /* saffron — selective highlights */
+  --codin-accent-saffron-subtle: rgba(245, 158, 11, 0.12); /* saffron glow */
+  --codin-accent-saffron-hover: rgba(245, 158, 11, 0.2);
+
+  /* ── Border ────────────────────────────────────────────────────── */
+  --codin-border: rgba(99, 102, 241, 0.12); /* subtle indigo border */
+  --codin-border-strong: rgba(99, 102, 241, 0.25); /* active border */
+  --codin-border-focus: rgba(245, 158, 11, 0.5); /* saffron focus ring */
+
+  /* ── Status Colors ─────────────────────────────────────────────── */
+  --codin-success: #22c55e;
+  --codin-warning: #f59e0b;
+  --codin-error: #ef4444;
+  --codin-info: #818cf8;
+
+  /* ── Shadows ───────────────────────────────────────────────────── */
+  --codin-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --codin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --codin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --codin-shadow-glow-indigo: 0 0 20px rgba(99, 102, 241, 0.15);
+  --codin-shadow-glow-saffron: 0 0 16px rgba(245, 158, 11, 0.1);
+
+  /* ── Spacing (4px grid) ────────────────────────────────────────── */
+  --codin-space-1: 4px;
+  --codin-space-2: 8px;
+  --codin-space-3: 12px;
+  --codin-space-4: 16px;
+  --codin-space-5: 20px;
+  --codin-space-6: 24px;
+  --codin-space-8: 32px;
+
+  /* ── Radius ────────────────────────────────────────────────────── */
+  --codin-radius-sm: 4px;
+  --codin-radius-md: 8px;
+  --codin-radius-lg: 12px;
+  --codin-radius-xl: 16px;
+  --codin-radius-pill: 9999px;
+
+  /* ── Typography ────────────────────────────────────────────────── */
+  --codin-font-sans:
+    "Inter", "Noto Sans", "Noto Sans Devanagari", "Noto Sans Tamil",
+    "Noto Sans Bengali", "Noto Sans Telugu", "Noto Sans Kannada",
+    "Noto Sans Malayalam", "Noto Sans Gujarati", "Noto Sans Gurmukhi",
+    "Noto Sans Odia", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  --codin-font-mono:
+    "JetBrains Mono", "Fira Code", "Cascadia Code",
+    var(--vscode-editor-font-family, monospace);
+  --codin-font-size-xs: 11px;
+  --codin-font-size-sm: 12px;
+  --codin-font-size-base: 13px;
+  --codin-font-size-md: 14px;
+  --codin-font-size-lg: 16px;
+  --codin-font-size-xl: 20px;
+
+  /* ── Transitions ───────────────────────────────────────────────── */
+  --codin-transition-fast: 120ms ease;
+  --codin-transition-normal: 200ms ease;
+  --codin-transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   2. GEOMETRIC BACKGROUND PATTERN (Indian Symmetry)
+   ═══════════════════════════════════════════════════════════════════
+   SVG-based, purely CSS — uses a kolam/rangoli-inspired lattice
+   at very low opacity so it's visible but never distracting.        */
+
+.codin-geo-bg,
+.codin-geo-bg::before {
+  position: relative;
+}
+
+.codin-geo-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%236366f1' stroke-width='0.5'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z'/%3E%3Ccircle cx='30' cy='30' r='10'/%3E%3Cpath d='M15 15L45 15L45 45L15 45Z'/%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 60px 60px;
+  background-repeat: repeat;
+}
+
+.codin-geo-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   3. COMPONENT STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Sovereign / Offline Badge ───────────────────────────────────── */
+.codin-sovereign-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--codin-radius-pill);
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.08) 0%,
+    rgba(99, 102, 241, 0.08) 100%
+  );
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  color: var(--codin-accent-saffron);
+  font-size: var(--codin-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all var(--codin-transition-normal);
+  user-select: none;
+}
+.codin-sovereign-badge:hover {
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: var(--codin-shadow-glow-saffron);
+}
+.codin-sovereign-badge .pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--codin-accent-saffron);
+  animation: codin-pulse 2s ease-in-out infinite;
+}
+
+/* ── Model Badge (enhanced) ──────────────────────────────────────── */
+.codin-model-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border-radius: var(--codin-radius-pill);
+  font-size: var(--codin-font-size-sm);
+  font-weight: 500;
+  transition: all var(--codin-transition-normal);
+  user-select: none;
+  border: 1px solid transparent;
+}
+.codin-model-badge:hover {
+  filter: brightness(1.1);
+}
+.codin-model-badge--local {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--codin-indigo-400);
+  border-color: var(--codin-border);
+}
+.codin-model-badge--openai {
+  background: rgba(16, 163, 127, 0.1);
+  color: #10a37f;
+  border-color: rgba(16, 163, 127, 0.15);
+}
+.codin-model-badge--anthropic {
+  background: rgba(204, 153, 88, 0.1);
+  color: #cc9958;
+  border-color: rgba(204, 153, 88, 0.15);
+}
+.codin-model-badge--gemini {
+  background: rgba(66, 133, 244, 0.1);
+  color: #4285f4;
+  border-color: rgba(66, 133, 244, 0.15);
+}
+.codin-model-badge__icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+.codin-model-badge__escalated {
+  color: var(--codin-accent-saffron);
+  font-size: 10px;
+}
+
+/* ── Confidence Badge (themed) ───────────────────────────────────── */
+.codin-confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: var(--codin-radius-pill);
+  font-size: var(--codin-font-size-xs);
+  font-weight: 600;
+  transition: all var(--codin-transition-normal);
+  user-select: none;
+  border: 1px solid transparent;
+}
+.codin-confidence-badge--high {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--codin-success);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.codin-confidence-badge--medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--codin-warning);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+.codin-confidence-badge--low {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--codin-error);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* ── Analyzing Indicator (themed) ────────────────────────────────── */
+.codin-analyzing {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: var(--codin-radius-md);
+  background: var(--codin-bg-tertiary);
+  border: 1px solid var(--codin-border);
+  font-size: var(--codin-font-size-base);
+  font-family: var(--codin-font-mono);
+  transition: opacity var(--codin-transition-smooth);
+}
+.codin-analyzing__header {
+  font-weight: 600;
+  color: var(--codin-indigo-400);
+  margin-bottom: 2px;
+}
+.codin-analyzing__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.codin-step-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--codin-radius-pill);
+  font-size: var(--codin-font-size-sm);
+  transition: all var(--codin-transition-smooth);
+}
+.codin-step-chip--done {
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--codin-success);
+}
+.codin-step-chip--pending {
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--codin-accent-saffron);
+}
+
+/* ── Error Clarity Panel ─────────────────────────────────────────── */
+.codin-error-panel {
+  padding: 12px 16px;
+  border-radius: var(--codin-radius-md);
+  font-size: var(--codin-font-size-base);
+  line-height: 1.5;
+  transition: all var(--codin-transition-normal);
+}
+.codin-error-panel--warning {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+.codin-error-panel--error {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.codin-error-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* ── Streaming Cursor ────────────────────────────────────────────── */
+.codin-streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: var(--codin-indigo-400);
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: codin-blink 0.8s step-end infinite;
+}
+
+/* ── Language Header (contextual) ────────────────────────────────── */
+.codin-lang-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: var(--codin-radius-md) var(--codin-radius-md) 0 0;
+  background: var(--codin-bg-surface);
+  border-bottom: 2px solid var(--codin-accent-primary);
+  font-size: var(--codin-font-size-sm);
+  font-weight: 500;
+  color: var(--codin-fg-secondary);
+}
+.codin-lang-header__flag {
+  font-size: 14px;
+}
+.codin-lang-header__label {
+  letter-spacing: 0.02em;
+}
+
+/* ── Buttons (primary action) ────────────────────────────────────── */
+.codin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: var(--codin-radius-md);
+  font-size: var(--codin-font-size-sm);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all var(--codin-transition-normal);
+  user-select: none;
+}
+.codin-btn--primary {
+  background: var(--codin-accent-primary);
+  color: #fff;
+}
+.codin-btn--primary:hover {
+  background: var(--codin-accent-primary-hover);
+  box-shadow: var(--codin-shadow-glow-indigo);
+}
+.codin-btn--saffron {
+  background: var(--codin-accent-saffron);
+  color: var(--codin-fg-inverse);
+}
+.codin-btn--saffron:hover {
+  filter: brightness(1.1);
+  box-shadow: var(--codin-shadow-glow-saffron);
+}
+.codin-btn--ghost {
+  background: transparent;
+  color: var(--codin-fg-secondary);
+  border: 1px solid var(--codin-border);
+}
+.codin-btn--ghost:hover {
+  background: var(--codin-bg-hover);
+  color: var(--codin-fg-primary);
+}
+
+/* ── Focus Ring (saffron) ────────────────────────────────────────── */
+.codin-focus-ring:focus-visible {
+  outline: 2px solid var(--codin-border-focus);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   4. ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes codin-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes codin-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes codin-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes codin-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes codin-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Utility: apply to any element for smooth enter */
+.codin-animate-in {
+  animation: codin-fade-in 0.25s var(--codin-transition-smooth) both;
+}
+.codin-animate-slide-up {
+  animation: codin-slide-up 0.3s var(--codin-transition-smooth) both;
+}
+
+/* Shimmer loading skeleton */
+.codin-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--codin-bg-surface) 25%,
+    var(--codin-bg-hover) 50%,
+    var(--codin-bg-surface) 75%
+  );
+  background-size: 400% 100%;
+  animation: codin-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   5. SCROLLBAR (themed)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.codin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--codin-bg-hover) transparent;
+}
+.codin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.codin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.codin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--codin-bg-hover);
+  border-radius: 3px;
+}
+.codin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--codin-indigo-800);
+}

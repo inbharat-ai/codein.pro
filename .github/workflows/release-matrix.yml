@@ -1,0 +1,447 @@
+# ──────────────────────────────────────────────────────────────
+# CodeIn — Multi-Platform Release Matrix Build
+# ──────────────────────────────────────────────────────────────
+#
+# Builds Electron distributables for:
+#   • Windows x64  (NSIS installer + portable)
+#   • macOS x64    (DMG)
+#   • macOS arm64  (DMG)
+#   • Linux x64    (AppImage + deb)
+#
+# Each job:
+#   1. Downloads the correct llama-server prebuilt binary
+#   2. Builds the Electron target
+#   3. Runs a binary-level smoke test (start → health → shutdown)
+#   4. Uploads artifacts + checksums
+#
+# Trigger: manual dispatch or pushing a v* tag.
+#
+# Required secrets for signing (optional for beta):
+#   APPLE_ID, APPLE_ID_PASSWORD, APPLE_TEAM_ID  (macOS notarization)
+#   CSC_LINK, CSC_KEY_PASSWORD                   (Windows code signing)
+# ──────────────────────────────────────────────────────────────
+
+name: "CodeIn Release Matrix"
+
+on:
+  workflow_dispatch:
+    inputs:
+      llama_release:
+        description: "llama.cpp release tag (e.g. b3906)"
+        required: true
+        default: "b3906"
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "20"
+  LLAMA_RELEASE: ${{ github.event.inputs.llama_release || 'b3906' }}
+  TEST_MODEL_URL: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q2_K.gguf"
+  MIN_BIN_BYTES: "1000000"
+
+jobs:
+  # ════════════════════════════════════════════════════════════
+  # JOB 1: Build Windows x64
+  # ════════════════════════════════════════════════════════════
+  build-win-x64:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+
+      - name: Cache tiny GGUF model
+        uses: actions/cache@v4
+        with:
+          path: electron-app/resources/models
+          key: tiny-gguf-${{ runner.os }}-${{ hashFiles('.github/workflows/release-matrix.yml') }}
+
+      - name: Fetch tiny GGUF model
+        shell: pwsh
+        run: |
+          $modelDir = "electron-app/resources/models"
+          New-Item -ItemType Directory -Force -Path $modelDir | Out-Null
+          $modelPath = "$modelDir/tiny.gguf"
+          if (-not (Test-Path $modelPath)) {
+            Invoke-WebRequest -Uri "${{ env.TEST_MODEL_URL }}" -OutFile $modelPath -MaximumRetryCount 3
+          }
+          if (-not (Test-Path $modelPath)) { throw "Missing tiny GGUF model" }
+          $size = (Get-Item $modelPath).Length
+          if ($size -lt 200000000) { throw "GGUF model unexpectedly small: $size bytes" }
+          Write-Host "MODEL_PATH=$modelPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      # ── Download llama-server for win32/x64 into resources/bin ──
+      - name: Fetch llama-server (win32/x64)
+        shell: pwsh
+        run: |
+          $dir = "electron-app/resources/bin/win32/x64"
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          $bin = "$dir/llama-server.exe"
+          if (-not (Test-Path $bin)) {
+            $tag = "${{ env.LLAMA_RELEASE }}"
+            $url = "https://github.com/ggml-org/llama.cpp/releases/download/${tag}/llama-${tag}-bin-win-avx2-x64.zip"
+            Write-Host "Downloading $url"
+            Invoke-WebRequest -Uri $url -OutFile "$dir/llama.zip" -MaximumRetryCount 3
+            Expand-Archive -Path "$dir/llama.zip" -DestinationPath "$dir/tmp" -Force
+            $exe = Get-ChildItem -Recurse "$dir/tmp" -Filter "llama-server.exe" | Select-Object -First 1
+            if (-not $exe) { throw "llama-server.exe missing in downloaded archive" }
+            $root = Split-Path $exe.FullName -Parent
+            Copy-Item "$root\*" $dir -Recurse -Force
+            Remove-Item -Recurse -Force "$dir/tmp","$dir/llama.zip" -ErrorAction SilentlyContinue
+          }
+          if (-not (Test-Path $bin)) { throw "Missing binary: $bin" }
+          $len = (Get-Item $bin).Length
+          if ($len -lt [int]"${{ env.MIN_BIN_BYTES }}") { throw "Binary too small: $len" }
+          & $bin --help | Out-Null
+
+      - name: Mirror binary to legacy assets path
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "electron-app/assets/llama/win32/x64" | Out-Null
+          Copy-Item "electron-app/resources/bin/win32/x64/llama-server.exe" "electron-app/assets/llama/win32/x64/llama-server.exe" -Force
+
+      # ── Install + build ──
+      - name: Install electron-app dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: electron-app
+        run: npm run build
+
+      - name: Run mandatory E2E inference smoke
+        shell: pwsh
+        run: |
+          $env:LLAMA_PATH = "${{ github.workspace }}\\electron-app\\resources\\bin\\win32\\x64\\llama-server.exe"
+          $env:LLAMA_TEST_MODEL = "${{ github.workspace }}\\electron-app\\resources\\models\\tiny.gguf"
+          node --test electron-app/test/llama-spawn.e2e.test.cjs
+
+      # ── Package ──
+      - name: Build Electron (Windows NSIS + Portable)
+        working-directory: electron-app
+        run: npx electron-builder --win nsis portable --x64
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Mandatory inference smoke (workflow level)
+        shell: pwsh
+        run: |
+          $bin = "electron-app/resources/bin/win32/x64/llama-server.exe"
+          $model = "electron-app/resources/models/tiny.gguf"
+          $p = Start-Process -FilePath $bin -ArgumentList "--model",$model,"--port","18099","--host","127.0.0.1","--ctx-size","256","--n-gpu-layers","0" -PassThru -NoNewWindow
+          Start-Sleep -Seconds 10
+          $health = Invoke-WebRequest -Uri "http://127.0.0.1:18099/health" -TimeoutSec 10
+          if ($health.StatusCode -ne 200) { throw "Healthcheck failed" }
+          $payload = '{"prompt":"Hello","n_predict":8,"temperature":0}'
+          $resp = Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:18099/completion" -ContentType "application/json" -Body $payload -TimeoutSec 20
+          if (-not $resp.content) { throw "Inference response missing content" }
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+
+      # ── Checksums ──
+      - name: Generate checksums
+        shell: pwsh
+        working-directory: electron-app/release
+        run: |
+          "# build-win-x64" | Out-File -FilePath SHA256SUMS.txt
+          Get-ChildItem -File -Recurse | Where-Object { $_.Extension -in '.exe','.zip' -and $_.DirectoryName -notmatch 'win-unpacked' } | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+            "$hash  $($_.Name)" | Out-File -Append -FilePath SHA256SUMS.txt
+          }
+          if (Test-Path SHA256SUMS.txt) { Get-Content SHA256SUMS.txt }
+
+      # ── Upload ──
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: codin-win-x64
+          path: |
+            electron-app/release/*.exe
+            electron-app/release/*.zip
+            electron-app/release/SHA256SUMS.txt
+
+  # ════════════════════════════════════════════════════════════
+  # JOB 2: Build macOS (x64 + arm64)
+  # ════════════════════════════════════════════════════════════
+  build-mac:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+
+      - name: Cache tiny GGUF model
+        uses: actions/cache@v4
+        with:
+          path: electron-app/resources/models
+          key: tiny-gguf-${{ runner.os }}-${{ hashFiles('.github/workflows/release-matrix.yml') }}
+
+      - name: Fetch tiny GGUF model
+        run: |
+          set -euo pipefail
+          MODEL_DIR="electron-app/resources/models"
+          MODEL_PATH="$MODEL_DIR/tiny.gguf"
+          mkdir -p "$MODEL_DIR"
+          if [ ! -f "$MODEL_PATH" ]; then
+            curl -fL -o "$MODEL_PATH" "${{ env.TEST_MODEL_URL }}"
+          fi
+          BYTES=$(wc -c < "$MODEL_PATH")
+          if [ "$BYTES" -lt 200000000 ]; then
+            echo "GGUF model unexpectedly small: $BYTES"; exit 1
+          fi
+          echo "MODEL_PATH=$MODEL_PATH" >> "$GITHUB_ENV"
+
+      # ── Download llama-server for darwin/${{ matrix.arch }} ──
+      - name: Fetch llama-server (darwin/${{ matrix.arch }})
+        run: |
+          set -euo pipefail
+          DIR="electron-app/resources/bin/darwin/${{ matrix.arch }}"
+          mkdir -p "$DIR"
+          if [ ! -f "$DIR/llama-server" ]; then
+            TAG="${{ env.LLAMA_RELEASE }}"
+            URL="https://github.com/ggml-org/llama.cpp/releases/download/${TAG}/llama-${TAG}-bin-macos-${{ matrix.arch }}.zip"
+            echo "Downloading $URL"
+            curl -fL -o "$DIR/llama.zip" "$URL"
+            unzip -o "$DIR/llama.zip" -d "$DIR/tmp"
+            FOUND=$(find "$DIR/tmp" -name "llama-server" -type f | head -1)
+            test -n "$FOUND"
+            cp "$FOUND" "$DIR/llama-server"
+            chmod +x "$DIR/llama-server"
+            rm -rf "$DIR/tmp" "$DIR/llama.zip"
+          fi
+          test -f "$DIR/llama-server"
+          test -x "$DIR/llama-server"
+          BYTES=$(wc -c < "$DIR/llama-server")
+          if [ "$BYTES" -lt "${{ env.MIN_BIN_BYTES }}" ]; then
+            echo "Binary too small: $BYTES"; exit 1
+          fi
+          "$DIR/llama-server" --help >/dev/null || true
+
+      - name: Mirror binary to legacy assets path
+        run: |
+          set -euo pipefail
+          mkdir -p "electron-app/assets/llama/darwin/${{ matrix.arch }}"
+          cp "electron-app/resources/bin/darwin/${{ matrix.arch }}/llama-server" "electron-app/assets/llama/darwin/${{ matrix.arch }}/llama-server"
+
+      # ── Install + build ──
+      - name: Install dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: electron-app
+        run: npm run build
+
+      - name: Run mandatory E2E inference smoke
+        run: |
+          set -euo pipefail
+          export LLAMA_PATH="${GITHUB_WORKSPACE}/electron-app/resources/bin/darwin/${{ matrix.arch }}/llama-server"
+          export LLAMA_TEST_MODEL="${GITHUB_WORKSPACE}/electron-app/resources/models/tiny.gguf"
+          node --test electron-app/test/llama-spawn.e2e.test.cjs
+
+      # ── Package ──
+      - name: Build Electron (macOS DMG)
+        working-directory: electron-app
+        run: npx electron-builder --mac dmg --${{ matrix.arch }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      # ── Mandatory inference smoke ──
+      - name: Mandatory inference smoke
+        run: |
+          set -euo pipefail
+          BIN="electron-app/resources/bin/darwin/${{ matrix.arch }}/llama-server"
+          MODEL="electron-app/resources/models/tiny.gguf"
+          "$BIN" --model "$MODEL" --port 18099 --host 127.0.0.1 --ctx-size 256 --n-gpu-layers 0 >/tmp/llama.log 2>&1 &
+          PID=$!
+          sleep 10
+          curl -sf http://127.0.0.1:18099/health >/dev/null
+          curl -sf -X POST http://127.0.0.1:18099/completion -H "Content-Type: application/json" -d '{"prompt":"Hello","n_predict":8,"temperature":0}' | grep -q "content"
+          kill "$PID" 2>/dev/null || true
+
+      # ── Checksums ──
+      - name: Generate checksums
+        working-directory: electron-app/release
+        run: |
+          echo "# build-mac-${{ matrix.arch }}" > SHA256SUMS.txt
+          find . -name "*.dmg" -o -name "*.zip" | while read f; do
+            sha256sum "$f" >> SHA256SUMS.txt
+          done
+          cat SHA256SUMS.txt 2>/dev/null || echo "No artifacts"
+
+      # ── Upload ──
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: codin-mac-${{ matrix.arch }}
+          path: |
+            electron-app/release/*.dmg
+            electron-app/release/*.zip
+            electron-app/release/SHA256SUMS.txt
+
+  # ════════════════════════════════════════════════════════════
+  # JOB 3: Build Linux x64
+  # ════════════════════════════════════════════════════════════
+  build-linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+
+      - name: Cache tiny GGUF model
+        uses: actions/cache@v4
+        with:
+          path: electron-app/resources/models
+          key: tiny-gguf-${{ runner.os }}-${{ hashFiles('.github/workflows/release-matrix.yml') }}
+
+      - name: Fetch tiny GGUF model
+        run: |
+          set -euo pipefail
+          MODEL_DIR="electron-app/resources/models"
+          MODEL_PATH="$MODEL_DIR/tiny.gguf"
+          mkdir -p "$MODEL_DIR"
+          if [ ! -f "$MODEL_PATH" ]; then
+            curl -fL -o "$MODEL_PATH" "${{ env.TEST_MODEL_URL }}"
+          fi
+          BYTES=$(wc -c < "$MODEL_PATH")
+          if [ "$BYTES" -lt 200000000 ]; then
+            echo "GGUF model unexpectedly small: $BYTES"; exit 1
+          fi
+          echo "MODEL_PATH=$MODEL_PATH" >> "$GITHUB_ENV"
+
+      # ── Download llama-server for linux/x64 ──
+      - name: Fetch llama-server (linux/x64)
+        run: |
+          set -euo pipefail
+          DIR="electron-app/resources/bin/linux/x64"
+          mkdir -p "$DIR"
+          if [ ! -f "$DIR/llama-server" ]; then
+            TAG="${{ env.LLAMA_RELEASE }}"
+            URL="https://github.com/ggml-org/llama.cpp/releases/download/${TAG}/llama-${TAG}-bin-ubuntu-x64.zip"
+            echo "Downloading $URL"
+            curl -fL -o "$DIR/llama.zip" "$URL"
+            unzip -o "$DIR/llama.zip" -d "$DIR/tmp"
+            FOUND=$(find "$DIR/tmp" -name "llama-server" -type f | head -1)
+            test -n "$FOUND"
+            cp "$FOUND" "$DIR/llama-server"
+            chmod +x "$DIR/llama-server"
+            rm -rf "$DIR/tmp" "$DIR/llama.zip"
+          fi
+          test -f "$DIR/llama-server"
+          test -x "$DIR/llama-server"
+          BYTES=$(wc -c < "$DIR/llama-server")
+          if [ "$BYTES" -lt "${{ env.MIN_BIN_BYTES }}" ]; then
+            echo "Binary too small: $BYTES"; exit 1
+          fi
+          "$DIR/llama-server" --help >/dev/null || true
+
+      - name: Mirror binary to legacy assets path
+        run: |
+          set -euo pipefail
+          mkdir -p "electron-app/assets/llama/linux/x64"
+          cp "electron-app/resources/bin/linux/x64/llama-server" "electron-app/assets/llama/linux/x64/llama-server"
+
+      # ── Install + build ──
+      - name: Install dependencies
+        working-directory: electron-app
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: electron-app
+        run: npm run build
+
+      - name: Run mandatory E2E inference smoke
+        run: |
+          set -euo pipefail
+          export LLAMA_PATH="${GITHUB_WORKSPACE}/electron-app/resources/bin/linux/x64/llama-server"
+          export LLAMA_TEST_MODEL="${GITHUB_WORKSPACE}/electron-app/resources/models/tiny.gguf"
+          node --test electron-app/test/llama-spawn.e2e.test.cjs
+
+      # ── Package ──
+      - name: Build Electron (Linux AppImage + deb)
+        working-directory: electron-app
+        run: npx electron-builder --linux AppImage deb --x64
+
+      # ── Mandatory inference smoke ──
+      - name: Mandatory inference smoke
+        run: |
+          set -euo pipefail
+          BIN="electron-app/resources/bin/linux/x64/llama-server"
+          MODEL="electron-app/resources/models/tiny.gguf"
+          "$BIN" --model "$MODEL" --port 18099 --host 127.0.0.1 --ctx-size 256 --n-gpu-layers 0 >/tmp/llama.log 2>&1 &
+          PID=$!
+          sleep 10
+          curl -sf http://127.0.0.1:18099/health >/dev/null
+          curl -sf -X POST http://127.0.0.1:18099/completion -H "Content-Type: application/json" -d '{"prompt":"Hello","n_predict":8,"temperature":0}' | grep -q "content"
+          kill "$PID" 2>/dev/null || true
+
+      # ── Checksums ──
+      - name: Generate checksums
+        working-directory: electron-app/release
+        run: |
+          echo "# build-linux-x64" > SHA256SUMS.txt
+          find . -name "*.AppImage" -o -name "*.deb" | while read f; do
+            sha256sum "$f" >> SHA256SUMS.txt
+          done
+          cat SHA256SUMS.txt 2>/dev/null || echo "No artifacts"
+
+      # ── Upload ──
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: codin-linux-x64
+          path: |
+            electron-app/release/*.AppImage
+            electron-app/release/*.deb
+            electron-app/release/SHA256SUMS.txt
+
+  # ════════════════════════════════════════════════════════════
+  # JOB 4: Aggregate + GitHub Release
+  # ════════════════════════════════════════════════════════════
+  release:
+    needs: [build-win-x64, build-mac, build-linux-x64]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts/
+
+      - name: Aggregate checksums
+        run: |
+          echo "# CodeIn Release Checksums" > SHA256SUMS.txt
+          echo "Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> SHA256SUMS.txt
+          echo "" >> SHA256SUMS.txt
+          find all-artifacts/ -name "SHA256SUMS.txt" | while read f; do
+            echo "## $(dirname $f | sed 's|all-artifacts/||')" >> SHA256SUMS.txt
+            cat "$f" >> SHA256SUMS.txt
+            echo "" >> SHA256SUMS.txt
+          done
+          cat SHA256SUMS.txt
+
+      - name: List all artifacts
+        run: find all-artifacts/ -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) -exec ls -la {} \;
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          name: "CodeIn ${{ github.event.inputs.version || github.ref_name }}"
+          body_path: docs/RELEASE_NOTES.md
+          files: |
+            all-artifacts/**/*.exe
+            all-artifacts/**/*.dmg
+            all-artifacts/**/*.zip
+            all-artifacts/**/*.AppImage
+            all-artifacts/**/*.deb
+            SHA256SUMS.txt
+          draft: false
+          prerelease: true

@@ -1,0 +1,137 @@
+{
+  "name": "codin-electron",
+  "productName": "CodIn",
+  "version": "1.0.0",
+  "description": "CodIn - Multilingual AI-powered code editor for Indian languages",
+  "main": "dist/main/main.js",
+  "author": "CodIn Team",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run build:main && electron .",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:preload": "tsc -p tsconfig.preload.json",
+    "build": "npm run build:main && npm run build:preload",
+    "clean:paths": "node scripts/clean-build-paths.cjs",
+    "reinstall:clean": "npm run clean:paths && npm install",
+    "watch:main": "tsc -p tsconfig.main.json --watch",
+    "watch:preload": "tsc -p tsconfig.preload.json --watch",
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "@vscode/codicons": "^0.0.36",
+    "chokidar": "^3.6.0",
+    "electron-store": "^6.0.1",
+    "fix-path": "^3.0.0",
+    "monaco-editor": "^0.45.0",
+    "node-pty": "^1.0.0",
+    "simple-git": "^3.25.0",
+    "uuid": "^9.0.1",
+    "xterm": "^5.3.0",
+    "xterm-addon-fit": "^0.8.0",
+    "xterm-addon-web-links": "^0.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.35",
+    "@types/uuid": "^9.0.7",
+    "electron": "^28.2.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
+  },
+  "build": {
+    "appId": "com.codin.editor",
+    "productName": "CodIn",
+    "directories": {
+      "buildResources": "build",
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/bin/${platform}/${arch}",
+        "to": "llama/${platform}/${arch}",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "assets/llama/README.md",
+        "to": "llama/README.md"
+      },
+      {
+        "from": "../packages/agent",
+        "to": "agent",
+        "filter": [
+          "**/*",
+          "!**/__pycache__",
+          "!**/node_modules/.cache",
+          "!**/node_modules/**/*.md",
+          "!**/node_modules/**/*.ts",
+          "!**/node_modules/**/test/**",
+          "!**/node_modules/**/tests/**"
+        ]
+      },
+      {
+        "from": "../gui/dist",
+        "to": "gui",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip",
+        "pkg"
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.developer-tools",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "pkg": {
+      "scripts": "build/pkg-scripts"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "icon": "build/icon.png",
+      "category": "Development",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "deb": {
+      "afterInstall": "build/linux-after-install.sh"
+    },
+    "rpm": {
+      "afterInstall": "build/linux-after-install.sh"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "include": "build/installer.nsh"
+    }
+  }
+}

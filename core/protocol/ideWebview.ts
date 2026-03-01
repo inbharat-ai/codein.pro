@@ -51,6 +51,67 @@ export type ToIdeFromWebviewProtocol = ToIdeFromWebviewOrCoreProtocol & {
   ];
   "edit/addCurrentSelection": [undefined, void];
   "edit/clearDecorations": [undefined, void];
+  "contract/apply": [
+    {
+      contract: {
+        plan: string[];
+        patches: Array<{ path: string; diff: string }>;
+        new_files: Array<{ path: string; content: string }>;
+        run_instructions: string;
+        explanation_user_language: string;
+      };
+    },
+    { backupId: string },
+  ];
+  "contract/rollback": [{ backupId: string }, void];
+  "run/detect": [
+    undefined,
+    {
+      projectType: string;
+      command: string;
+      args: string[];
+      cwd: string;
+      packageManager: string;
+      port?: number;
+      previewUrl?: string;
+    },
+  ];
+  "run/execute": [
+    {
+      command: string;
+      args?: string[];
+      cwd?: string;
+      name?: string;
+      port?: number;
+    },
+    { runId: string; previewUrl?: string },
+  ];
+  "run/stop": [{ runId: string }, void];
+  "run/openPreview": [{ url: string }, void];
+  "git/status": [
+    undefined,
+    { branch: string | null; changes: Array<{ path: string; status: string }> },
+  ];
+  "git/commit": [
+    { message: string; addAll?: boolean },
+    { commitHash?: string },
+  ];
+  "git/push": [
+    { remote?: string; branch?: string },
+    { ok: boolean; output?: string },
+  ];
+  "git/checkout": [{ branch: string; create?: boolean }, { branch: string }];
+  "deploy/generate": [
+    { target: "vercel" | "netlify" | "firebase" },
+    { files: Array<{ path: string; created: boolean }>; instructions: string },
+  ];
+  "mcp/list": [
+    undefined,
+    {
+      servers: Array<{ name: string; status: string; tools: number }>;
+      tools: Array<{ name: string; description?: string; server?: string }>;
+    },
+  ];
   "session/share": [{ sessionId: string }, void];
   createBackgroundAgent: [
     {
@@ -115,4 +176,6 @@ export type ToWebviewFromIdeProtocol = ToWebviewFromIdeOrCoreProtocol & {
   focusEdit: [undefined, void];
   generateRule: [undefined, void];
   addToChat: [AddToChatPayload, void];
+  "contract/applied": [{ backupId: string }, void];
+  "contract/rolledBack": [{ backupId: string }, void];
 };

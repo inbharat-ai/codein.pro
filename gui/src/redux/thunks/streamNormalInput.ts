@@ -15,6 +15,7 @@ import {
   setInactive,
   setInlineErrorMessage,
   setIsPruned,
+  setPendingEditContract,
   setToolGenerated,
   streamUpdate,
 } from "../slices/sessionSlice";
@@ -26,6 +27,7 @@ import { addSystemMessageToolsToSystemMessage } from "core/tools/systemMessageTo
 import { interceptSystemToolCalls } from "core/tools/systemMessageTools/interceptSystemToolCalls";
 import { SystemMessageToolCodeblocksFramework } from "core/tools/systemMessageTools/toolCodeblocks";
 import posthog from "posthog-js";
+import { validateEditContract } from "../../../../packages/shared/src/index";
 import {
   selectCurrentToolCalls,
   selectPendingToolCalls,
@@ -94,7 +96,13 @@ export const streamNormalInput = createAsyncThunk<
     }
 
     // Get tools and filter them based on the selected model
-    const activeTools = selectActiveTools(state);
+    const sessionMode = state.session.mode;
+    const activeTools =
+      sessionMode === "ask" ||
+      sessionMode === "plan" ||
+      sessionMode === "implement"
+        ? []
+        : selectActiveTools(state);
 
     // Use the centralized selector to determine if system message tools should be used
     const useNativeTools = state.config.config.experimental
@@ -275,6 +283,27 @@ export const streamNormalInput = createAsyncThunk<
       } else {
         throw e;
       }
+    }
+
+    const postStreamState = getState();
+    if (postStreamState.session.mode === "implement") {
+      const lastAssistant = [...postStreamState.session.history]
+        .reverse()
+        .find((item) => item.message.role === "assistant");
+      const content = lastAssistant?.message?.content ?? "";
+      const contentStr =
+        typeof content === "string" ? content : JSON.stringify(content);
+      const validation = validateEditContract(contentStr);
+
+      if (!validation.ok || !validation.value) {
+        dispatch(setPendingEditContract(undefined));
+        dispatch(setInlineErrorMessage("invalid-contract"));
+        dispatch(setInactive());
+        return;
+      }
+
+      dispatch(setInlineErrorMessage(undefined));
+      dispatch(setPendingEditContract(validation.value));
     }
 
     // Tool call sequence:

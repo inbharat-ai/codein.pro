@@ -1,0 +1,18 @@
+# CodeIn Media Python Service
+#
+# Local-only FastAPI service for image/video/diagram generation.
+# Runs at http://127.0.0.1:43130 (configurable via --port).
+# Never phones home. All models stored in ~/.codein/models/media/.
+
+torch>=2.1.0
+diffusers>=0.25.0
+transformers>=4.36.0
+accelerate>=0.25.0
+safetensors>=0.4.0
+Pillow>=10.0.0
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.5.0
+httpx>=0.26.0
+aiofiles>=23.0
+psutil>=5.9.0

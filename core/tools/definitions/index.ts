@@ -6,6 +6,12 @@ export { fetchUrlContentTool } from "./fetchUrlContent";
 export { globSearchTool } from "./globSearch";
 export { grepSearchTool } from "./grepSearch";
 export { lsTool } from "./ls";
+export {
+  generateImageTool,
+  generateVideoTool,
+  imageToVideoTool,
+  renderDiagramTool,
+} from "./mediaTools";
 export { multiEditTool } from "./multiEdit";
 export { readCurrentlyOpenFileTool } from "./readCurrentlyOpenFile";
 export { readFileTool } from "./readFile";

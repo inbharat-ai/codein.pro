@@ -94,7 +94,7 @@ Pop-Location
 
 # VSCode Extension (will also package GUI)
 Write-Output "`nInstalling VSCode extension dependencies..." -ForegroundColor White
-Push-Location extensions/vscode
+Push-Location packages/extension
 
 # This does way too many things inline but is the common denominator between many of the scripts
 npm install

@@ -1,0 +1,10 @@
+{
+  "name": "codein-landing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CodeIn landing page with download links for all platforms",
+  "scripts": {
+    "dev": "npx serve . -l 3333 --cors",
+    "preview": "npx serve . -l 3333 --cors --no-clipboard"
+  }
+}

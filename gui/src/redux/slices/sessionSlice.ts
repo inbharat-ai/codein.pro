@@ -25,6 +25,7 @@ import {
   ToolCallDelta,
   ToolCallState,
 } from "core";
+import { EditContractPayload } from "../../../../packages/shared/src/index";
 import type { RemoteSessionMetadata } from "core/control-plane/client";
 import { mergeReasoningDetails } from "core/llm/openaiTypeConverters";
 import { NEW_SESSION_TITLE } from "core/util/constants";
@@ -224,6 +225,7 @@ type SessionState = {
   contextPercentage?: number;
   inlineErrorMessage?: InlineErrorMessageType;
   compactionLoading: Record<number, boolean>; // Track compaction loading by message index
+  pendingEditContract?: EditContractPayload;
 };
 
 export const INITIAL_SESSION_STATE: SessionState = {
@@ -235,7 +237,7 @@ export const INITIAL_SESSION_STATE: SessionState = {
   id: uuidv4(),
   streamAborter: new AbortController(),
   symbols: {},
-  mode: "agent",
+  mode: "ask",
   isInEdit: false,
   codeBlockApplyStates: {
     states: [],
@@ -244,6 +246,7 @@ export const INITIAL_SESSION_STATE: SessionState = {
   lastSessionId: undefined,
   newestToolbarPreviewForInput: {},
   compactionLoading: {},
+  pendingEditContract: undefined,
 };
 
 export const sessionSlice = createSlice({
@@ -962,6 +965,7 @@ export const sessionSlice = createSlice({
     },
     setMode: (state, action: PayloadAction<MessageModes>) => {
       state.mode = action.payload;
+      state.pendingEditContract = undefined;
     },
     setIsInEdit: (state, action: PayloadAction<boolean>) => {
       state.isInEdit = action.payload;
@@ -997,6 +1001,12 @@ export const sessionSlice = createSlice({
       action: PayloadAction<SessionState["inlineErrorMessage"]>,
     ) => {
       state.inlineErrorMessage = action.payload;
+    },
+    setPendingEditContract: (
+      state,
+      action: PayloadAction<EditContractPayload | undefined>,
+    ) => {
+      state.pendingEditContract = action.payload;
     },
     setIsPruned: (state, action: PayloadAction<boolean>) => {
       state.isPruned = action.payload;
@@ -1090,6 +1100,7 @@ export const {
   setIsInEdit,
   setHasReasoningEnabled,
   setInlineErrorMessage,
+  setPendingEditContract,
   setIsPruned,
   setContextPercentage,
   setCompactionLoading,

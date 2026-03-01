@@ -4,6 +4,7 @@ import { InputModifiers } from "core";
 import posthog from "posthog-js";
 import { v4 as uuidv4 } from "uuid";
 import { resolveEditorContent } from "../../components/mainInput/TipTapEditor/utils/resolveEditorContent";
+import { translateToEnglish } from "../../util/translation";
 import { selectSelectedChatModel } from "../slices/configSlice";
 import {
   resetNextCodeBlockToApplyIndex,
@@ -69,13 +70,19 @@ export const streamResponseThunk = createAsyncThunk<
         ];
         void dispatch(updateFileSymbolsFromFiles(filesForSymbols));
 
+        const contentStr = typeof content === "string" ? content : "";
+        const translation = await translateToEnglish(contentStr);
+        const contentForModel = translation.translatedText
+          ? `User language: ${translation.languageLabel}. Original message:\n${content}\n\nEnglish translation:\n${translation.translatedText}\n\nRespond in ${translation.languageLabel}.`
+          : content;
+
         dispatch(
           updateHistoryItemAtIndex({
             index: inputIndex,
             updates: {
               message: {
                 role: "user",
-                content,
+                content: contentForModel,
                 id: uuidv4(),
               },
               contextItems: selectedContextItems,

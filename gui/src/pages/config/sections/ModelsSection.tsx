@@ -3,6 +3,7 @@ import { ModelDescription } from "core";
 import { useContext, useState } from "react";
 import Shortcut from "../../../components/gui/Shortcut";
 import { useEditModel } from "../../../components/mainInput/Lump/useEditBlock";
+import { ModelManagerPanel } from "../../../components/ModelManagerPanel";
 import { Card, Divider, Toggle } from "../../../components/ui";
 import { useAuth } from "../../../context/Auth";
 import { IdeMessengerContext } from "../../../context/IdeMessenger";
@@ -161,6 +162,8 @@ export function ModelsSection() {
           </>
         )}
       </Card>
+
+      <ModelManagerPanel />
 
       <Card>
         <Toggle
