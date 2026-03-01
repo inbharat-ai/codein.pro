@@ -1,4 +1,4 @@
-name: BharatCode Tests
+name: Codein Tests
 
 on:
   pull_request:
