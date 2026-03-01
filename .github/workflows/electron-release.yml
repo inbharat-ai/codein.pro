@@ -56,7 +56,7 @@ jobs:
           echo "TODO: Download linux llama-server from llama.cpp releases"
 
       - name: Upload llama assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: llama-binaries
           path: electron-app/assets/llama/
@@ -96,7 +96,7 @@ jobs:
         run: Get-ChildItem -Recurse -File | Where-Object { $_.Extension -in '.exe','.zip','.blockmap','.yml' } | Select-Object Name, Length
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: codin-windows
           path: |
@@ -144,7 +144,7 @@ jobs:
         run: ls -la *.dmg *.zip 2>/dev/null || echo "No DMG/ZIP found"
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: codin-macos
           path: |
@@ -184,7 +184,7 @@ jobs:
         run: ls -la *.AppImage *.deb 2>/dev/null || echo "No AppImage/deb found"
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: codin-linux
           path: |
