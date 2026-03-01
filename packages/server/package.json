@@ -1,0 +1,10 @@
+{
+  "name": "@codein/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CodeIn Server — Docker Compose stack with Redis, PostgreSQL, AI4Bharat",
+  "scripts": {
+    "test": "echo \"Docker-only package — no npm tests\" && exit 0"
+  },
+  "license": "Apache-2.0"
+}

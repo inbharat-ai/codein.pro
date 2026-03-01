@@ -1,0 +1,10 @@
+{
+  "name": "@codein/media-python",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CodeIn Media Python Service — local FastAPI service for image/video/diagram generation",
+  "scripts": {
+    "test": "echo \"Python package — no npm tests\" && exit 0"
+  },
+  "license": "Apache-2.0"
+}

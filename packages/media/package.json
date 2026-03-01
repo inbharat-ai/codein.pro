@@ -4,8 +4,8 @@
   "description": "CodeIn Media Toolkit — local-only diagram, image, and video generation tools",
   "main": "src/index.js",
   "scripts": {
-    "test": "node --test src/__tests__/*.test.js",
-    "smoke": "node src/__tests__/smoke.test.js"
+    "test": "node --test test/*.test.js",
+    "smoke": "node test/smoke.js"
   },
   "keywords": [
     "codein",

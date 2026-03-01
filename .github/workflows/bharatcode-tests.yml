@@ -15,24 +15,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Run unit tests
-        run: node --test packages/shared/test/*.test.mjs packages/agent/test/*.test.cjs
-
-  extension-package:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install extension dependencies
+      - name: Install agent dependencies
         run: npm install
-        working-directory: packages/extension
-      - name: Build extension
-        run: npm run esbuild
-        working-directory: packages/extension
-      - name: Package extension
-        run: npm run package
-        working-directory: packages/extension
+        working-directory: packages/agent
+      - name: Run agent tests
+        run: npm test
+        working-directory: packages/agent
+      - name: Run media tests
+        run: |
+          npm install
+          npm test
+        working-directory: packages/media

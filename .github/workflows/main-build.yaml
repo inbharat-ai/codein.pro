@@ -1,6 +1,7 @@
-name: Main Branch Build
+name: Main Branch Build (Continue upstream)
 
 # Download and republish VS Code extension artifacts when code is merged to main
+# Disabled for forks — only runs on the original continuedev/continue repo.
 on:
   push:
     branches:
@@ -13,6 +14,7 @@ on:
 
 jobs:
   republish-pr-artifacts:
+    if: github.repository == 'continuedev/continue'
     runs-on: ubuntu-latest
     strategy:
       matrix:
