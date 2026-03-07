@@ -11,10 +11,19 @@ function jsonResponse(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
-function readBody(req) {
+function readBody(req, maxSize = 10 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
+    let totalSize = 0;
+    req.on("data", (chunk) => {
+      totalSize += chunk.length;
+      if (totalSize > maxSize) {
+        req.destroy(new Error("Request body too large"));
+        reject(new Error(`Request body exceeds ${maxSize} byte limit`));
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on("end", () => {
       if (!chunks.length) {
         resolve("");

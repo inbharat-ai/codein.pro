@@ -81,27 +81,33 @@ class Sanitizer {
     const threats = [];
 
     for (const pattern of this.injectionPatterns) {
+      pattern.lastIndex = 0;
       if (pattern.test(sanitized)) {
         threats.push(`Injection attempt detected: ${pattern.source}`);
         if (mode === "strict") {
+          pattern.lastIndex = 0;
           sanitized = sanitized.replace(pattern, "");
         }
       }
     }
 
     for (const pattern of this.sqlPatterns) {
+      pattern.lastIndex = 0;
       if (pattern.test(sanitized)) {
         threats.push(`SQL injection pattern detected: ${pattern.source}`);
         if (mode === "strict") {
+          pattern.lastIndex = 0;
           sanitized = sanitized.replace(pattern, "");
         }
       }
     }
 
     for (const pattern of this.xssPatterns) {
+      pattern.lastIndex = 0;
       if (pattern.test(sanitized)) {
         threats.push(`XSS pattern detected: ${pattern.source}`);
         if (mode === "strict") {
+          pattern.lastIndex = 0;
           sanitized = sanitized.replace(pattern, "");
         }
       }
@@ -146,20 +152,25 @@ class Sanitizer {
     const dangerousCode = [];
 
     for (const pattern of this.dangerousCodePatterns) {
+      pattern.lastIndex = 0;
       if (pattern.test(sanitized)) {
+        pattern.lastIndex = 0;
         const match = sanitized.match(pattern);
         dangerousCode.push(match ? match[0] : pattern.source);
         threats.push(`Dangerous code pattern found: ${pattern.source}`);
 
         if (mode === "strict") {
+          pattern.lastIndex = 0;
           sanitized = sanitized.replace(pattern, "[REDACTED]");
         }
       }
     }
 
     const scriptTagPattern = /<script[^>]*>[\s\S]*?<\/script>/gi;
+    scriptTagPattern.lastIndex = 0;
     if (scriptTagPattern.test(sanitized)) {
       threats.push("Script tags detected");
+      scriptTagPattern.lastIndex = 0;
       sanitized = sanitized.replace(scriptTagPattern, "[REDACTED]");
     }
 

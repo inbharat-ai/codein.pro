@@ -201,37 +201,37 @@ function generateFallbackManifest() {
     releaseDate: "July 2025",
     assets: {
       win_x64: {
-        name: "CodeIn-1.0.0-x64.exe",
+        name: "CodIn-1.0.0-x64.exe",
         url: `https://github.com/${GITHUB_REPO}/releases/latest`,
         sha256: "PENDING",
         size: "~120 MB",
       },
       win_x64_portable: {
-        name: "CodeIn-1.0.0-x64-portable.exe",
+        name: "CodIn-1.0.0-x64-portable.exe",
         url: `https://github.com/${GITHUB_REPO}/releases/latest`,
         sha256: "PENDING",
         size: "~115 MB",
       },
       mac_arm64: {
-        name: "CodeIn-1.0.0-arm64.dmg",
+        name: "CodIn-1.0.0-arm64.dmg",
         url: `https://github.com/${GITHUB_REPO}/releases/latest`,
         sha256: "PENDING",
         size: "~125 MB",
       },
       mac_x64: {
-        name: "CodeIn-1.0.0-x64.dmg",
+        name: "CodIn-1.0.0-x64.dmg",
         url: `https://github.com/${GITHUB_REPO}/releases/latest`,
         sha256: "PENDING",
         size: "~130 MB",
       },
       linux_x64_appimage: {
-        name: "CodeIn-1.0.0-x64.AppImage",
+        name: "CodIn-1.0.0-x64.AppImage",
         url: `https://github.com/${GITHUB_REPO}/releases/latest`,
         sha256: "PENDING",
         size: "~140 MB",
       },
       linux_x64_deb: {
-        name: "CodeIn-1.0.0-x64.deb",
+        name: "CodIn-1.0.0-amd64.deb",
         url: `https://github.com/${GITHUB_REPO}/releases/latest`,
         sha256: "PENDING",
         size: "~135 MB",

@@ -479,7 +479,13 @@ class MCPClientManager extends EventEmitter {
       .readFileSync(AUDIT_LOG, "utf8")
       .split("\n")
       .filter(Boolean);
-    const entries = lines.slice(-limit).map((line) => JSON.parse(line));
+    const entries = lines.slice(-limit).map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return { raw: line, parseError: true };
+      }
+    });
 
     return entries.reverse();
   }

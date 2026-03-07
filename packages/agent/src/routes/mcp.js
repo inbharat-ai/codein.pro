@@ -89,7 +89,8 @@ function registerMcpRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const name = decodeURIComponent(params.name);
+        // params.name is already decoded by MicroRouter.match()
+        const name = params.name;
         const validation = validateAndSanitizeInput(
           { name },
           {
@@ -138,7 +139,7 @@ function registerMcpRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const name = decodeURIComponent(params.name);
+        const name = params.name;
         const validation = validateAndSanitizeInput(
           { name },
           {
@@ -187,7 +188,7 @@ function registerMcpRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const name = decodeURIComponent(params.name);
+        const name = params.name;
         const validation = validateAndSanitizeInput(
           { name },
           {
