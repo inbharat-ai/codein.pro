@@ -17,6 +17,14 @@
  *   GET    /compute/jobs/:jobId/artifacts/:artifactId — Read artifact
  *   GET    /compute/stats             — Compute statistics
  *   GET    /compute/languages         — Supported languages
+ *   POST   /compute/gpu/connect       — Connect Runpod GPU session
+ *   GET    /compute/gpu/types         — List GPU types
+ *   POST   /compute/gpu/pod           — Create GPU pod
+ *   POST   /compute/gpu/jobs          — Submit GPU job
+ *   GET    /compute/gpu/jobs/:jobId   — Get GPU job status
+ *   GET    /compute/gpu/logs          — Get GPU pod logs
+ *   GET    /compute/gpu/status        — GPU session status
+ *   POST   /compute/gpu/stop          — Stop GPU pod/session
  *   POST   /compute/workflows/:name   — Run a demo workflow
  */
 "use strict";
@@ -203,6 +211,141 @@ function registerComputeRoutes(router, deps) {
     const languages = orchestrator.multilingual.getSupportedLanguages();
     const capabilities = orchestrator.multilingual.getCapabilities();
     sendJson(res, 200, { languages, capabilities });
+  });
+
+  // ─── GPU: connect session ─────────────────────────────────
+  router.post("/compute/gpu/connect", async (req, res) => {
+    try {
+      const raw = await readBody(req);
+      const parsed = parseJsonBody(raw);
+      if (!parsed.ok) {
+        return sendJson(res, 400, { error: parsed.error });
+      }
+
+      const { apiKey, maxBudgetUsd, ttlMinutes, idleShutdownMinutes } =
+        parsed.value || {};
+      const userId = req.user?.userId || "local";
+
+      const result = await orchestrator.connectGpu(userId, {
+        apiKey,
+        maxBudgetUsd,
+        ttlMinutes,
+        idleShutdownMinutes,
+      });
+
+      sendJson(res, 200, result);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GPU: list types ──────────────────────────────────────
+  router.get("/compute/gpu/types", async (req, res) => {
+    try {
+      const userId = req.user?.userId || "local";
+      const gpus = await orchestrator.listGpuTypes(userId);
+      sendJson(res, 200, { gpus });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GPU: create pod ──────────────────────────────────────
+  router.post("/compute/gpu/pod", async (req, res) => {
+    try {
+      const raw = await readBody(req);
+      const parsed = parseJsonBody(raw);
+      if (!parsed.ok) {
+        return sendJson(res, 400, { error: parsed.error });
+      }
+
+      const { gpuName, containerImage, volume, timeoutMinutes } =
+        parsed.value || {};
+
+      if (!gpuName || !containerImage) {
+        return sendJson(res, 400, {
+          error: "Fields 'gpuName' and 'containerImage' are required",
+        });
+      }
+
+      const userId = req.user?.userId || "local";
+      const pod = await orchestrator.createGpuPod(userId, {
+        gpuName,
+        containerImage,
+        volume,
+        timeoutMinutes,
+      });
+
+      sendJson(res, 201, { pod });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GPU: submit job ──────────────────────────────────────
+  router.post("/compute/gpu/jobs", async (req, res) => {
+    try {
+      const raw = await readBody(req);
+      const parsed = parseJsonBody(raw);
+      if (!parsed.ok) {
+        return sendJson(res, 400, { error: parsed.error });
+      }
+
+      const { input, jobName } = parsed.value || {};
+      if (input === undefined) {
+        return sendJson(res, 400, { error: "Field 'input' is required" });
+      }
+
+      const userId = req.user?.userId || "local";
+      const job = await orchestrator.submitGpuJob(userId, { input, jobName });
+      sendJson(res, 201, { job });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GPU: job status ──────────────────────────────────────
+  router.get("/compute/gpu/jobs/:jobId", async (req, res, ctx) => {
+    try {
+      const userId = req.user?.userId || "local";
+      const status = await orchestrator.getGpuJobStatus(userId, ctx.jobId);
+      sendJson(res, 200, { status });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GPU: logs ────────────────────────────────────────────
+  router.get("/compute/gpu/logs", async (req, res) => {
+    try {
+      const userId = req.user?.userId || "local";
+      const logs = await orchestrator.getGpuLogs(userId);
+      sendJson(res, 200, { logs });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GPU: status ──────────────────────────────────────────
+  router.get("/compute/gpu/status", (req, res) => {
+    try {
+      const userId = req.user?.userId || "local";
+      const status = orchestrator.getGpuStatus(userId);
+      sendJson(res, 200, { status });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GPU: stop session ────────────────────────────────────
+  router.post("/compute/gpu/stop", async (req, res) => {
+    try {
+      const userId = req.user?.userId || "local";
+      const result = await orchestrator.stopGpu(userId);
+      sendJson(res, 200, result);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
   });
 
   // ─── Demo workflows ───────────────────────────────────────

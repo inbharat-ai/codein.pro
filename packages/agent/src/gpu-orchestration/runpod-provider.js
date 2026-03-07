@@ -61,7 +61,9 @@ class RunpodBYOProvider extends EventEmitter {
    * @returns {Promise<Array>}
    */
   async listGpuTypes() {
-    const response = await this._apiCall("GET", "/gpus", null);
+    const response = await this._withRetry(() =>
+      this._apiCall("GET", "/gpus", null),
+    );
 
     // Filter to reasonable options: V100, A100, RTX 4090, L40, etc.
     const reasonable = response.gpus.filter((gpu) => {
@@ -110,14 +112,16 @@ class RunpodBYOProvider extends EventEmitter {
     this.lastActivityAt = Date.now();
 
     try {
-      const response = await this._apiCall("POST", "/pods", {
-        cloudType: "community",
-        gpuCount: 1,
-        gpuTypeId: gpuName, // Runpod maps by name or ID
-        containerImage,
-        volumeInGb: volume ? 10 : 0,
-        timeout: timeoutMinutes || 60,
-      });
+      const response = await this._withRetry(() =>
+        this._apiCall("POST", "/pods", {
+          cloudType: "community",
+          gpuCount: 1,
+          gpuTypeId: gpuName, // Runpod maps by name or ID
+          containerImage,
+          volumeInGb: volume ? 10 : 0,
+          timeout: timeoutMinutes || 60,
+        }),
+      );
 
       this.podId = response.id;
       this.status = "running";
@@ -170,7 +174,9 @@ class RunpodBYOProvider extends EventEmitter {
 
     try {
       // Call pod endpoint with input
-      const jobResponse = await this._callPodEndpoint(this.podId, input);
+      const jobResponse = await this._withRetry(() =>
+        this._callPodEndpoint(this.podId, input),
+      );
 
       this.lastActivityAt = Date.now();
 
@@ -201,10 +207,8 @@ class RunpodBYOProvider extends EventEmitter {
     }
 
     try {
-      const response = await this._apiCall(
-        "GET",
-        `/pods/${this.podId}/jobs/${jobId}`,
-        null,
+      const response = await this._withRetry(() =>
+        this._apiCall("GET", `/pods/${this.podId}/jobs/${jobId}`, null),
       );
 
       return {
@@ -228,10 +232,8 @@ class RunpodBYOProvider extends EventEmitter {
       throw new Error("No active pod");
     }
 
-    const response = await this._apiCall(
-      "GET",
-      `/pods/${this.podId}/logs`,
-      null,
+    const response = await this._withRetry(() =>
+      this._apiCall("GET", `/pods/${this.podId}/logs`, null),
     );
     return response.logs || "";
   }
@@ -249,10 +251,8 @@ class RunpodBYOProvider extends EventEmitter {
     this._clearTimers();
 
     try {
-      const response = await this._apiCall(
-        "DELETE",
-        `/pods/${this.podId}`,
-        null,
+      const response = await this._withRetry(() =>
+        this._apiCall("DELETE", `/pods/${this.podId}`, null),
       );
 
       this.costAccumulated = response.totalCost || 0;
@@ -299,6 +299,39 @@ class RunpodBYOProvider extends EventEmitter {
   }
 
   // ─── Private Methods ───────────────────────────────────────
+
+  /**
+   * Execute API operation with bounded exponential backoff.
+   * Retries network/transient provider failures only.
+   * @private
+   */
+  async _withRetry(operation, options = {}) {
+    const maxRetries = options.maxRetries || 3;
+    const baseDelayMs = options.baseDelayMs || 300;
+
+    let lastError;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (err) {
+        lastError = err;
+        const message = String(err && err.message ? err.message : err);
+        const isTransient =
+          /timeout|ECONNRESET|ENOTFOUND|EAI_AGAIN|429|50\d|rate limit/i.test(
+            message,
+          );
+
+        if (!isTransient || attempt === maxRetries) {
+          throw err;
+        }
+
+        const delay = Math.min(baseDelayMs * 2 ** attempt, 5000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
+  }
 
   /**
    * Runpod API call helper

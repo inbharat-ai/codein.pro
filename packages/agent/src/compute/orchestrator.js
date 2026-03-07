@@ -17,6 +17,7 @@ const { ComputePlanner } = require("./planner");
 const { ComputeExecutor } = require("./executor");
 const { PolicyEnforcer } = require("./policy");
 const { ComputeMultilingualAdapter } = require("./multilingual");
+const { GpuSessionManager } = require("./gpu-session-manager");
 
 class ComputeOrchestrator extends EventEmitter {
   /**
@@ -37,6 +38,7 @@ class ComputeOrchestrator extends EventEmitter {
     this.jobStore = new JobStore();
     this.eventStream = new ComputeEventStream();
     this.policyEnforcer = new PolicyEnforcer();
+    this.gpuSessionManager = new GpuSessionManager();
 
     // Planner
     this.planner = new ComputePlanner({
@@ -319,7 +321,44 @@ class ComputeOrchestrator extends EventEmitter {
       events: this.eventStream.getStats(),
       escalation: this.executor.escalationManager.getStats(),
       multilingual: this.multilingual.getCapabilities(),
+      gpu: {
+        activeSessions: this.gpuSessionManager.sessions.size,
+      },
     };
+  }
+
+  // ─── GPU Session API ───────────────────────────────────────
+
+  async connectGpu(userId, config = {}) {
+    return this.gpuSessionManager.connect(userId, config);
+  }
+
+  async listGpuTypes(userId) {
+    return this.gpuSessionManager.listGpuTypes(userId);
+  }
+
+  async createGpuPod(userId, podConfig) {
+    return this.gpuSessionManager.createPod(userId, podConfig);
+  }
+
+  async submitGpuJob(userId, jobConfig) {
+    return this.gpuSessionManager.submitJob(userId, jobConfig);
+  }
+
+  async getGpuJobStatus(userId, jobId) {
+    return this.gpuSessionManager.getJobStatus(userId, jobId);
+  }
+
+  async getGpuLogs(userId) {
+    return this.gpuSessionManager.getLogs(userId);
+  }
+
+  getGpuStatus(userId) {
+    return this.gpuSessionManager.getStatus(userId);
+  }
+
+  async stopGpu(userId) {
+    return this.gpuSessionManager.stop(userId);
   }
 
   /**
@@ -333,6 +372,9 @@ class ComputeOrchestrator extends EventEmitter {
    * Shutdown: disconnect all SSE clients.
    */
   shutdown() {
+    this.gpuSessionManager.shutdownAll().catch(() => {
+      // Ignore cleanup errors during shutdown
+    });
     this.eventStream.disconnectAll();
   }
 }
