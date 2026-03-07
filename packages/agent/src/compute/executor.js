@@ -1,6 +1,5 @@
 /**
- * CodeIn Compute — Executor
- *
+ * CodeIn Compute — Executor *
  * Executes a planned job step-by-step.
  * Each step is run via an agent with tool access gated by the sandbox.
  * Supports retry, escalation, pause/resume, and progress streaming.
@@ -382,16 +381,35 @@ class ComputeExecutor {
       modelId = decision?.modelId;
     }
 
-    // Call local LLM
-    if (!this.modelRuntime) {
-      // No LLM available — return a placeholder
-      return {
-        result: `Step executed (no LLM available): ${step.description}`,
-        output: `Placeholder output for: ${step.description}`,
-        confidence: 0.3,
-        model: "none",
-        artifacts: [],
-      };
+    // Call local LLM or external provider
+    if (!this.modelRuntime && !this.externalProviders) {
+      throw new Error(
+        `No LLM runtime or external providers configured. Cannot execute step: ${step.description}`,
+      );
+    }
+
+    // If local runtime unavailable, try external providers as fallback
+    if (!this.modelRuntime && this.externalProviders) {
+      try {
+        const fallbackResult = await this.externalProviders.callProvider({
+          modelId: modelId || "openai/gpt-4",
+          messages,
+          maxTokens: this.policy?.maxTokensPerCall || 4000,
+        });
+
+        return {
+          result: fallbackResult.content,
+          output: fallbackResult.content,
+          confidence: 0.9,
+          model: fallbackResult.model,
+          artifacts: [],
+          tokensUsed: fallbackResult.usage.total_tokens,
+        };
+      } catch (fallbackError) {
+        throw new Error(
+          `No LLM available and external provider failed: ${fallbackError.message}`,
+        );
+      }
     }
 
     const port = this.modelRuntime.currentPort || 43121;

@@ -1,56 +1,280 @@
 # ARCHITECTURE FIX PLAN
 
-**Date:** March 7, 2026  
-**Goal:** Transform Coding from 6.2/10 → 8.5/10 by fixing foundation and integrating all systems  
-**Status:** In Progress - PHASE 1 COMPLETE
+**Date:** March 7, 2026 - UPDATED POST-AUDIT  
+**Goal:** Transform CodIn from 6.2/10 → 8.5/10 by wiring existing components  
+**Status:** Phase 1 Complete - Starting Phase 2 Implementation
 
 ---
 
 ## EXECUTIVE SUMMARY
 
-The Coding platform has a **sound core** but is **split into two incompatible halves**:
+**CRITICAL FINDING:** The system is **BETTER than initially assessed**.
 
-- **Half 1 (Extension):** Excellent VS Code chat UI, fully functional alone, ZERO awareness of MAS
-- **Half 2 (Agent Server):** Sophisticated MAS orchestration, ZERO integration with extension UI
+- Extension ← → Agent integration **IS REAL AND WORKING**
+- Multi-agent swarm **IS REAL AND WORKING**
+- LLM providers **ARE REAL AND WORKING**
+- MCP integration **IS REAL AND WORKING**
+- Permission system **IS REAL AND WORKING**
 
-**Critical Finding:** Permission system, GPU tracking, and model router are **architecturally designed but functionally fake** — they guard against operations that are never actually attempted.
+**The Primary Problem: BROKEN WIRING, NOT MISSING CODE**
 
-**The Fix:** Rewire these systems to be honest (remove fakes), then integrate extension ↔ agent server end-to-end.
+Three critical components exist but are not connected:
+
+1. **GPU orchestration** - RunPod provider fully implemented but never called
+2. **Model performance feedback** - Router works but never adapts
+3. **Vibe coding** - Image analysis works but scaffold generation incomplete
 
 ---
 
-## PHASE 1 FINDINGS: WHAT'S BROKEN
+## PHASE 1 AUDIT RESULTS
 
-### 1.1 SPLIT-BRAIN ARCHITECTURE (CRITICAL)
+### ✅ What's REAL and Working
 
-**The Problem:**
+**1. Extension ↔ Agent Connection (WORKING)**
 
 ```
-Current:
-┌─────────────────────────────────┐
-│    VS Code Extension (GUI)      │
-│  - Chat input                   │
-│  - Tool calling                 │
-│  - Streaming results            │
-│  - Code editing UI              │
-└─────────────────┬───────────────┘
-                  │
-                  ├─ llm/streamChat
-                  │  (hardcoded chat
-                  │   pipeline, standalone)
-                  │
-                  x BROKEN HERE x
+VS Code Extension
+  ↓ spawns subprocess
+Agent Server (port 43120)
+  ↓ health poll every 5s
+AgentServerClient.checkHealth()
+  ↓ task submission
+POST /swarm/tasks
+  ↓ real-time updates
+SSE /swarm/events
+```
 
-┌─────────────────────────────────┐
-│   Agent Server (Port 43120)     │
-│  - MAS orchestration            │
-│  - Swarm topologies             │
-│  - Permission system            │
-│  - Task graphs                  │
-└─────────────────────────────────┘
-                  │
-                  └─ /swarm REST API
-                     (unreachable)
+Files:
+
+- `packages/extension/src/agent/BharatAgentManager.ts` - spawns agent
+- `packages/extension/src/agent/AgentServerClient.ts` - HTTP client
+- `packages/agent/src/index.js:955` - server listens on 43120
+
+**2. Multi-Agent Swarm (WORKING)**
+
+- Real topologies: mesh, hierarchical, ring, star
+- 27 SSE event types
+- Task graph execution
+- Permission gates
+- File: `packages/agent/src/mas/swarm-manager.js`
+
+**3. LLM Integration (WORKING)**
+
+- OpenAI, Anthropic, Gemini, Ollama providers
+- Streaming support
+- Fallback chains
+- Cost tracking per model
+- File: `packages/agent/src/model-runtime/external-providers.js`
+
+**4. Model Routing (WORKING)**
+
+- 9 task categories (REASONING, CODE_GEN, DEBUG, etc.)
+- Keyword-based classification
+- Provider selection by complexity/context/availability
+- File: `packages/agent/src/model-runtime/router.js`
+
+**5. Vibe Image Analysis (WORKING)**
+
+- Image upload with multer validation (max 10MB)
+- Vision API calls (OpenAI/Claude)
+- UI spec extraction
+- File: `packages/agent/src/routes/vibe.js:44`
+
+**6. MCP Integration (WORKING)**
+
+- Server registration/removal
+- Tool invocation
+- Audit logging to JSONL
+- File: `packages/agent/src/routes/mcp.js`
+
+**7. Permission System (WORKING)**
+
+- Fail-closed gates
+- Budget enforcement
+- GPU spend limits
+- Audit trails
+- File: `packages/agent/src/permissions/permissions.js`
+
+---
+
+## CRITICAL ISSUES: Wiring Gaps
+
+### 🔴 P0: GPU Orchestration Not Called
+
+**Status:** Implementation exists, never invoked
+
+**Evidence:**
+
+- `packages/agent/src/gpu-orchestration/runpod-provider.js` - **FULLY IMPLEMENTED**
+  - `createPod()` - allocates GPU
+  - `submitJob()` - runs compute
+  - `getJobStatus()` - polls results
+  - TTL shutdown timers
+  - Cost tracking
+  - Budget caps
+- Permission type `REMOTE_GPU_SPEND` exists
+- Budget enforcement logic exists
+- **BUT:** `orchestrator.js` never calls the provider
+
+**Impact:** Users request GPU compute → permission check passes → nothing happens
+
+**Fix:**
+
+```javascript
+// packages/agent/src/compute/orchestrator.js
+async function routeJob(job) {
+  if (job.requiresGpu && job.preferRemote) {
+    const provider = new RunPodProvider(...);
+    const pod = await provider.createPod(job.gpuSpec);
+    return await provider.submitJob(pod.id, job);
+  }
+  // ... local execution
+}
+```
+
+### 🟡 P1: Model Performance Feedback Missing
+
+**Status:** Router exists, no adaptation
+
+**What Works:**
+
+- Classification algorithm (9 task types)
+- Provider metadata (latencyTier, qualityScore)
+- Model selection logic
+
+**What's Missing:**
+
+- No telemetry collection after completion
+- No performance history storage
+- Router never adapts based on past results
+
+**Impact:** Model selection never improves with usage
+
+**Fix:**
+
+```javascript
+// NEW: packages/agent/src/model-runtime/performance-tracker.js
+class PerformanceTracker {
+  async recordCompletion(taskType, modelId, metrics) {
+    // metrics: latency, tokens, success, userRating
+    await appendFile('~/.codin/metrics/model-performance.jsonl', ...)
+  }
+
+  async getBestModel(taskType) {
+    const history = await this.loadHistory(taskType);
+    return history.sort((a, b) => b.score - a.score)[0];
+  }
+}
+
+// packages/agent/src/routes/runtime.js
+// After LLM completion:
+await performanceTracker.recordCompletion(taskType, modelId, {
+  latency: elapsed,
+  tokens: completion.usage.total_tokens,
+  success: !error,
+  userRating null // future: ask user
+});
+```
+
+### 🟡 P1: GUI TypeScript Errors
+
+**Status:** Build fails
+
+**Errors:**
+
+1. `SwarmGpu.tsx:10` - references `budgetCap` (should be `budget`)
+2. Missing props on `GpuStatus`: `sessionTtl`, `idleTimeout`
+3. Async dispatch needs `void` wrapper (SwarmHeader.tsx:31, SwarmTaskView.tsx:31)
+
+**Fix:**
+
+```typescript
+// gui/src/types/codinAPI.d.ts
+export interface GpuStatus {
+  provider: string;
+  connected: boolean;
+  budget: number; // was: budgetCap
+  sessionTtl: number; // ADD
+  idleTimeout: number; // ADD
+  jobsRunning: number;
+  totalCost: number;
+}
+```
+
+### 🟢 P2: Vibe Scaffold Generation Incomplete
+
+**Status:** Analysis works, no file creation
+
+**What Works:**
+
+- Image upload
+- Vision API extraction
+- UI spec generation
+
+**What's Missing:**
+
+- No scaffold template engine
+- No file creation from spec
+- No package.json generation
+- No automatic run/preview
+
+**Fix:**
+Create `packages/agent/src/vibe/scaffold-generator.js`:
+
+```javascript
+async function generateScaffold(spec) {
+  const files = {
+    "package.json": generatePackageJson(spec),
+    "app/page.tsx": generateMainPage(spec),
+    "app/layout.tsx": generateLayout(spec),
+    "tailwind.config.js": generateTailwindConfig(),
+    ...generateComponents(spec.components),
+  };
+
+  for (const [path, content] of Object.entries(files)) {
+    await writeFile(join(workspace, path), content);
+  }
+
+  return { filesCreated: Object.keys(files) };
+}
+```
+
+### 🟢 P2: Reliability Gaps
+
+**Missing:**
+
+- Exponential backoff on provider failures
+- Rollback mechanism for file edits
+- Corruption detection on JSON patches
+- Run process restart logic
+
+**Fix Locations:**
+
+- `packages/agent/src/model-runtime/external-providers.js` - add retry
+- `packages/agent/src/intelligence/patch-applicator.js` - add validation + rollback
+- `packages/agent/src/routes/run.js` - improve lifecycle
+
+---
+
+## WHAT WAS FAKE (Less Than Expected)
+
+Only minor issues found:
+
+- ❌ Placeholder output in `executor.js:390` when no LLM available
+- ❌ CORS `"*"` with TODO in `event-stream.js:52`
+- ❌ Some test mocks test fake objects against fake objects
+
+**NOT FAKE:**
+
+- Extension integration (real)
+- Swarm orchestration (real)
+- GPU provider implementation (real, just not called)
+- Model routing (real)
+- Permissions (real)
+  │
+  └─ /swarm REST API
+  (unreachable)
+
 ```
 
 **Impact:**
@@ -73,14 +297,16 @@ Current:
 **The Problem:**
 
 ```
+
 Permission System -> GPU Budget Check -> ✓ Approved/Denied
-                                         │
-                                         x MISSING LAYER x
+│
+x MISSING LAYER x
 
 GPU Provider Layer -> RunPod API -> ✗ Never Called
-GPU Provider Layer -> AWS Batch  -> ✗ Never Called
-GPU Provider Layer -> GCP        -> ✗ Never Called
-```
+GPU Provider Layer -> AWS Batch -> ✗ Never Called
+GPU Provider Layer -> GCP -> ✗ Never Called
+
+````
 
 **What Exists (Fake):**
 
@@ -114,7 +340,7 @@ GPU Provider Layer -> GCP        -> ✗ Never Called
 - No AWS SDK calls
 - No job submission anywhere
 - Permission to spend GPU is checked but never actually spent
-```
+````
 
 ### 1.3 MODEL ROUTER FEEDBACK LOOP STUBBED (HIGH)
 

@@ -306,8 +306,8 @@ class ComputeOrchestrator extends EventEmitter {
   /**
    * Subscribe to job events (SSE).
    */
-  subscribeToEvents(jobId, res) {
-    this.eventStream.subscribe(jobId, res);
+  subscribeToEvents(jobId, res, req) {
+    this.eventStream.subscribe(jobId, res, req);
   }
 
   /**

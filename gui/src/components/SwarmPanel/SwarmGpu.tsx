@@ -7,7 +7,7 @@ export function SwarmGpu() {
 
   if (!gpu) return null;
 
-  const budget = gpu.budgetCap ?? 100;
+  const budget = gpu.budget ?? 100;
   const spent = gpu.spent ?? 0;
   const remaining = Math.max(0, budget - spent);
   const pct = budget > 0 ? (spent / budget) * 100 : 0;

@@ -1,6 +1,5 @@
 /**
- * CodeIn Compute — Event Stream
- *
+ * CodeIn Compute — Event Stream *
  * SSE (Server-Sent Events) emitter for job progress.
  * Clients connect via GET /compute/jobs/:jobId/events
  * and receive real-time progress updates.
@@ -41,15 +40,29 @@ class ComputeEventStream extends EventEmitter {
    * Sets up SSE headers and keep-alive.
    * @param {string} jobId
    * @param {import("http").ServerResponse} res
+   * @param {import("http").IncomingMessage} req - Request object to check origin
    */
-  subscribe(jobId, res) {
-    // Set SSE headers
+  subscribe(jobId, res, req) {
+    // Determine allowed origin (restrict to localhost by default)
+    const origin = req.headers.origin || "";
+    const isLocalhost =
+      origin.includes("localhost") ||
+      origin.includes("127.0.0.1") ||
+      origin.includes("::1") ||
+      origin === "";
+
+    const allowedOrigin = isLocalhost
+      ? origin || "http://localhost:43120"
+      : "http://localhost:43120"; // Production: only allow localhost
+
+    // Set SSE headers with restricted CORS
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
       "X-Accel-Buffering": "no", // nginx: disable buffering
-      "Access-Control-Allow-Origin": "*", // TODO: restrict in production
+      "Access-Control-Allow-Origin": allowedOrigin,
+      "Access-Control-Allow-Credentials": "true",
     });
 
     // Send initial connection event

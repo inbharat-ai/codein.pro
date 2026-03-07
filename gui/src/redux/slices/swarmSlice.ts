@@ -83,6 +83,10 @@ export interface GpuStatus {
   remaining: number;
   sessionExpired: boolean;
   idleExpired: boolean;
+  sessionTtl?: number; // milliseconds remaining in session
+  idleTimeout?: number; // milliseconds before idle shutdown
+  provider?: string; // e.g. "runpod", "lambda"
+  connected: boolean;
 }
 
 export interface SwarmStatus {

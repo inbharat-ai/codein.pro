@@ -154,7 +154,7 @@ function registerComputeRoutes(router, deps) {
       if (!job) {
         return sendJson(res, 404, { error: "Job not found" });
       }
-      orchestrator.subscribeToEvents(ctx.jobId, res);
+      orchestrator.subscribeToEvents(ctx.jobId, res, req);
       // Don't send JSON — SSE headers are set by subscribeToEvents
     } catch (err) {
       sendJson(res, 500, { error: err.message });
