@@ -16,6 +16,7 @@ const { registerPerformanceRoutes } = require("./performance");
 const { registerExternalProviderRoutes } = require("./external-providers");
 const { registerIntelligenceRoutes } = require("./intelligence");
 const { registerComputeRoutes } = require("./compute");
+const { registerSwarmRoutes } = require("./swarm");
 
 /**
  * Creates and configures the full application router.
@@ -64,6 +65,9 @@ function createAppRouter(deps) {
 
   // CodeIn Compute — agentic job runner (plan → execute → artifacts)
   registerComputeRoutes(router, deps);
+
+  // Multi-Agent Swarm — collaborative agent orchestration
+  registerSwarmRoutes(router, deps);
 
   return router;
 }

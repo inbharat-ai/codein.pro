@@ -20,6 +20,7 @@ import editModeStateReducer from "./slices/editState";
 import indexingReducer from "./slices/indexingSlice";
 import { profilesReducer } from "./slices/profilesSlice";
 import sessionReducer from "./slices/sessionSlice";
+import swarmReducer from "./slices/swarmSlice";
 import tabsReducer from "./slices/tabsSlice";
 import uiReducer from "./slices/uiSlice";
 
@@ -31,6 +32,7 @@ const rootReducer = combineReducers({
   indexing: indexingReducer,
   tabs: tabsReducer,
   profiles: profilesReducer,
+  swarm: swarmReducer,
 });
 
 const saveSubsetFilters = [
