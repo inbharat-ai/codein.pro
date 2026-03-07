@@ -4,411 +4,223 @@
 
 <img src="./landing/assets/codein-logo.png" alt="CodIn logo" width="96" />
 
-![CodIn](https://img.shields.io/badge/CodIn-v0.1.0-blue?style=for-the-badge)
+![CodIn](https://img.shields.io/badge/CodIn-v1.0.0-blue?style=for-the-badge)
 ![Node.js](https://img.shields.io/badge/Node.js-20.19+-green?style=for-the-badge&logo=node.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)
+![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue?style=for-the-badge&logo=typescript)
+![License](https://img.shields.io/badge/License-Apache--2.0-orange?style=for-the-badge)
 
 **By Bharat, for the world.**
 
-Open-source AI coding platform with a VS Code extension, local-first agent runtime, multilingual workflows, and integrated research + automation.
+CodIn is a full AI coding tool in the Cursor/Copilot class: local-first agent runtime, autonomous workflows, multilingual support, and production-safe orchestration.
 
 </div>
 
 ---
 
-## Why CodIn
+## What CodIn Is
 
-- Built for real-world software teams that need privacy, speed, and control
-- Local-first architecture for sensitive codebases and air-gapped environments
-- Multi-agent orchestration for complex tasks, with guardrails and observability
-- End-to-end developer workflow: plan, code, test, debug, ship
+CodIn is not just a plugin. It is a complete AI coding system with:
 
-## 🌟 Highlights
+- Client interfaces (desktop/IDE adapters)
+- A local agent runtime (`packages/agent`)
+- Multi-agent orchestration (swarm, routing, sessions, pipeline)
+- Built-in research, observability, and reliability guardrails
 
-### 🆕 **Inbuilt Web Research** (No External APIs Required!)
+If you are evaluating CodIn against Cursor/Copilot, the closest mental model is:
 
-- ✅ **Serper-compatible search** - Drop-in replacement without API keys
-- ✅ **6 research endpoints** - web-search, fetch-url, code-docs, examples, bugs, serper
-- ✅ **DuckDuckGo fallback** - Zero configuration required
-- ✅ **Smart caching** - 5-minute TTL for faster repeat queries
-- ✅ **Activity logging** - Track all research operations
+- Cursor/Copilot style UX
+- Plus local-first runtime control
+- Plus explicit orchestration and systems visibility
 
-### 🤖 **AI-Powered Development**
+## Why It Is Different
 
-- **4 Modes**: Ask (chat), Plan (structured), Agent (autonomous), Implement (edit contracts)
-- **Edit Safety**: Preview, apply, and rollback with backup system
-- **Local Models**: Built-in GGUF model manager (Qwen2.5, DeepSeek R1)
-- **Context-aware**: Uses current file/selection for relevant suggestions
+### Salient Production Features
 
-### 🌐 **Multilingual Support**
+- **Client <-> Agent live bridge** over HTTP + SSE for task streaming and permission loops
+- **Intelligent compute routing** across local runtime, swarm, and GPU
+- **Session-isolated execution** for safer multi-user and parallel workflows
+- **Reliability guardrails** in core agent loops:
+  - circuit breaker
+  - retry with backoff
+  - per-call and global timeout protection
+  - repeated-tool/infinite-loop detection
+- **Built-in observability endpoints** for health, compute, sessions, agents, pipeline, metrics
+- **Serper-compatible research API** without forcing external API keys
 
-- **Voice INPUT**: Hindi, Assamese, Tamil, English speech-to-text
-- **AI4Bharat**: Indic language translation
-- **Native names**: हिन्दी, অসমীয়া, தமிழ், English
-- **Real-time switching**: Change language mid-conversation
+### Capabilities Rarely Unified in One Toolchain
 
-### 🛠️ **Developer Tools**
+- No-key research compatibility endpoint: `POST /api/research/serper`
+- Unified local/swarm/GPU routing in one runtime
+- API-driven autonomous coding pipeline (idea -> spec -> code -> test -> review -> delivery)
+- Tool-execution safety built into base agent behavior, not bolted on later
 
-- **Debug Panel**: Inspect errors, logs, and stack traces
-- **Research Panel**: Web search from IDE
-- **Run Panel**: Auto-detect and execute dev servers
-- **Git Actions**: Status, commit, push with permissions
-- **Deploy Helpers**: Generate Vercel/Netlify/Firebase configs
-- **MCP Integration**: Model Context Protocol support
+## Corrected Architecture
 
-### 🔒 **Privacy & Security**
+This reflects the current repository implementation.
 
-- **Offline-First**: Works without internet using local models
-- **Permission System**: 8 categories with workspace-level control
-- **Activity Logging**: JSONL format for audit trails
-- **No Telemetry**: Privacy-first, no tracking by default
+```text
++----------------------------------------------------------+
+|                   CodIn Clients                          |
+|  - Desktop shell / Electron app                          |
+|  - IDE integration adapter (packages/extension)          |
+|  - GUI workflow panels (gui/)                            |
++---------------------------+------------------------------+
+                            |
+                            | HTTP + SSE
+                            v
++----------------------------------------------------------+
+|                CodIn Agent Runtime (43120)               |
+|  Auth | Runtime | i18n | Research | MCP | Run | Compute  |
+|  Swarm | Routing | Sessions | Status | Pipeline | Vibe    |
++---------------------------+------------------------------+
+                            |
+                            v
++----------------------------------------------------------+
+|                Execution and Orchestration               |
+|  - MAS agents and topologies                             |
+|  - Compute selector (local/swarm/GPU)                   |
+|  - Session manager (isolation + TTL)                     |
+|  - Reliability engine (retry/timeout/circuit breaker)    |
+|  - Model runtime + external providers                    |
++----------------------------------------------------------+
+```
 
-## 📦 Repository Structure
+### Route Surface (from `packages/agent/src/routes/registry.js`)
 
-- `packages/extension`: VS Code extension commands, UI hooks, and host integration
-- `packages/agent`: Agent HTTP server, MAS orchestration, compute routing, research, sessions
-- `core`: Shared runtime logic and model plumbing
-- `gui`: React interface and workflow panels
-- `landing`: Public landing page and download surface
+- `auth`, `models`, `runtime`, `i18n`, `research`, `mcp`
+- `agent-tasks`, `run`, `permissions`, `performance`, `external-providers`
+- `intelligence`, `compute`, `swarm`, `vibe`
+- `routing`, `sessions`, `status`, `pipeline`
 
-## 🚀 Quick Start
+## End-to-End Flow
+
+```text
+Client action
+  -> POST /swarm/tasks
+  -> Agent orchestrates (classify -> route -> execute)
+  -> SSE stream from GET /swarm/events
+  -> Client submits permission decisions (if needed)
+  -> Results from GET /swarm/tasks/:taskId/results
+```
+
+Key validation endpoints:
+
+- `GET /api/health`
+- `GET /status`
+- `GET /status/compute`
+- `GET /status/sessions`
+- `GET /status/agents`
+- `GET /metrics`
+
+## Quick Start
 
 ### Prerequisites
 
-- **Node.js** 20.19 or higher
-- **Python** 3.8+ (for i18n service)
-- **VS Code** 1.80+
+- Node.js `>=20.19`
+- Python `>=3.8` (for i18n components)
 
-### Installation
-
-1. Clone this repository:
-
-   ```bash
-   git clone https://github.com/inbharat-ai/codein.pro.git
-   cd "Bharta Code"
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   cd gui
-   npm install
-   cd ..
-   ```
-
-3. Start the CodIn Agent:
-
-   ```bash
-   cd packages/agent
-   npm start
-   ```
-
-   **Expected output:**
-
-   ```
-   CodIn Agent listening on http://127.0.0.1:43120
-   [CodIn Agent] All subsystems loaded
-   ```
-
-4. Build the extension:
-
-   ```bash
-   cd packages/extension
-   npm install
-   npm run esbuild
-   ```
-
-5. Launch in VS Code:
-   - Open the workspace in VS Code
-   - Press `F5` to start debugging
-   - A new Extension Development Host window will open
-
-### Test Serper-like Search
+### 1) Run Agent Runtime
 
 ```bash
-# Quick test
-curl -X POST http://localhost:43120/api/research/serper \
+cd packages/agent
+npm install
+npm start
+```
+
+Expected:
+
+```text
+CodIn Agent listening on http://127.0.0.1:43120
+All subsystems loaded
+```
+
+### 2) Verify Runtime Health
+
+```bash
+curl http://127.0.0.1:43120/api/health
+curl http://127.0.0.1:43120/status
+curl http://127.0.0.1:43120/status/compute
+```
+
+### 3) Run Client Layer
+
+Choose your interface path:
+
+- Desktop path: see `electron-app/README.md`
+- IDE integration path: see `packages/extension/README.md`
+- GUI workflow development: see `gui/README.md`
+
+## Research API (Serper-Compatible)
+
+```bash
+curl -X POST http://127.0.0.1:43120/api/research/serper \
   -H "Content-Type: application/json" \
-  -d '{"query": "React hooks tutorial", "num_results": 5}'
+  -d '{"query":"React hooks tutorial","num_results":5}'
 ```
 
-**Response:**
+Other research routes:
 
-```json
-{
-  "data": {
-    "searchParameters": {
-      "q": "React hooks tutorial",
-      "type": "search",
-      "engine": "codin"
-    },
-    "organic": [
-      {
-        "position": 1,
-        "title": "React Hooks – React",
-        "link": "https://react.dev/reference/react/hooks",
-        "snippet": "Hooks let you use different React features...",
-        "source": "CodIn Search"
-      }
-    ]
-  }
-}
-```
+- `POST /api/research/web-search`
+- `POST /api/research/fetch-url`
+- `POST /api/research/code-documentation-search`
+- `POST /api/research/code-example-search`
+- `POST /api/research/bug-solution-search`
 
-### First Use
+## Repository Map
 
-1. **Open Chat**: Press `Ctrl+L` (or `Cmd+L` on Mac)
-2. **Select Mode**: Use the mode selector above the input
-3. **Ask a Question**: Type your query and press Enter
-4. **View Settings**: Click the gear icon to configure models, git, etc.
+- `packages/agent`: core runtime and orchestration server
+- `packages/extension`: IDE integration adapter
+- `gui`: workflow UI panels and chat surfaces
+- `electron-app`: standalone CodIn desktop shell
+- `core`: shared engine/runtime modules
+- `landing`: public website and distribution surface
 
----
+## Security and Reliability
 
-## 🔍 Web Research System
+- Telemetry-off local-first default
+- Permission-gated destructive operations
+- Structured audit logging
+- Timeout and retry protection in critical agent loops
+- Circuit-breaker backed LLM/tool execution paths
 
-CodIn includes a powerful **inbuilt web research system** with **NO external API keys required**!
+See:
 
-### Serper-Compatible Search (NEW!)
+- `SECURITY.md`
+- `SECURITY_AND_INTEGRATION.md`
+- `ARCHITECTURE.md`
+- `BACKEND_API_REFERENCE.md`
 
-Replace expensive Serper API with CodIn's free, inbuilt alternative:
+## Testing
 
-```javascript
-// JavaScript/Node.js
-const response = await fetch("http://localhost:43120/api/research/serper", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    query: "Next.js server actions",
-    num_results: 5,
-  }),
-});
-
-const data = await response.json();
-console.log(data.data.organic); // Array of search results
-```
-
-### Available Endpoints
-
-1. **`POST /api/research/serper`** - Serper-compatible search (Recommended!)
-2. **`POST /api/research/web-search`** - General web search
-3. **`POST /api/research/fetch-url`** - Fetch and parse URL content
-4. **`POST /api/research/code-documentation-search`** - Find official docs
-5. **`POST /api/research/code-example-search`** - Search code examples
-6. **`POST /api/research/bug-solution-search`** - Find bug solutions
-
-### Search Providers (Automatic Fallback)
-
-CodIn automatically selects the best available provider:
-
-1. **Tavily** (if `CODIN_TAVILY_API_KEY` is set) - Best results
-2. **Brave** (if `CODIN_BRAVE_API_KEY` is set) - Fast and reliable
-3. **SerpAPI** (if `CODIN_SERPAPI_KEY` is set) - Google results
-4. **DuckDuckGo** (default) - **No API key required!** ✨
-
-### Features
-
-- ✅ **Zero configuration** - Works out of the box
-- ✅ **Smart caching** - 5-minute TTL for faster repeat queries
-- ✅ **Activity logging** - Track all research operations
-- ✅ **Permission system** - webFetch permission required
-- ✅ **Serper-compatible** - Drop-in replacement
-
-**See [docs/WEB_RESEARCH.md](./docs/WEB_RESEARCH.md) for comprehensive documentation.**
-
----
-
-## 📖 Usage
-
-### Modes
-
-- **Ask**: Open-ended chat with code context
-- **Plan**: Structured planning for complex tasks
-- **Agent**: Autonomous multi-step execution
-- **Implement**: Strict JSON edit contracts with preview
-
-Switch modes using the selector above the chat input.
-
-### Implement Mode (Deterministic Edits)
-
-1. Select "Implement" mode
-2. Describe your desired changes
-3. Review the JSON contract in the preview panel
-4. Click "Apply" to execute changes (with automatic backup)
-5. If needed, click "Rollback" to undo
-
-### Model Manager
-
-1. Open Settings (gear icon) → Models
-2. View currently active models
-3. Import local GGUF models or configure cloud APIs
-4. Switch between local and cloud providers
-
-### Voice Input
-
-1. Click the microphone icon below the chat input
-2. Select your language (Hindi/Assamese/Tamil/English)
-3. Grant microphone permission when prompted
-4. Speak your query
-
-### Run Panel
-
-1. Open Settings → Run
-2. View auto-detected project type and command
-3. Click "Run" to start dev server (permission required)
-4. Click "Open Preview" to view in browser
-
-### Git Actions
-
-1. Open Settings → Git
-2. View current branch and uncommitted changes
-3. Enter commit message and click "Commit"
-4. Click "Push" to push to remote (permission required)
-
-### Deploy Helpers
-
-1. Open Settings → Deploy
-2. Click Vercel, Netlify, or Firebase
-3. Config files are generated automatically
-4. Follow the provided deployment instructions
-
-## 🏗️ Architecture
-
-CodIn consists of three main packages plus comprehensive tooling:
-
-### Core Packages
-
-- **`packages/extension`**: VS Code extension UI, commands, and IDE integration
-- **`packages/agent`**: CodIn Agent HTTP service (Node.js)
-  - `src/research/` - Web research system with Serper-like endpoint
-  - `src/i18n/` - Multilingual support (AI4Bharat)
-  - `src/mcp/` - Model Context Protocol integration
-  - `src/run/` - Task manager and process management
-  - `src/model-runtime/` - Local LLM runtime (llama.cpp)
-- **`packages/shared`**: Shared schemas, validation, and utilities
-  - `src/permissions/` - Permission system (8 categories)
-- **`gui/`**: React components for UI
-  - `src/components/` - CopilotChat, ResearchPanel, DebugPanel, etc.
-
-### System Architecture
-
-```
-┌──────────────────────────────────────────┐
-│         VS Code Extension                │
-│  ┌────────────┐  ┌──────────────┐        │
-│  │ CopilotChat│  │ ResearchPanel│        │
-│  └──────┬─────┘  └──────┬───────┘        │
-│         └────────────────┘                │
-│                ↓                          │
-│        HTTP/WebSocket Client              │
-└────────────────┼─────────────────────────┘
-                 │
-                 ↓
-┌──────────────────────────────────────────┐
-│    CodIn Agent (Port 43120)              │
-│  ┌───────────────────────────────┐       │
-│  │  Web Research System          │       │
-│  │  /api/research/serper  ✨     │       │
-│  │  /api/research/web-search     │       │
-│  └──────────┬────────────────────┘       │
-│             ↓                             │
-│  ┌──────────────────────────────┐        │
-│  │ Provider Selection           │        │
-│  │ 1. Tavily (optional)         │        │
-│  │ 2. Brave (optional)          │        │
-│  │ 3. SerpAPI (optional)        │        │
-│  │ 4. DuckDuckGo (default) ✅   │        │
-│  └──────────────────────────────┘        │
-│                                           │
-│  ┌──────────────────────────────┐        │
-│  │ Task Manager + Permissions   │        │
-│  └──────────────────────────────┘        │
-└──────────────────────────────────────────┘
-```
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture overview.
-
-## 🔒 Privacy & Security
-
-- **Telemetry OFF by default**: No usage tracking unless explicitly enabled
-- **No API key logging**: Keys stored securely in VS Code secret storage
-- **Permission gates**: Run, git, and deploy actions require explicit confirmation
-- **Local-first**: Full functionality with local models (no internet required)
-- **Edit backups**: All file changes backed up before applying
-
-See [SECURITY.md](SECURITY.md) for security details.
-
-## 🧪 Testing
-
-Run unit tests:
+Run top-level tests:
 
 ```bash
 npm test
 ```
 
-See [TESTING.md](TESTING.md) for comprehensive testing guide.
+Agent-only tests:
 
-## 🛠️ Development
+```bash
+cd packages/agent
+npm test
+```
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for:
+## Contributing
 
-- Project structure
-- Development workflow
-- Debugging guide
-- Common tasks
-- Release process
+- Read `CONTRIBUTING.md`
+- Follow `DEVELOPMENT.md`
+- Keep claims in docs aligned with implemented routes and runtime behavior
 
-## 📝 Documentation
+## License
 
-### Core Guides
-
-- [README.md](README.md) - This file (Getting Started)
-- [WEB_RESEARCH.md](./docs/WEB_RESEARCH.md) - **⭐ Web research system & Serper API**
-- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
-- [DEVELOPMENT.md](DEVELOPMENT.md) - Developer guide
-- [TESTING.md](TESTING.md) - Testing guide
-- [SECURITY.md](SECURITY.md) - Security & privacy
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
-- [CHANGELOG.md](CHANGELOG.md) - Version history
-
-### API Documentation
-
-- [Backend API Reference](./BACKEND_API_REFERENCE.md) - Core HTTP endpoints
-- [Security & Integration](./SECURITY_AND_INTEGRATION.md) - Operational and security integration guidance
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## 📄 License
-
-Apache 2.0 - see [LICENSE](./LICENSE) for details
-
----
-
-## 🙏 Acknowledgments
-
-CodIn is built on top of excellent open-source technologies:
-
-- **llama.cpp** - Lightning-fast local model runtime
-- **AI4Bharat** - World-class Indic language translation
-- **DuckDuckGo** - Privacy-focused search without API keys
-- **VS Code** - Powerful extension platform
-- **React** - Modern UI framework
-- **Node.js** - Fast and scaleable runtime
-
-Special thanks to the Continue project for inspiring our initial architecture.
+Apache 2.0 (`LICENSE`)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by the CodIn Team**
+**Made by Bharat for the world**
 
-[⭐ Star on GitHub](https://github.com/inbharat-ai/codein.pro) • [📖 Documentation](./docs/) • [🐛 Report Issues](https://github.com/inbharat-ai/codein.pro/issues)
-
-**CodIn - By Bharat, for the world.**
+[Star on GitHub](https://github.com/inbharat-ai/codein.pro) • [Issues](https://github.com/inbharat-ai/codein.pro/issues) • [Docs](./docs/)
 
 </div>
