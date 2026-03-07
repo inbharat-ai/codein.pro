@@ -1,16 +1,27 @@
-# 🚀 CodIn - AI-Powered Code Intelligence Platform
+# CodIn
 
 <div align="center">
+
+<img src="./landing/assets/codein-logo.png" alt="CodIn logo" width="96" />
 
 ![CodIn](https://img.shields.io/badge/CodIn-v0.1.0-blue?style=for-the-badge)
 ![Node.js](https://img.shields.io/badge/Node.js-20.19+-green?style=for-the-badge&logo=node.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=for-the-badge&logo=typescript)
 
-**World-class AI coding assistant with inbuilt web research, multilingual support, and local model runtime**
+**By Bharat, for the world.**
+
+Open-source AI coding platform with a VS Code extension, local-first agent runtime, multilingual workflows, and integrated research + automation.
 
 </div>
 
 ---
+
+## Why CodIn
+
+- Built for real-world software teams that need privacy, speed, and control
+- Local-first architecture for sensitive codebases and air-gapped environments
+- Multi-agent orchestration for complex tasks, with guardrails and observability
+- End-to-end developer workflow: plan, code, test, debug, ship
 
 ## 🌟 Highlights
 
@@ -52,6 +63,14 @@
 - **Activity Logging**: JSONL format for audit trails
 - **No Telemetry**: Privacy-first, no tracking by default
 
+## 📦 Repository Structure
+
+- `packages/extension`: VS Code extension commands, UI hooks, and host integration
+- `packages/agent`: Agent HTTP server, MAS orchestration, compute routing, research, sessions
+- `core`: Shared runtime logic and model plumbing
+- `gui`: React interface and workflow panels
+- `landing`: Public landing page and download surface
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -65,7 +84,7 @@
 1. Clone this repository:
 
    ```bash
-   git clone <your-fork>
+   git clone https://github.com/inbharat-ai/codein.pro.git
    cd "Bharta Code"
    ```
 
@@ -354,9 +373,8 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for:
 
 ### API Documentation
 
-- [REST API Reference](./docs/API_REFERENCE.md) - All HTTP endpoints
-- [Permission System](./docs/PERMISSIONS.md) - Security model
-- [Task Manager](./docs/TASK_MANAGER.md) - Background execution
+- [Backend API Reference](./BACKEND_API_REFERENCE.md) - Core HTTP endpoints
+- [Security & Integration](./SECURITY_AND_INTEGRATION.md) - Operational and security integration guidance
 
 ---
 
@@ -389,8 +407,8 @@ Special thanks to the Continue project for inspiring our initial architecture.
 
 **Made with ❤️ by the CodIn Team**
 
-[⭐ Star on GitHub](#) • [📖 Documentation](./docs/) • [🐛 Report Issues](#)
+[⭐ Star on GitHub](https://github.com/inbharat-ai/codein.pro) • [📖 Documentation](./docs/) • [🐛 Report Issues](https://github.com/inbharat-ai/codein.pro/issues)
 
-**CodIn - Code Smarter, Search Freely, Build Faster**
+**CodIn - By Bharat, for the world.**
 
 </div>

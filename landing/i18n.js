@@ -35,7 +35,7 @@ const I18N = {
     "hero.title1": "Code in every",
     "hero.title2": "language of Bharat",
     "hero.subtitle":
-      "CodeIn is an AI-powered code editor that understands Hindi, Tamil, Bengali, and 20+ Indian languages. Built on open-source. Runs locally. Your code never leaves your machine.",
+      "CodeIn is by Bharat, for the world - an open-source AI coding platform that supports multilingual workflows, runs locally, and keeps your code private.",
     "hero.download": "Download for",
     "hero.all_platforms": "All platforms",
     "hero.detected": "Detected:",
@@ -198,12 +198,12 @@ const I18N = {
     "compare.card2.title": "Your Code Stays Yours",
     "compare.card2.desc":
       "Paid tools send your code to their servers for processing. CodeIn's local AI means your proprietary code, API keys, and secrets never leave your machine.",
-    "compare.card3.title": "Built for Bharat",
+    "compare.card3.title": "By Bharat, for the world",
     "compare.card3.desc":
-      "No other AI code editor supports 20+ Indian languages for voice, chat, and comments. CodeIn thinks in your mother tongue.",
+      "No other AI code editor combines 20+ Indian languages with a global, local-first workflow. CodeIn lets you think in your mother tongue and ship for the world.",
 
     // --- Footer ---
-    "footer.tagline": "AI-powered code editor for Bharat.",
+    "footer.tagline": "By Bharat, for the world.",
     "footer.madeWith": "Made with ❤️ in India.",
     "footer.product": "Product",
     "footer.community": "Community",

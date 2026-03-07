@@ -4,7 +4,7 @@
  */
 
 // ─── Configuration ──────────────────────────────────────────
-const GITHUB_REPO = "inbharatai/codein";
+const GITHUB_REPO = "inbharat-ai/codein.pro";
 const MANIFEST_URL = "downloads.json"; // local fallback
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 

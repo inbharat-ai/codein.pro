@@ -5,21 +5,21 @@
   "version": "1.3.32",
   "repository": {
     "type": "git",
-    "url": "https://github.com/inbharat/codin"
+    "url": "https://github.com/inbharat-ai/codein.pro"
   },
   "extensionKind": [
     "ui",
     "workspace"
   ],
-  "displayName": "CodIn - AI Code Agent for Bharat",
-  "description": "Multilingual, offline-first, privacy-first AI code agent for Bharat",
+  "displayName": "CodIn - By Bharat, for the world",
+  "description": "Multilingual, offline-first, privacy-first AI coding platform by Bharat, for the world",
   "publisher": "codin",
   "license": "Apache-2.0",
   "homepage": "https://codin.dev",
-  "qna": "https://github.com/inbharat/codin/issues/new/choose",
+  "qna": "https://github.com/inbharat-ai/codein.pro/issues/new/choose",
   "pricing": "Free",
   "bugs": {
-    "url": "https://github.com/inbharat/codin/issues",
+    "url": "https://github.com/inbharat-ai/codein.pro/issues",
     "email": "maintainers@codin.dev"
   },
   "categories": [

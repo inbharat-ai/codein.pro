@@ -2,13 +2,13 @@
   "version": "1.0.0",
   "releaseDate": "2025-07-24",
   "releaseName": "CodeIn v1.0.0 — Maiden Voyage",
-  "releaseNotes": "First public release of CodeIn, the multilingual AI-powered code editor for Bharat.",
-  "githubRepo": "inbharatai/codein",
+  "releaseNotes": "First public release of CodeIn, by Bharat, for the world.",
+  "githubRepo": "inbharat-ai/codein.pro",
   "assets": {
     "win_x64": {
       "name": "CodeIn-1.0.0-x64.exe",
       "label": "Windows (x64) Installer",
-      "url": "https://github.com/inbharatai/codein/releases/download/v1.0.0/CodeIn-1.0.0-x64.exe",
+      "url": "https://github.com/inbharat-ai/codein.pro/releases/download/v1.0.0/CodeIn-1.0.0-x64.exe",
       "sha256": "PENDING_CI_BUILD",
       "size": "~120 MB",
       "format": "NSIS Installer"
@@ -16,7 +16,7 @@
     "win_x64_portable": {
       "name": "CodeIn-1.0.0-x64.exe",
       "label": "Windows (x64) Portable",
-      "url": "https://github.com/inbharatai/codein/releases/download/v1.0.0/CodeIn-1.0.0-x64-portable.exe",
+      "url": "https://github.com/inbharat-ai/codein.pro/releases/download/v1.0.0/CodeIn-1.0.0-x64-portable.exe",
       "sha256": "PENDING_CI_BUILD",
       "size": "~115 MB",
       "format": "Portable EXE"
@@ -24,7 +24,7 @@
     "mac_x64": {
       "name": "CodeIn-1.0.0-x64.dmg",
       "label": "macOS (Intel)",
-      "url": "https://github.com/inbharatai/codein/releases/download/v1.0.0/CodeIn-1.0.0-x64.dmg",
+      "url": "https://github.com/inbharat-ai/codein.pro/releases/download/v1.0.0/CodeIn-1.0.0-x64.dmg",
       "sha256": "PENDING_CI_BUILD",
       "size": "~130 MB",
       "format": "DMG"
@@ -32,7 +32,7 @@
     "mac_arm64": {
       "name": "CodeIn-1.0.0-arm64.dmg",
       "label": "macOS (Apple Silicon)",
-      "url": "https://github.com/inbharatai/codein/releases/download/v1.0.0/CodeIn-1.0.0-arm64.dmg",
+      "url": "https://github.com/inbharat-ai/codein.pro/releases/download/v1.0.0/CodeIn-1.0.0-arm64.dmg",
       "sha256": "PENDING_CI_BUILD",
       "size": "~125 MB",
       "format": "DMG"
@@ -40,7 +40,7 @@
     "linux_x64_appimage": {
       "name": "CodeIn-1.0.0-x64.AppImage",
       "label": "Linux (x64) AppImage",
-      "url": "https://github.com/inbharatai/codein/releases/download/v1.0.0/CodeIn-1.0.0-x64.AppImage",
+      "url": "https://github.com/inbharat-ai/codein.pro/releases/download/v1.0.0/CodeIn-1.0.0-x64.AppImage",
       "sha256": "PENDING_CI_BUILD",
       "size": "~140 MB",
       "format": "AppImage"
@@ -48,7 +48,7 @@
     "linux_x64_deb": {
       "name": "CodeIn-1.0.0-x64.deb",
       "label": "Linux (x64) Debian",
-      "url": "https://github.com/inbharatai/codein/releases/download/v1.0.0/CodeIn-1.0.0-x64.deb",
+      "url": "https://github.com/inbharat-ai/codein.pro/releases/download/v1.0.0/CodeIn-1.0.0-x64.deb",
       "sha256": "PENDING_CI_BUILD",
       "size": "~135 MB",
       "format": "DEB Package"
