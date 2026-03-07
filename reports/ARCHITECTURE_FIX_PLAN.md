@@ -2,7 +2,7 @@
 
 **Date:** March 8, 2026  
 **Objective:** Move CodIn from audit-quality 6.2/10 toward engineering-quality 8.5/10  
-**Current Status:** Foundation fixed, GPU control plane wired, reliability partially hardened
+**Current Status:** Foundation fixed, GPU control plane wired, vibe apply made transactional, reliability partially hardened
 
 ## 1. What Was Broken
 
@@ -75,6 +75,19 @@ Updated `packages/agent/src/gpu-orchestration/runpod-provider.js`:
   - `getPodLogs`
   - `stopPod`
 
+### 4.5 Vibe Route Execution + Transaction Safety
+
+Updated `packages/agent/src/routes/vibe.js`:
+
+- Replaced incompatible helper import path with active HTTP helpers
+- Switched `/vibe/analyze`, `/vibe/generate`, `/vibe/apply` to explicit `readBody` + `parseJsonBody`
+- Added strict validation for image payload and mime type in `/vibe/analyze`
+- Implemented transactional file apply with rollback:
+  - workspace path normalization
+  - path traversal / absolute path rejection
+  - backup before write
+  - reverse-order rollback on failure
+
 ## 5. What Is Now Actually Working
 
 - Extension-agent path remains functional (health + task submission + SSE).
@@ -82,6 +95,7 @@ Updated `packages/agent/src/gpu-orchestration/runpod-provider.js`:
 - GPU key handling is persisted securely through keyring-backed storage.
 - GPU lifecycle (connect, list, create pod, submit, poll, logs, stop) is callable via REST.
 - Retry/backoff reduces transient remote API failure fragility.
+- Vibe apply no longer leaves partial workspace writes on failure.
 
 ## 6. Remaining Gaps to Reach 8.5/10
 

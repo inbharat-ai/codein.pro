@@ -7,31 +7,14 @@
 
 "use strict";
 
-const { jsonResponse, handleRoute } = require("../middleware/api-helpers");
-const multer = require("multer");
+const {
+  jsonResponse,
+  handleRoute,
+  readBody,
+  parseJsonBody,
+} = require("../utils/http-helpers");
 const path = require("path");
 const fs = require("fs").promises;
-
-// Configure multer for image uploads
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB max
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|svg|webp/;
-    const extname = allowedTypes.test(
-      path.extname(file.originalname).toLowerCase(),
-    );
-    const mimetype = allowedTypes.test(file.mimetype);
-
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed"));
-    }
-  },
-});
 
 /**
  * Register vibe coding routes
@@ -39,24 +22,47 @@ const upload = multer({
 function registerVibeRoutes(router, { externalProviders, logger }) {
   /**
    * POST /vibe/analyze
-   * Analyze uploaded image and extract UI specification
+   * Analyze image and extract UI specification
+   * Body: { imageBase64, mimeType, originalFileName? }
    */
-  router.post("/vibe/analyze", upload.single("image"), async (req, res) => {
+  router.post("/vibe/analyze", async (req, res) => {
     await handleRoute(
       res,
       async () => {
-        if (!req.file) {
+        const raw = await readBody(req);
+        const parsed = parseJsonBody(raw);
+        if (!parsed.ok) {
+          return jsonResponse(res, 400, { error: parsed.error });
+        }
+
+        const { imageBase64, mimeType, originalFileName } = parsed.value || {};
+        if (!imageBase64 || typeof imageBase64 !== "string") {
           return jsonResponse(res, 400, {
-            error: "No image file uploaded",
+            error: "Field 'imageBase64' is required",
+          });
+        }
+        if (!mimeType || typeof mimeType !== "string") {
+          return jsonResponse(res, 400, {
+            error: "Field 'mimeType' is required",
           });
         }
 
-        const base64Image = req.file.buffer.toString("base64");
-        const mimeType = req.file.mimetype;
+        if (imageBase64.length > 14 * 1024 * 1024) {
+          return jsonResponse(res, 400, {
+            error: "Image payload too large",
+          });
+        }
+
+        const allowedMime = /^(image\/(jpeg|jpg|png|gif|svg\+xml|webp))$/i;
+        if (!allowedMime.test(mimeType)) {
+          return jsonResponse(res, 400, {
+            error: "Unsupported mimeType. Use image/jpeg|png|gif|svg+xml|webp",
+          });
+        }
 
         // Use Claude 4V or GPT-4V for vision analysis
         const spec = await analyzeImageWithVision(
-          base64Image,
+          imageBase64,
           mimeType,
           externalProviders,
           logger,
@@ -65,7 +71,7 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
         jsonResponse(res, 200, {
           success: true,
           spec,
-          originalFileName: req.file.originalname,
+          originalFileName: originalFileName || null,
           analysisTimestamp: new Date().toISOString(),
         });
       },
@@ -81,7 +87,13 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
     await handleRoute(
       res,
       async () => {
-        const { spec, projectName, framework, styling } = req.body;
+        const raw = await readBody(req);
+        const parsed = parseJsonBody(raw);
+        if (!parsed.ok) {
+          return jsonResponse(res, 400, { error: parsed.error });
+        }
+
+        const { spec, projectName, framework, styling } = parsed.value || {};
 
         if (!spec) {
           return jsonResponse(res, 400, { error: "UI spec is required" });
@@ -123,7 +135,13 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
     await handleRoute(
       res,
       async () => {
-        const { files, workspaceRoot } = req.body;
+        const raw = await readBody(req);
+        const parsed = parseJsonBody(raw);
+        if (!parsed.ok) {
+          return jsonResponse(res, 400, { error: parsed.error });
+        }
+
+        const { files, workspaceRoot } = parsed.value || {};
 
         if (!files || !Array.isArray(files)) {
           return jsonResponse(res, 400, { error: "Files array is required" });
@@ -561,26 +579,70 @@ export default function ${comp.name}() {
  */
 async function applyFilesToWorkspace(files, workspaceRoot, logger) {
   const applied = [];
+  const backups = [];
 
-  for (const file of files) {
-    try {
-      const fullPath = path.join(workspaceRoot, file.path);
+  const normalizeTarget = (relativePath) => {
+    if (!relativePath || typeof relativePath !== "string") {
+      throw new Error("Each file must include a valid relative path");
+    }
+    if (path.isAbsolute(relativePath)) {
+      throw new Error(`Absolute paths are not allowed: ${relativePath}`);
+    }
+    if (relativePath.includes("..") || relativePath.includes("\\..")) {
+      throw new Error(`Path traversal is not allowed: ${relativePath}`);
+    }
+
+    const resolved = path.resolve(workspaceRoot, relativePath);
+    const rootResolved = path.resolve(workspaceRoot);
+    if (!resolved.startsWith(rootResolved)) {
+      throw new Error(`Path escapes workspace root: ${relativePath}`);
+    }
+
+    return resolved;
+  };
+
+  try {
+    for (const file of files) {
+      const fullPath = normalizeTarget(file.path);
       const dir = path.dirname(fullPath);
 
-      // Create directory if it doesn't exist
-      await fs.mkdir(dir, { recursive: true });
+      let previousContent = null;
+      let existed = false;
+      try {
+        previousContent = await fs.readFile(fullPath, "utf8");
+        existed = true;
+      } catch {
+        existed = false;
+      }
 
-      // Write file
+      backups.push({ path: fullPath, existed, previousContent });
+
+      await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(fullPath, file.content, "utf8");
 
       applied.push(file.path);
       logger?.info(`Applied file: ${file.path}`);
-    } catch (error) {
-      logger?.error(`Failed to apply ${file.path}:`, error);
     }
-  }
 
-  return applied;
+    return applied;
+  } catch (error) {
+    // Roll back writes in reverse order
+    for (let i = backups.length - 1; i >= 0; i--) {
+      const backup = backups[i];
+      try {
+        if (backup.existed) {
+          await fs.writeFile(backup.path, backup.previousContent, "utf8");
+        } else {
+          await fs.unlink(backup.path).catch(() => {});
+        }
+      } catch {
+        // Keep rolling back best-effort
+      }
+    }
+
+    logger?.error("Failed to apply vibe files transactionally:", error);
+    throw new Error(`Vibe apply failed and was rolled back: ${error.message}`);
+  }
 }
 
 /**

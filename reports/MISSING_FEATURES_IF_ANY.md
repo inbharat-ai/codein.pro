@@ -2,23 +2,23 @@
 
 This file only lists genuinely remaining gaps that still block an 8.5/10 release quality bar.
 
-## 1. Vibe Transaction Safety (Blocking)
+## 1. Vibe Patch Schema Hardening (Blocking)
 
 ### Missing
 
 - Strict JSON patch validation before write
-- Atomic apply-or-rollback behavior for generated file changes
-- Durable rollback ledger for recovery after partial failures
+- Semantic validation for allowed file operations and patch bounds
+- Durable rollback ledger for recovery after process interruption
 
 ### Why It Matters
 
-Without atomic patching, malformed generation output can corrupt workspaces.
+Transactional rollback is now implemented, but schema-level patch validation is still required to prevent unsafe patch intent.
 
 ### What Is Needed
 
 - Patch schema validation + semantic guards
 - Write-ahead transaction log
-- Rollback command path integrated into vibe/apply
+- Rollback command path integrated into vibe/apply with recovery replay
 
 ## 2. Run/Preview Process Supervision (Blocking)
 
@@ -74,9 +74,9 @@ Trust and release quality perception depend on truthful positioning.
 
 ## Estimated Remaining Effort
 
-- Vibe patch safety + rollback: 6-8h
+- Vibe patch schema safety + rollback ledger: 4-6h
 - Run/preview supervision: 4-6h
 - Integration testing matrix: 5-7h
 - Positioning cleanup: 1-2h
 
-**Total:** 16-23 hours
+**Total:** 14-21 hours

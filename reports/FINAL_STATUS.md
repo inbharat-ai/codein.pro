@@ -2,14 +2,14 @@
 
 **Date:** March 8, 2026  
 **Decision:** **NO-SHIP**  
-**Current Score:** **7.6/10**
+**Current Score:** **7.9/10**
 
 ## Honest Scores
 
-- Architecture: **8.4/10**
-- Reliability: **6.9/10**
-- Security: **7.5/10**
-- UX: **6.3/10**
+- Architecture: **8.5/10**
+- Reliability: **7.2/10**
+- Security: **7.7/10**
+- UX: **6.5/10**
 - Uniqueness: **9.0/10**
 
 ## Ship Decision
@@ -23,10 +23,11 @@
 3. Runpod session lifecycle is implemented with secure key handling.
 4. Model router is deterministic with tracked performance scoring.
 5. MCP and MAS paths are functional and not placeholder-only.
+6. Vibe apply path now performs transactional writes with rollback on failure.
 
 ## What Is Not Yet True
 
-1. Vibe flow is not yet transaction-safe end-to-end with strict rollback guarantees.
+1. Vibe flow still needs stricter patch-schema validation end-to-end.
 2. Run/preview lifecycle is not yet resilient enough for production-grade failure modes.
 3. Full-scale integration test coverage for new GPU+vibe+run paths is incomplete.
 4. Public positioning still overstates current UX maturity.
@@ -35,7 +36,7 @@
 
 - Is the extension fully integrated with CodingAgent? **Yes, with remaining UX hardening.**
 - Is remote GPU actually real? **Yes (API wired, lifecycle callable).**
-- Is vibe coding actually working? **Partially (not yet fully hardened).**
+- Is vibe coding actually working? **Partially (runtime works, still needs schema-level hardening).**
 - Is the model router honest and real? **Yes (deterministic, tracked).**
 - Is the run/preview flow stable? **Not yet at production standard.**
 - Is the architecture simpler and cleaner than before? **Yes.**
