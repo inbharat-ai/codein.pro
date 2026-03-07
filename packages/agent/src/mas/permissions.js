@@ -20,11 +20,12 @@ const {
   PERMISSION_TYPE,
   PERMISSION_DECISION,
   PERMISSION_RESPONSE,
-  NODE_STATUS,
+  NODE_STATUS: _NODE_STATUS,
   EVENT_TYPE,
   createSwarmEvent,
   createPermissionRequest,
 } = require("./types");
+const { RunpodBYOProvider } = require("../gpu-orchestration/runpod-provider");
 
 // ─── Constants ───────────────────────────────────────────────
 const GPU_BUDGET_DEFAULT = 2.0; // $2
@@ -67,6 +68,10 @@ class PermissionGate {
     this._gpuSpent = 0;
     this._gpuSessionStart = null;
     this._gpuLastActivity = null;
+
+    // GPU providers: requestId → RunpodBYOProvider instance
+    this._gpuProviders = new Map();
+    this._runpodApiKey = gpuConfig.runpodApiKey || null;
   }
 
   _emit(type, data) {
@@ -283,12 +288,22 @@ class PermissionGate {
       },
     );
 
-    // If GPU spend, track the cost
+    // If GPU spend approved, create GPU pod
     if (
       decision === PERMISSION_DECISION.APPROVED &&
       request.permissionType === PERMISSION_TYPE.REMOTE_GPU_SPEND
     ) {
       this._recordGpuSpend(request.costEstimate);
+
+      // Create GPU pod if API key available
+      if (this._runpodApiKey) {
+        this._createGpuPod(requestId, request).catch((err) => {
+          console.error(
+            `Failed to create GPU pod for ${requestId}:`,
+            err.message,
+          );
+        });
+      }
     }
 
     resolve({ decision, reason });
@@ -365,10 +380,89 @@ class PermissionGate {
       sessionExpired: this._gpuSessionStart
         ? Date.now() - this._gpuSessionStart > GPU_TTL_MS
         : false,
-      idleExpired: this._gpuLastActivity
-        ? Date.now() - this._gpuLastActivity > GPU_IDLE_MS
-        : false,
     };
+  }
+
+  /**
+   * Create and manage GPU pod for approved request
+   */
+  async _createGpuPod(requestId, request) {
+    try {
+      const provider = new RunpodBYOProvider({
+        apiKey: this._runpodApiKey,
+        maxBudgetUsd: this._gpuBudget,
+        ttlMinutes: GPU_TTL_MS / 60000,
+        idleShutdownMinutes: GPU_IDLE_MS / 60000,
+      });
+
+      // Listen for pod lifecycle events
+      provider.on("pod_created", (data) => {
+        this._emit(EVENT_TYPE.GPU_POD_CREATED, {
+          requestId,
+          podId: data.podId,
+          gpuType: data.gpuType,
+          costPerHour: data.costPerHour,
+        });
+      });
+
+      provider.on("pod_stopped", (data) => {
+        this._gpuSpent += data.totalCost;
+        this._gpuProviders.delete(requestId);
+        this._emit(EVENT_TYPE.GPU_POD_STOPPED, {
+          requestId,
+          podId: data.podId,
+          totalCost: data.totalCost,
+          reason: data.reason,
+        });
+      });
+
+      provider.on("job_error", (error) => {
+        this._emit(EVENT_TYPE.GPU_JOB_ERROR, {
+          requestId,
+          error: error.message,
+        });
+      });
+
+      // Extract GPU type from request metadata
+      const gpuType = request.metadata?.gpuType || "RTX 4090";
+      const containerImage =
+        request.metadata?.containerImage ||
+        "runpod/pytorch:2.0.1-py3.10-cuda11.8.0-devel";
+
+      // Create pod
+      await provider.createPod({
+        gpuName: gpuType,
+        containerImage,
+        volume: 50,
+        timeout: GPU_TTL_MS,
+      });
+
+      this._gpuProviders.set(requestId, provider);
+
+      return provider;
+    } catch (error) {
+      console.error("GPU pod creation failed:", error);
+      throw error;
+    }
+  }
+
+  /** Get active GPU provider for a request */
+  getGpuProvider(requestId) {
+    return this._gpuProviders.get(requestId);
+  }
+
+  /** Stop all active GPU pods */
+  async stopAllGpuPods() {
+    const promises = [];
+    for (const [requestId, provider] of this._gpuProviders) {
+      promises.push(
+        provider.stopPod().catch((err) => {
+          console.error(`Failed to stop GPU pod ${requestId}:`, err.message);
+        }),
+      );
+    }
+    await Promise.all(promises);
+    this._gpuProviders.clear();
   }
 
   /** Cancel all pending permissions (e.g., on swarm shutdown). */
@@ -382,8 +476,9 @@ class PermissionGate {
     this._pending.clear();
   }
 
-  destroy() {
+  async destroy() {
     this.cancelAllPending();
+    await this.stopAllGpuPods();
     this._auditLog = [];
   }
 }

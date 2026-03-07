@@ -13,7 +13,7 @@ const {
   EXECUTION_STRATEGY,
   createTaskNode,
   createTaskGraph,
-  nodeId,
+  nodeId: _nodeId,
 } = require("../types");
 
 const SYSTEM_PROMPT = `You are the CodIn Planner Agent. Your job is to decompose a coding goal into concrete, actionable task nodes.
@@ -91,7 +91,7 @@ ${context.workspaceSummary || "No workspace context available."}`;
     const plan = await this.callLLMJson(prompt);
 
     // Build real TaskGraph from LLM output
-    const nodes = (plan.nodes || []).map((n, i) =>
+    const nodes = (plan.nodes || []).map((n, _i) =>
       createTaskNode({
         goal: n.goal,
         agentType: n.agentType || AGENT_TYPE.CODER,

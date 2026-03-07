@@ -65,8 +65,9 @@ function registerResearchRoutes(router, deps) {
           !(await checkWebPermission(req, res, "web-search", {
             query: validation.data.query,
           }))
-        )
+        ) {
           return;
+        }
 
         // Check cache first (5 min TTL for search results)
         const cacheKey = `research:web:${validation.data.query}:${validation.data.num_results || 5}`;
@@ -134,8 +135,9 @@ function registerResearchRoutes(router, deps) {
           !(await checkWebPermission(req, res, "fetch-url", {
             url: validation.data.url,
           }))
-        )
+        ) {
           return;
+        }
 
         const result = await webResearchService.fetchUrl(validation.data.url);
         appendAgentActivity({
@@ -189,8 +191,9 @@ function registerResearchRoutes(router, deps) {
             library: validation.data.library,
             topic: validation.data.topic,
           }))
-        )
+        ) {
           return;
+        }
 
         const results = await webResearchService.codeDocumentationSearch(
           validation.data.library,
@@ -249,8 +252,9 @@ function registerResearchRoutes(router, deps) {
             language: validation.data.language,
             pattern: validation.data.pattern,
           }))
-        )
+        ) {
           return;
+        }
 
         const results = await webResearchService.codeExampleSearch(
           validation.data.language,
@@ -307,8 +311,9 @@ function registerResearchRoutes(router, deps) {
           !(await checkWebPermission(req, res, "bug-solution-search", {
             error_message: validation.data.error_message,
           }))
-        )
+        ) {
           return;
+        }
 
         const results = await webResearchService.bugSolutionSearch(
           validation.data.error_message,
@@ -360,8 +365,9 @@ function registerResearchRoutes(router, deps) {
           !(await checkWebPermission(req, res, "serper-search", {
             query: validation.data.query,
           }))
-        )
+        ) {
           return;
+        }
 
         const payload = await webResearchService.searchSerperLike(
           validation.data.query,

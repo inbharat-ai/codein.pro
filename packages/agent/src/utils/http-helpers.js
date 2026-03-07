@@ -27,8 +27,9 @@ function readBody(req) {
 }
 
 function parseJsonBody(raw) {
-  if (!raw || raw.trim() === "")
+  if (!raw || raw.trim() === "") {
     return { ok: false, error: "Empty request body" };
+  }
   try {
     return { ok: true, value: JSON.parse(raw) };
   } catch (error) {
@@ -135,11 +136,12 @@ async function handleRoute(res, handler, logger) {
   try {
     await handler();
   } catch (error) {
-    if (logger)
+    if (logger) {
       logger.error(
         { error: error.message, stack: error.stack },
         "Route handling failed",
       );
+    }
     jsonResponse(res, 500, { error: error.message || "Internal server error" });
   }
 }

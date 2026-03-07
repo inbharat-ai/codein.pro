@@ -9,7 +9,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
-const crypto = require("node:crypto");
+const _crypto = require("node:crypto");
 const {
   MEMORY_SCOPE,
   EVENT_TYPE,
@@ -424,7 +424,82 @@ class LongTermMemory {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 5. MEMORY MANAGER (Unified interface + hooks)
+// 5. BLACKBOARD — Inter-agent message bus
+// ═══════════════════════════════════════════════════════════════
+
+class Blackboard {
+  constructor() {
+    /** @type {Array<{ from: string, to: string|null, topic: string, payload: any, ts: string }>} */
+    this._messages = [];
+    /** @type {Map<string, any>} */
+    this._shared = new Map();
+  }
+
+  /**
+   * Post a message to a specific agent or broadcast to all.
+   * @param {string} from — Sender agent ID
+   * @param {string|null} to — Recipient agent ID, or null for broadcast
+   * @param {string} topic — Message topic / channel
+   * @param {any} payload — Message content
+   */
+  post(from, to, topic, payload) {
+    this._messages.push({
+      from,
+      to,
+      topic,
+      payload: stripSecrets(payload),
+      ts: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Read messages addressed to a specific agent (direct + broadcast).
+   * @param {string} agentId
+   * @param {string} [topic] — Optional topic filter
+   * @returns {Array}
+   */
+  read(agentId, topic) {
+    return this._messages.filter((m) => {
+      const addressed = m.to === agentId || m.to === null;
+      const topicMatch = !topic || m.topic === topic;
+      return addressed && topicMatch;
+    });
+  }
+
+  /**
+   * Set a shared key-value visible to all agents.
+   * @param {string} key
+   * @param {any} value
+   */
+  setShared(key, value) {
+    this._shared.set(key, stripSecrets(value));
+  }
+
+  /**
+   * Get a shared value.
+   * @param {string} key
+   * @returns {any}
+   */
+  getShared(key) {
+    return this._shared.get(key);
+  }
+
+  /** All shared entries as plain object. */
+  snapshot() {
+    return {
+      messages: this._messages.length,
+      shared: Object.fromEntries(this._shared),
+    };
+  }
+
+  clear() {
+    this._messages = [];
+    this._shared.clear();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 6. MEMORY MANAGER (Unified interface + hooks)
 // ═══════════════════════════════════════════════════════════════
 
 class MemoryManager {
@@ -441,6 +516,7 @@ class MemoryManager {
       workspaceHash,
       enabled: longTermEnabled,
     });
+    this.blackboard = new Blackboard();
     this._emitEvent = emitEvent;
   }
 
@@ -598,6 +674,7 @@ module.exports = {
   ShortTermMemory,
   WorkingMemory,
   LongTermMemory,
+  Blackboard,
   MemoryManager,
   SHORT_TERM_DEFAULT_TTL,
   LONG_TERM_MAX_AGE,

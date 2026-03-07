@@ -57,7 +57,7 @@
 
 ### Memory Security
 
-- [x] `stripSecrets()` redacts API keys (sk-_), GitHub tokens (ghp\__), JWTs, passwords
+- [x] `stripSecrets()` redacts API keys (sk-\_), GitHub tokens (ghp\_\_), JWTs, passwords
 - [x] Sensitive key names filtered: apiKey, secret, password, token, credential
 - [x] Long-term memory capped at 10 MB
 - [x] Short-term memory auto-prunes expired entries

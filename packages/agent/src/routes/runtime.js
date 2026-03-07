@@ -416,22 +416,13 @@ function registerRuntimeRoutes(router, deps) {
           return;
         }
 
-        const {
-          modelId,
-          success,
-          latencyMs,
-          taskCategory,
-          userRating,
-          instruction,
-          response,
-        } = parsed.value;
+        const { modelId, success, latencyMs, taskCategory, userRating } =
+          parsed.value;
         modelRouter?.recordOutcome(modelId, {
           success,
           latencyMs,
           taskCategory,
           userRating,
-          instruction,
-          response,
         });
         jsonResponse(res, 200, { recorded: true });
       },

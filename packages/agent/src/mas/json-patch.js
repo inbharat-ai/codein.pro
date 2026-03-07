@@ -209,8 +209,9 @@ function applyOp(doc, op) {
     case "move": {
       const fromSegments = parsePointer(op.from);
       const value = getAtPath(doc, fromSegments);
-      if (value === undefined)
+      if (value === undefined) {
         throw new Error(`move: source '${op.from}' not found`);
+      }
       removeAtPath(doc, fromSegments);
       setAtPath(doc, segments, structuredClone(value));
       return doc;
@@ -219,8 +220,9 @@ function applyOp(doc, op) {
     case "copy": {
       const fromSegments = parsePointer(op.from);
       const value = getAtPath(doc, fromSegments);
-      if (value === undefined)
+      if (value === undefined) {
         throw new Error(`copy: source '${op.from}' not found`);
+      }
       setAtPath(doc, segments, structuredClone(value));
       return doc;
     }

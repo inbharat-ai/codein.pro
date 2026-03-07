@@ -41,6 +41,21 @@ function registerSwarmRoutes(router, deps) {
   });
   deps.swarmManager = swarmManager;
 
+  // ─── GET /api/health ───────────────────────────────────────
+  // Health check endpoint for extension client
+  router.get("/api/health", (_req, res) => {
+    try {
+      sendJson(res, 200, {
+        status: "ok",
+        service: "CodingAgent",
+        version: "1.0.0",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
   // ─── POST /swarm/init ──────────────────────────────────────
   router.post("/swarm/init", async (req, res) => {
     try {
@@ -96,10 +111,12 @@ function registerSwarmRoutes(router, deps) {
     try {
       const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
       const filter = {};
-      if (url.searchParams.get("type"))
+      if (url.searchParams.get("type")) {
         filter.type = url.searchParams.get("type");
-      if (url.searchParams.get("status"))
+      }
+      if (url.searchParams.get("status")) {
         filter.status = url.searchParams.get("status");
+      }
       const agents = swarmManager.agentList(filter);
       sendJson(res, 200, { agents });
     } catch (err) {
@@ -209,10 +226,11 @@ function registerSwarmRoutes(router, deps) {
       if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
 
       const { response } = parsed.value;
-      if (!response)
+      if (!response) {
         return sendJson(res, 400, {
           error: "'response' is required (approve_once|approve_always|deny)",
         });
+      }
 
       const result = swarmManager.respondToPermission(ctx.requestId, response);
       sendJson(res, result.success ? 200 : 400, result);

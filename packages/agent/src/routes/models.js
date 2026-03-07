@@ -8,7 +8,7 @@ const {
   parseJsonBody,
   validateAndSanitizeInput,
   safeFilename,
-  handleRoute,
+  handleRoute: _handleRoute,
 } = require("../utils/http-helpers");
 
 function registerModelRoutes(router, deps) {
@@ -21,7 +21,7 @@ function registerModelRoutes(router, deps) {
     requirePermission,
     auditedAction,
     permissionManager,
-    logger,
+    logger: _logger,
   } = deps;
 
   router.get("/models", async (req, res) => {

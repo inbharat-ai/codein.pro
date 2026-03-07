@@ -6,7 +6,7 @@
  */
 "use strict";
 
-const { AGENT_TYPE, AGENT_STATUS } = require("./types");
+const { AGENT_TYPE: _AGENT_TYPE, AGENT_STATUS } = require("./types");
 const { createAgent, AGENT_CLASS_MAP } = require("./agents");
 
 class AgentRouter {

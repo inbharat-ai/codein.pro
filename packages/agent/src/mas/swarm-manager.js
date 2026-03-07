@@ -15,14 +15,14 @@ const { EventEmitter } = require("node:events");
 const crypto = require("node:crypto");
 
 const {
-  TOPOLOGY,
+  TOPOLOGY: _TOPOLOGY,
   NODE_STATUS,
   EVENT_TYPE,
   AGENT_TYPE,
   createSwarmConfig,
   createSwarmEvent,
   createTaskNode,
-  createTaskGraph,
+  createTaskGraph: _createTaskGraph,
   validateSwarmConfig,
   validateTaskGraph,
 } = require("./types");
@@ -31,7 +31,7 @@ const { MemoryManager } = require("./memory");
 const { PermissionGate } = require("./permissions");
 const { AgentRouter } = require("./agent-router");
 const { createTopologyScheduler } = require("./topologies");
-const { BatchPlanner, BatchExecutor } = require("./batch");
+const { BatchPlanner, BatchExecutor: _BatchExecutor } = require("./batch");
 const { JsonPatchEngine } = require("./json-patch");
 
 // ─── Swarm States ────────────────────────────────────────────
@@ -189,7 +189,7 @@ class SwarmManager extends EventEmitter {
     goal,
     mode = "single",
     topology,
-    strategy,
+    strategy: _strategy,
     acceptanceCriteria,
     context = {},
   }) {
@@ -363,8 +363,9 @@ class SwarmManager extends EventEmitter {
   // ════════════════════════════════════════════════════════════
 
   swarmShutdown() {
-    if (this._state === SWARM_STATE.SHUTDOWN)
+    if (this._state === SWARM_STATE.SHUTDOWN) {
       return { status: "already_shutdown" };
+    }
 
     this._state = SWARM_STATE.SHUTTING_DOWN;
     this._broadcast(
@@ -406,8 +407,9 @@ class SwarmManager extends EventEmitter {
   }
 
   respondToPermission(requestId, response) {
-    if (!this._permissionGate)
+    if (!this._permissionGate) {
       return { success: false, error: "Swarm not active" };
+    }
     return this._permissionGate.respondToRequest(requestId, response);
   }
 
@@ -469,6 +471,7 @@ class SwarmManager extends EventEmitter {
           ...context,
           plan: taskGraph,
           previousResults: this._gatherPreviousResults(taskGraph, node),
+          blackboard: this._memory.blackboard,
         };
 
         const result = await agent.execute(node, nodeContext);
@@ -538,6 +541,31 @@ class SwarmManager extends EventEmitter {
       await Promise.allSettled(batch.map(executeNode));
     }
 
+    // Cancel nodes left QUEUED due to failed dependencies
+    const failedIds = new Set(
+      taskGraph.nodes
+        .filter((n) => n.status === NODE_STATUS.FAILED)
+        .map((n) => n.id),
+    );
+    for (const node of taskGraph.nodes) {
+      if (node.status !== NODE_STATUS.QUEUED) continue;
+      const hasFailedDep = node.dependencies.some((depId) =>
+        failedIds.has(depId),
+      );
+      if (hasFailedDep) {
+        node.status = NODE_STATUS.CANCELLED;
+        node.error = "Cancelled: upstream dependency failed";
+        node.completedAt = new Date().toISOString();
+        taskGraph.metadata.nodesFailed++;
+        this._broadcast(
+          createSwarmEvent({
+            type: EVENT_TYPE.NODE_FAILED,
+            data: { nodeId: node.id, error: node.error },
+          }),
+        );
+      }
+    }
+
     // Handle ring topology iteration
     if (scheduler.checkIteration) {
       const iterCheck = scheduler.checkIteration(taskGraph);
@@ -552,7 +580,8 @@ class SwarmManager extends EventEmitter {
       (n) => n.status === NODE_STATUS.SUCCEEDED,
     );
     const anyFailed = taskGraph.nodes.some(
-      (n) => n.status === NODE_STATUS.FAILED,
+      (n) =>
+        n.status === NODE_STATUS.FAILED || n.status === NODE_STATUS.CANCELLED,
     );
 
     taskGraph.status = allSucceeded

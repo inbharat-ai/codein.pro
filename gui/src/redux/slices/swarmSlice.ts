@@ -127,10 +127,11 @@ const initialState: SwarmState = {
 
 // ─── Async Thunks ────────────────────────────────────────────
 
-const SWARM_BASE = "/swarm";
+import { getAgentBaseUrl } from "../../util/agentConfig";
 
 async function swarmFetch(path: string, opts?: RequestInit) {
-  const res = await fetch(`${SWARM_BASE}${path}`, {
+  const base = getAgentBaseUrl();
+  const res = await fetch(`${base}/swarm${path}`, {
     headers: { "Content-Type": "application/json" },
     ...opts,
   });

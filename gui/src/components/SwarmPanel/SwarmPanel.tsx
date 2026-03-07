@@ -9,6 +9,7 @@ import {
   setSseConnected,
   type SwarmEvent,
 } from "../../redux/slices/swarmSlice";
+import { getAgentBaseUrl } from "../../util/agentConfig";
 import { SwarmAgents } from "./SwarmAgents";
 import { SwarmGpu } from "./SwarmGpu";
 import { SwarmHeader } from "./SwarmHeader";
@@ -36,7 +37,7 @@ export function SwarmPanel() {
   // SSE connection
   useEffect(() => {
     if (!isActive) return;
-    const es = new EventSource("/swarm/events");
+    const es = new EventSource(`${getAgentBaseUrl()}/swarm/events`);
     evtSourceRef.current = es;
 
     es.onopen = () => dispatch(setSseConnected(true));

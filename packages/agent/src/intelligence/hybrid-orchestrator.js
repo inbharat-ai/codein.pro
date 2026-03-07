@@ -360,9 +360,6 @@ class HybridIntelligenceOrchestrator extends EventEmitter {
           success: finalVerification?.passed || !!finalOutput,
           latencyMs: timing.totalMs,
           taskCategory: routing.taskCategory,
-          instruction: request.prompt,
-          response:
-            typeof finalOutput === "string" ? finalOutput.slice(0, 500) : "",
         });
       }
 

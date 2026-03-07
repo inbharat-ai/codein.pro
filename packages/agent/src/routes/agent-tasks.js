@@ -14,7 +14,7 @@ function registerAgentTaskRoutes(router, deps) {
     taskManager,
     permissionManager,
     readAgentActivity,
-    appendAgentActivity,
+    appendAgentActivity: _appendAgentActivity,
     logger,
   } = deps;
 

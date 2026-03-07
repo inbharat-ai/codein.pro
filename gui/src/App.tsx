@@ -2,6 +2,7 @@ import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import ComputePanel from "./components/ComputePanel";
 import Layout from "./components/Layout";
 import { MCPToolsPanel } from "./components/MCPToolsPanel";
+import { SwarmPanel } from "./components/SwarmPanel/SwarmPanel";
 import { MainEditorProvider } from "./components/mainInput/TipTapEditor";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
 import { VscThemeProvider } from "./context/VscTheme";
@@ -51,6 +52,10 @@ const router = createMemoryRouter([
       {
         path: ROUTES.MCP,
         element: <MCPToolsPanel />,
+      },
+      {
+        path: ROUTES.SWARM,
+        element: <SwarmPanel />,
       },
     ],
   },

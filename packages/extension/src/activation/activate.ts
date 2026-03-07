@@ -6,9 +6,11 @@ import { VsCodeExtension } from "../extension/VsCodeExtension";
 import { getExtensionVersion, isUnsupportedPlatform } from "../util/util";
 
 import { GlobalContext } from "core/util/GlobalContext";
+import { getAgentServerClient } from "../agent/AgentServerClient";
+import { startCodInAgent } from "../agent/BharatAgentManager";
+import { initializeLogger, logger } from "../agent/logger";
 import { VsCodeContinueApi } from "./api";
 import setupInlineTips from "./InlineTipManager";
-import { startCodInAgent } from "../agent/BharatAgentManager";
 
 export async function activateExtension(context: vscode.ExtensionContext) {
   const platformCheck = isUnsupportedPlatform();
@@ -16,6 +18,10 @@ export async function activateExtension(context: vscode.ExtensionContext) {
   const hasShownUnsupportedPlatformWarning = globalContext.get(
     "hasShownUnsupportedPlatformWarning",
   );
+
+  // Initialize logger
+  initializeLogger();
+  logger.info("Activating CodIn extension");
 
   if (platformCheck.isUnsupported && !hasShownUnsupportedPlatformWarning) {
     const platformTarget = "windows-arm64";
@@ -43,6 +49,47 @@ export async function activateExtension(context: vscode.ExtensionContext) {
   // Register commands and providers
   setupInlineTips(context);
   startCodInAgent(context);
+
+  // Initialize Agent Server Client
+  const agentClient = getAgentServerClient(
+    parseInt(process.env.CODIN_AGENT_PORT || "43120", 10),
+  );
+
+  // Monitor connection status
+  agentClient.onConnectionStatusChange((status) => {
+    logger.info(`Agent server connection: ${status}`);
+    if (status === "connected") {
+      vscode.window.showInformationMessage(
+        "CodIn Agent Server connected",
+        { modal: false },
+      );
+    }
+  });
+
+  // Listen for permission requests
+  agentClient.onPermission(async (request) => {
+    const result = await vscode.window.showInformationMessage(
+      `Permission required: ${request.description}`,
+      { modal: true },
+      "Allow",
+      "Deny",
+    );
+
+    const approved = result === "Allow";
+    await agentClient.respondToPermission(request.requestId, approved);
+
+    if (approved) {
+      logger.info(`Permission approved: ${request.requestId}`);
+    } else {
+      logger.info(`Permission denied: ${request.requestId}`);
+    }
+  });
+
+  context.subscriptions.push({
+    dispose: () => {
+      agentClient.dispose();
+    },
+  });
 
   const vscodeExtension = new VsCodeExtension(context);
 

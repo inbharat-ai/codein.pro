@@ -7,7 +7,7 @@ const {
   readBody,
   parseJsonBody,
   validateAndSanitizeInput,
-  handleRoute,
+  handleRoute: _handleRoute,
 } = require("../utils/http-helpers");
 
 function registerAuthRoutes(router, deps) {

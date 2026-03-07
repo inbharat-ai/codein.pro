@@ -18,6 +18,7 @@ export const ROUTES = {
   STATS: "/stats",
   COMPUTE: "/compute",
   MCP: "/mcp",
+  SWARM: "/swarm",
   // EXAMPLE_ROUTE_WITH_PARAMS: (params: ParamsType) => `/route/${params}`,
 };
 

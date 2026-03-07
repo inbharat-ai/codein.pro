@@ -17,6 +17,11 @@ const { registerExternalProviderRoutes } = require("./external-providers");
 const { registerIntelligenceRoutes } = require("./intelligence");
 const { registerComputeRoutes } = require("./compute");
 const { registerSwarmRoutes } = require("./swarm");
+const { registerVibeRoutes } = require("./vibe");
+const { registerRoutingRoutes } = require("./routing");
+const { registerSessionRoutes } = require("./sessions");
+const { registerStatusRoutes } = require("./status");
+const { registerPipelineRoutes } = require("./pipeline");
 
 /**
  * Creates and configures the full application router.
@@ -68,6 +73,21 @@ function createAppRouter(deps) {
 
   // Multi-Agent Swarm — collaborative agent orchestration
   registerSwarmRoutes(router, deps);
+
+  // Vibe Coding — Image → UI Spec → Scaffold → Code pipeline
+  registerVibeRoutes(router, deps);
+
+  // Intelligent Routing — Compute target selection (local/swarm/GPU)
+  registerRoutingRoutes(router, deps);
+
+  // Session Management — Multi-user session isolation
+  registerSessionRoutes(router, deps);
+
+  // System Status & Observability — Health checks and metrics
+  registerStatusRoutes(router, deps);
+
+  // Autonomous Coding Pipeline — Multi-phase software creation
+  registerPipelineRoutes(router, deps);
 
   return router;
 }

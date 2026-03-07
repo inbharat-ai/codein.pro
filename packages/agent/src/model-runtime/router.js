@@ -293,110 +293,9 @@ class PerformanceTracker {
   }
 }
 
-// ── Fine-Tuning Data Collector ───────────────────────────────────────────────
-class FineTuneCollector {
-  constructor(dataDir) {
-    this.dataDir = dataDir;
-    this.batchSize = 100;
-    this.buffer = [];
-  }
-
-  _outputPath() {
-    return path.join(this.dataDir, "finetune-data.jsonl");
-  }
-
-  collect(sample) {
-    const entry = {
-      instruction: sample.instruction,
-      response: sample.response,
-      model: sample.model,
-      task_category: sample.taskCategory,
-      rating: sample.rating ?? null,
-      timestamp: new Date().toISOString(),
-      metadata: sample.metadata || {},
-    };
-    this.buffer.push(entry);
-    if (this.buffer.length >= this.batchSize) {
-      this.flush();
-    }
-  }
-
-  flush() {
-    if (this.buffer.length === 0) return;
-    try {
-      const dir = path.dirname(this._outputPath());
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      const lines = this.buffer.map((e) => JSON.stringify(e)).join("\n") + "\n";
-      fs.appendFileSync(this._outputPath(), lines, "utf8");
-      this.buffer = [];
-    } catch {
-      // Non-critical
-    }
-  }
-
-  getCollectedCount() {
-    try {
-      if (!fs.existsSync(this._outputPath())) return 0;
-      const content = fs.readFileSync(this._outputPath(), "utf8");
-      return content.split("\n").filter(Boolean).length;
-    } catch {
-      return 0;
-    }
-  }
-
-  exportForTraining(format = "alpaca") {
-    try {
-      if (!fs.existsSync(this._outputPath())) return [];
-      const lines = fs
-        .readFileSync(this._outputPath(), "utf8")
-        .split("\n")
-        .filter(Boolean);
-      const samples = lines
-        .map((l) => {
-          try {
-            return JSON.parse(l);
-          } catch {
-            return null;
-          }
-        })
-        .filter(Boolean);
-      const quality = samples.filter(
-        (s) => s.rating === null || s.rating >= 0.7,
-      );
-
-      if (format === "alpaca") {
-        return quality.map((s) => ({
-          instruction: s.instruction,
-          input: "",
-          output: s.response,
-        }));
-      }
-      if (format === "sharegpt") {
-        return quality.map((s) => ({
-          conversations: [
-            { from: "human", value: s.instruction },
-            { from: "gpt", value: s.response },
-          ],
-        }));
-      }
-      if (format === "openai") {
-        return quality.map((s) => ({
-          messages: [
-            {
-              role: "system",
-              content: "You are CodIn, an expert coding assistant.",
-            },
-            { role: "user", content: s.instruction },
-            { role: "assistant", content: s.response },
-          ],
-        }));
-      }
-      return quality;
-    } catch {
-      return [];
-    }
-  }
-}
+// ── Fine-Tuning Data Collector (REMOVED) ─────────────────────────────────────
+// Fine-tuning data collection has been removed as there is no consumer for this data.
+// If fine-tuning is needed in the future, implement proper training pipeline first.
 
 // ── Intelligent Model Router ─────────────────────────────────────────────────
 class ModelRouter extends EventEmitter {
@@ -404,7 +303,6 @@ class ModelRouter extends EventEmitter {
     super();
     const dataDir = options.dataDir || path.join(process.cwd(), "data");
     this.tracker = new PerformanceTracker(dataDir);
-    this.collector = new FineTuneCollector(dataDir);
     this.availableModels = new Set();
     this.profiles = { ...MODEL_PROFILES };
     if (options.customProfiles) {
@@ -510,26 +408,13 @@ class ModelRouter extends EventEmitter {
     return decision;
   }
 
-  recordOutcome(
-    modelId,
-    { success, latencyMs, taskCategory, userRating, instruction, response },
-  ) {
+  recordOutcome(modelId, { success, latencyMs, taskCategory, userRating }) {
     this.tracker.record(modelId, {
       success,
       latencyMs,
       taskCategory,
       userRating,
     });
-    if (instruction && response) {
-      this.collector.collect({
-        instruction,
-        response,
-        model: modelId,
-        taskCategory,
-        rating: userRating,
-        metadata: { latencyMs, success },
-      });
-    }
   }
 
   getPerformanceStats() {
@@ -538,14 +423,15 @@ class ModelRouter extends EventEmitter {
 
   getFineTuneStats() {
     return {
-      collected: this.collector.getCollectedCount(),
-      buffered: this.collector.buffer.length,
+      message:
+        "Fine-tune data collection removed. Implement proper training pipeline if needed.",
+      collected: 0,
+      buffered: 0,
     };
   }
 
   exportFineTuneData(format = "alpaca") {
-    this.collector.flush();
-    return this.collector.exportForTraining(format);
+    return [];
   }
 
   getModelProfiles() {
@@ -648,7 +534,6 @@ const modelRouter = new ModelRouter();
 module.exports = {
   ModelRouter,
   PerformanceTracker,
-  FineTuneCollector,
   modelRouter,
   TASK_CATEGORIES,
   MODEL_PROFILES,

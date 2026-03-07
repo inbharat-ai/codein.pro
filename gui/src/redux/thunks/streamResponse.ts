@@ -12,6 +12,7 @@ import {
   updateHistoryItemAtIndex,
 } from "../slices/sessionSlice";
 import { ThunkApiType } from "../store";
+import { routeUserInput } from "./chatRouter";
 import { streamNormalInput } from "./streamNormalInput";
 import { streamThunkWrapper } from "./streamThunkWrapper";
 import { updateFileSymbolsFromFiles } from "./updateFileSymbols";
@@ -103,21 +104,32 @@ export const streamResponseThunk = createAsyncThunk<
           });
         }
 
-        unwrapResult(
-          await dispatch(
-            streamNormalInput({
-              legacySlashCommandData: legacyCommandWithInput
-                ? {
-                    command: legacyCommandWithInput.command,
-                    contextItems: selectedContextItems,
-                    historyIndex: inputIndex,
-                    input: legacyCommandWithInput.input,
-                    selectedCode,
-                  }
-                : undefined,
-            }),
-          ),
+        // Route based on input complexity
+        const route = await routeUserInput(
+          typeof contentForModel === "string" ? contentForModel : "",
+          dispatch,
+          getState,
         );
+
+        if (route === "chat") {
+          // Normal chat path
+          unwrapResult(
+            await dispatch(
+              streamNormalInput({
+                legacySlashCommandData: legacyCommandWithInput
+                  ? {
+                      command: legacyCommandWithInput.command,
+                      contextItems: selectedContextItems,
+                      historyIndex: inputIndex,
+                      input: legacyCommandWithInput.input,
+                      selectedCode,
+                    }
+                  : undefined,
+              }),
+            ),
+          );
+        }
+        // Swarm path is handled directly by routeUserInput
       }),
     );
   },

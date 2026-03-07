@@ -171,46 +171,53 @@ class BatchPlanner {
       action.includes("read") ||
       action.includes("get") ||
       action.includes("list")
-    )
+    ) {
       return BATCH_TYPE.READ;
+    }
     if (
       action.includes("search") ||
       action.includes("find") ||
       action.includes("grep")
-    )
+    ) {
       return BATCH_TYPE.SEARCH;
+    }
     if (
       action.includes("memory") ||
       action.includes("recall") ||
       action.includes("remember")
-    )
+    ) {
       return BATCH_TYPE.MEMORY;
+    }
     if (
       action.includes("mcp") &&
       !action.includes("write") &&
       !action.includes("delete")
-    )
+    ) {
       return BATCH_TYPE.MCP_SAFE;
+    }
     if (
       action.includes("delete") ||
       action.includes("remove") ||
       action.includes("drop")
-    )
+    ) {
       return BATCH_TYPE.DESTRUCTIVE;
+    }
     if (
       action.includes("command") ||
       action.includes("exec") ||
       action.includes("run") ||
       action.includes("shell")
-    )
+    ) {
       return BATCH_TYPE.COMMAND;
+    }
     if (
       action.includes("write") ||
       action.includes("create") ||
       action.includes("edit") ||
       action.includes("update")
-    )
+    ) {
       return BATCH_TYPE.WRITE;
+    }
     return BATCH_TYPE.WRITE; // Default to write (fail-safe: sequential)
   }
 }

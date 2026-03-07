@@ -657,6 +657,31 @@ async function downloadFile(url, destPath) {
 // Until then, requests get 503.
 
 function buildRouter() {
+  // Bridge function: agents call runLLM(systemPrompt, userPrompt, opts)
+  // and we translate to the externalProviders message-array format.
+  const runLLM = async (systemPrompt, userPrompt, opts = {}) => {
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ];
+    try {
+      const result = await externalProviders.completeWithFallback(messages, {
+        model: opts.model,
+        maxTokens: opts.maxTokens || 4096,
+        temperature: opts.temperature ?? 0.7,
+      });
+      return result.content;
+    } catch {
+      // No providers configured — fall back to modelRuntime if available
+      if (modelRuntime && typeof modelRuntime.complete === "function") {
+        return modelRuntime.complete(systemPrompt, userPrompt, opts);
+      }
+      throw new Error(
+        "No LLM provider available. Configure an external provider via POST /external-providers/configure",
+      );
+    }
+  };
+
   appRouter = createAppRouter({
     // Auth
     jwtManager,
@@ -697,6 +722,9 @@ function buildRouter() {
     taskManager,
     projectDetector,
     processManager,
+
+    // LLM bridge for MAS agents
+    runLLM,
 
     // Legacy router
     getRouterDecision,

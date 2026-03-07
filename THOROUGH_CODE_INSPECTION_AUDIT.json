@@ -1,0 +1,562 @@
+{
+  "auditDate": "2026-03-07",
+  "projectName": "CodIn/Bharta",
+  "repository": "https://github.com/inbharat-ai/codein.pro.git",
+  "auditScope": "Full codebase inspection: dead code, fake implementations, integration gaps, provider status",
+  "executiveSummary": {
+    "overallHealthScore": "6.5/10",
+    "criticalIssues": 12,
+    "implementationCompleteness": "62% real code, 18% partial/stubbed, 20% documentation-only",
+    "majorRisks": [
+      "GPU orchestration completely fake",
+      "Vibe coding (image-to-code) missing entirely",
+      "Permission system ceremonial (agents never call tools, only LLM)",
+      "i18n providers missing backend infrastructure",
+      "Run/Preview auto-install broken",
+      "ModelRouter feedback loop not wired"
+    ]
+  },
+  "deadCode": [
+    {
+      "category": "Completely Unused Features",
+      "items": [
+        {
+          "file": "packages/agent/src/mas/types.js",
+          "function": "REMOTE_GPU_SPEND permission type",
+          "reason": "Defined in enum but has no provider, no job dispatch, no VRAM tracking",
+          "lines": [101],
+          "status": "definitely_dead",
+          "evidence": "Permission enum exists but no RemoteGpuProvider or similar class exists anywhere"
+        },
+        {
+          "file": "packages/agent/src/mas/permissions.js",
+          "function": "_checkGpuBudget(costEstimate)",
+          "reason": "Called only for REMOTE_GPU_SPEND permission, which is never actually used since no GPU provider exists",
+          "lines": [117, 289],
+          "status": "definitely_dead",
+          "evidence": "Budget constants exist but never consumed - no RunPod/Modal/Lambda integration"
+        },
+        {
+          "file": "packages/agent/src/config/index.js",
+          "function": "hideImageUpload configuration",
+          "reason": "Vibe coding feature never implemented",
+          "lines": [null],
+          "status": "definitely_dead",
+          "evidence": "hideImageUpload: true in config but no image handler, vision model, or image encoder anywhere"
+        },
+        {
+          "file": "gui/src/components/SwarmPanel/**/*.tsx",
+          "function": "All 8 SwarmPanel components (SwarmGpu, SwarmMemory, SwarmAgents, etc)",
+          "reason": "Components are routed in App.tsx but functionality is disconnected from agent execution - UI shows swarm state but agents return empty JSON from default mock runLLM",
+          "lines": [null],
+          "status": "probably_unused",
+          "evidence": "SwarmPanel IS mounted (line 58 App.tsx), but since runLLM defaults/was mocked historically, showed empty results. Now runLLM is properly wired via externalProviders"
+        },
+        {
+          "file": "packages/agent/src/intelligence/**/*.js",
+          "function": "localComplete() and premiumComplete() stubs",
+          "reason": "Injected as dependency but never called - legacy from old architecture",
+          "lines": [null],
+          "status": "probably_unused",
+          "evidence": "Intelligence orchestrator has these methods but completeWithFallback uses modelRouter directly"
+        },
+        {
+          "file": "packages/agent/src/compute/escalation.js",
+          "function": "escalateStep() - external provider fallback for compute",
+          "reason": "Called but always returns null gracefully; externalProviders often empty unless user configures",
+          "lines": [null],
+          "status": "probably_unused",
+          "evidence": "Line in executor.js: 'return null; // Escalation failed — continue with local result' (line 481)"
+        }
+      ]
+    },
+    {
+      "category": "Placeholder Functions (Structural but Empty)",
+      "items": [
+        {
+          "file": "packages/agent/src/mas/agents/base-agent.js",
+          "function": "execute(node, context)",
+          "reason": "Base class throws 'not implemented' - subclasses must override",
+          "lines": [313],
+          "status": "intentional_abstract",
+          "evidence": "throw new Error(`${this.constructor.name}.execute() not implemented`);"
+        },
+        {
+          "file": "packages/agent/src/security/sandbox.js",
+          "function": "Worker thread sandbox isolation",
+          "reason": "Uses Node.js Worker but doesn't restrict capabilities - trivially escapable",
+          "lines": [22],
+          "status": "definitely_broken",
+          "evidence": "No capability restrictions in workers; they can access fs, network, env vars"
+        },
+        {
+          "file": "packages/agent/src/i18n/orchestrator.js",
+          "function": "AI4Bharat provider spawn",
+          "reason": "References Python HTTP server that doesn't exist",
+          "lines": [null],
+          "status": "definitely_dead",
+          "evidence": "Tries to spawn Python backend but deployment missing - falls back to [STT not configured]"
+        },
+        {
+          "file": "packages/agent/src/routes/i18n.js",
+          "function": "STT and TTS routes",
+          "reason": "Return placeholder messages when python backend unavailable",
+          "lines": [139, 250],
+          "status": "definitely_broken",
+          "evidence": "Routes exist but orchestrator.stt() defaults to placeholder response"
+        }
+      ]
+    }
+  ],
+  "integrationGaps": [
+    {
+      "from": "Extension UI (packages/extension/src)",
+      "to": "MAS Agent Server (packages/agent/src/mas)",
+      "whats_missing": "**Zero wiring between extension and swarm**. Extension is unaware of MAS types, agents, topologies. Only calls Continue protocol.",
+      "impact": "Swarm features completely invisible to extension UI. Users can't interact with agent topologies, permissions, or task graphs from VS Code",
+      "severity": "CRITICAL",
+      "files_involved": [
+        "packages/extension/src/commands.ts - has openSwarmPanel but command does nothing",
+        "packages/extension/src/activation/activate.ts - no MAS integration",
+        "packages/agent/src/routes/swarm.js - REST API exists but extension never calls it"
+      ]
+    },
+    {
+      "from": "SwarmManager LLM calls",
+      "to": "Real LLM providers",
+      "whats_missing": "**Default mock wiring historically** (now fixed but was broken). Line 39 swarm.js: `runLLM: deps.runLLM || (async () => \"{}\")`",
+      "impact": "If deps.runLLM not provided, all agent calls return empty JSON. Swarm orchestrates nothing",
+      "severity": "CRITICAL",
+      "status": "PARTIALLY FIXED",
+      "evidence": "index.js line 668 now calls externalProviders.completeWithFallback(), BUT if no providers configured, still throws"
+    },
+    {
+      "from": "Permission gate checks",
+      "to": "Actual tool execution",
+      "whats_missing": "**Permission system checks tools but agents never call them**. All agents just call LLM, no MCP tool invocation in agent flow",
+      "impact": "Permission gates are ceremonial - they gate nothing because agents don't use tools",
+      "severity": "HIGH",
+      "evidence": "mas/agents/*.js - all agents only call this.callLLM() or this.callLLMJson(). No tool registry interaction"
+    },
+    {
+      "from": "ModelRouter task classification",
+      "to": "Performance feedback loop",
+      "whats_missing": "**Feedback loop stubbed**. Router classifies tasks (fast/standard/premium) but never collects actual performance metrics to fine-tune",
+      "impact": "Model selection remains static; no learning from actual latency/cost data",
+      "severity": "MEDIUM",
+      "evidence": "model-runtime/router.js has getPerformanceStats() but stats never collected from actual runs"
+    },
+    {
+      "from": "Compute executor run/preview",
+      "to": "Dependency installation",
+      "whats_missing": "**Auto-install missing**. Compute jobs don't run 'npm install' before launching",
+      "impact": "Dependencies not available - jobs fail with require() errors",
+      "severity": "HIGH",
+      "evidence": "compute/executor.js line 102+ - doesn't check package.json or install before running commands"
+    },
+    {
+      "from": "i18n orchestrator",
+      "to": "Translation backends",
+      "whats_missing": "**Cloud provider credentials not configured**. Azure/Google translation APIs require keys not in .env",
+      "impact": "Translation defaults to placeholders or local (slow)",
+      "severity": "MEDIUM",
+      "evidence": "i18n/orchestrator.js provider hierarchy defined but no actual credential injection"
+    }
+  ],
+  "fakeProviders": [
+    {
+      "name": "Remote GPU Orchestration (RunPod/Modal/Lambda)",
+      "fake_file": "packages/agent/src/mas/permissions.js",
+      "why_incomplete": "Budget constants exist ($2 default, $100 cap) but NO RemoteGpuProvider class, NO job dispatch middleware, NO container management, NO VRAM tracking",
+      "completion": "0%",
+      "evidence": [
+        "REMOTE_GPU_SPEND permission type defined",
+        "Budget tracking in PermissionGate._checkGpuBudget()",
+        "No provider integration code exists",
+        "grep REMOTE_GPU yields only 4 matches - all in types/permissions, nothing in orchestration"
+      ]
+    },
+    {
+      "name": "Vibe Coding (Image → Code)",
+      "fake_file": "packages/agent/src/config/index.js",
+      "why_incomplete": "hideImageUpload: true config exists. Zero implementation: no image handler, no vision model integration, no UI screenshot capture",
+      "completion": "0%",
+      "evidence": [
+        "Only reference is hideImageUpload configuration",
+        "No image encoder, no vision transformer",
+        "No image upload endpoint in routes"
+      ]
+    },
+    {
+      "name": "AI4Bharat Translation Backend",
+      "fake_file": "packages/agent/src/i18n/orchestrator.js",
+      "why_incomplete": "Provider references Python HTTP server that isn't deployed. Deployment infrastructure missing entirely",
+      "completion": "5%",
+      "evidence": [
+        "Orchestrator tries to spawn Python process",
+        "No Docker container defined for Python backend",
+        "No deployment configuration in Dockerfile or k8s manifests",
+        "Falls back to placeholder [STT not configured]"
+      ]
+    },
+    {
+      "name": "STT/TTS (Speech-to-text, Text-to-speech)",
+      "fake_file": "packages/agent/src/routes/i18n.js",
+      "why_incomplete": "Routes exist but no actual speech processing. Returns placeholder notes when providers unavailable",
+      "completion": "15%",
+      "evidence": [
+        "Routes /voice/stt and /voice/tts (lines 217, 250) defined",
+        "i18nOrchestrator.stt() and .tts() methods exist",
+        "But: no actual Whisper integration, no TTS model",
+        "Defaults to placeholder responses"
+      ]
+    },
+    {
+      "name": "Extended-access permissions",
+      "fake_file": "packages/agent/src/routes/permissions.js",
+      "why_incomplete": "Route exists but isn't actually called by agents. Agents use callLLMJson, not tool invocations",
+      "completion": "20%",
+      "evidence": [
+        "POST /permissions/extended-access route defined",
+        "But agents never request extended access",
+        "Test mocks show unused code path"
+      ]
+    }
+  ],
+  "architectureLayers": {
+    "extension": {
+      "entry_points": [
+        "packages/extension/src/activation/activate.ts",
+        "packages/extension/src/extension.ts"
+      ],
+      "real_capabilities": [
+        "File editing via Continue protocol",
+        "Chat interface",
+        "Chat history",
+        "Configuration UI"
+      ],
+      "fake_or_broken": [
+        "openSwarmPanel command (defined but non-functional)",
+        "GPU management UI (not wired to backend)"
+      ],
+      "integration_to_agent": "HTTP calls to agent server on localhost:8000"
+    },
+    "agent_server": {
+      "rest_endpoints": [
+        "POST /swarm/init, /swarm/shutdown",
+        "GET /swarm/status",
+        "POST /swarm/agents",
+        "POST /swarm/tasks",
+        "GET /swarm/tasks/:taskId",
+        "POST /permissions/check",
+        "GET /runtime/router/stats"
+      ],
+      "http_routes_file": "packages/agent/src/routes/registry.js",
+      "real_implementations": [
+        "Auth (JWT in packages/agent/src/auth/)",
+        "Swarm orchestration (packages/agent/src/mas/)",
+        "Permission gate (packages/agent/src/mas/permissions.js)",
+        "Compute execution (packages/agent/src/compute/)"
+      ],
+      "missing_or_stub": [
+        "GPU orchestration endpoint (permission checks only)",
+        "Image upload / vibe coding (no endpoint)",
+        "Streaming completion (TODO in routes)"
+      ]
+    },
+    "mas_internal": {
+      "core_components": [
+        "SwarmManager - orchestrates agents and tasks",
+        "MemoryManager - 3-tier (short/working/long-term)",
+        "PermissionGate - policy enforcement",
+        "AgentRouter - pool and dispatch",
+        "Topologies - mesh/hierarchical/ring/star schedulers",
+        "BatchPlanner/BatchExecutor - parallelization"
+      ],
+      "agent_specialists": [
+        "PlannerAgent - decomposes goals into task graphs",
+        "CoderAgent - writes code",
+        "DebuggerAgent - fixes bugs",
+        "TesterAgent - writes/runs tests",
+        "RefactorerAgent - improves structure",
+        "ArchitectAgent - designs systems",
+        "DevOpsAgent - CI/CD",
+        "SecurityAgent - vulnerability analysis",
+        "DocsAgent - writes documentation",
+        "ReviewerAgent - code review"
+      ],
+      "llm_integration": "SwarmManager needs deps.runLLM injected. index.js line 727 provides it via externalProviders.completeWithFallback()"
+    },
+    "data_flow_chat_to_results": [
+      "1. User input: chat message in GUI",
+      "2. Extension sends message to agent server /api/completion",
+      "3. Optional: SwarmManager.taskOrchestrate() if swarm mode",
+      "4. PlannerAgent decomposes to TaskGraph",
+      "5. Topology scheduler runs agents concurrently",
+      "6. Each agent calls this._runLLM() → externalProviders.completeWithFallback()",
+      "7. Results merged per topology logic",
+      "8. JsonPatchEngine applies edits to files (RFC 6902)",
+      "9. UI previews changes, user confirms",
+      "10. Extension applies edits via VS Code API"
+    ]
+  },
+  "realProviderIntegrations": {
+    "llm_providers": {
+      "status": "REAL",
+      "completion": "85%",
+      "details": "External provider manager wraps 50+ Continue-inherited LLM providers. OpenAI, Anthropic, Azure OpenAI, Google, Ollama, LM Studio all supported",
+      "evidence": "core/llm/* 50k+ lines, packages/agent/src/model-runtime/external-providers.js"
+    },
+    "gpu_providers": {
+      "status": "FAKE",
+      "completion": "0%",
+      "details": "REMOTE_GPU_SPEND permission type exists but no RunPod, Modal, Lambda, or CoreWeave integration code exists",
+      "evidence": "grep -r RunPod = 0 matches. grep -r Modal = 0 matches"
+    },
+    "local_model_runners": {
+      "status": "REAL",
+      "completion": "60%",
+      "details": "Ollama, LM Studio, vLLM inference supported via modelRuntime. But auto-download/setup incomplete",
+      "evidence": "model-runtime/index.js downloadLocalModel() method exists but install script missing"
+    },
+    "mcp_integrations": {
+      "status": "REAL",
+      "completion": "75%",
+      "details": "11 MCP tools defined (spawn agent, list agents, orchestrate task, etc). Client manager handles stdio-based MCP servers",
+      "evidence": "mas/mcp-tools.js defines createSwarmMcpTools(). mcp/client-manager.js has full server lifecycle"
+    },
+    "translation": {
+      "status": "FAKE",
+      "completion": "15%",
+      "details": "Azure translation key optional, Google translate API keys not configured, AI4Bharat backend not deployed",
+      "evidence": "i18n/orchestrator.js falls back to placeholders"
+    },
+    "speech": {
+      "status": "FAKE",
+      "completion": "10%",
+      "details": "No Whisper integration, no TTS model. Placeholder responses",
+      "evidence": "routes/i18n.js routes exist but orchestrator returns empty or placeholder"
+    }
+  ],
+  "brokenReliability": [
+    {
+      "issue": "No exponential backoff retry",
+      "location": "compute/executor.js lines 245+",
+      "severity": "HIGH",
+      "details": "maxRetries field exists but retry delay not implemented. Immediate retry on failure",
+      "evidence": "Line 245: const maxAttempts = (step.maxRetries || 2) + 1; but no delay between attempts"
+    },
+    {
+      "issue": "Timeout issues",
+      "location": "compute/executor.js",
+      "severity": "MEDIUM",
+      "details": "No global timeout on job execution. Long-running jobs hang forever",
+      "evidence": "Only step-level timeouts, no job-level kill switch"
+    },
+    {
+      "issue": "Error handling gaps",
+      "location": "mas/swarm-manager.js line 475+",
+      "severity": "HIGH",
+      "details": "Agent execution errors logged but not cascaded - dependent tasks aren't properly failed",
+      "evidence": "Line 550: hasFailedDep logic exists but partial - doesn't prevent dependent task execution in all topologies"
+    },
+    {
+      "issue": "Corrupted state recovery missing",
+      "location": "mas/memory.js",
+      "severity": "MEDIUM",
+      "details": "Long-term memory file not checksummed - corruption on disk not detected",
+      "evidence": "No integrity verification in longTermMemory.load()"
+    },
+    {
+      "issue": "Run/preview stability",
+      "location": "compute/executor.js line 249",
+      "severity": "HIGH",
+      "details": "Doesn't check if dependencies installed before running. Package manager errors kill job",
+      "evidence": "No pre-execution npm install or Python venv check"
+    },
+    {
+      "issue": "Permission gate doesn't gate anything",
+      "location": "mas/permissions.js",
+      "severity": "MEDIUM",
+      "details": "Permission checks exist but agents never call tools - they only call LLM. Permission checks are ceremonial",
+      "evidence": "All agents in mas/agents/*.js only call this.callLLM(), never this.callTool() or similar"
+    },
+    {
+      "issue": "JSON parse failures in agents",
+      "location": "mas/agents/base-agent.js line 115+",
+      "severity": "MEDIUM",
+      "details": "If LLM returns non-JSON, retries once then throws. No graceful degradation",
+      "evidence": "callLLMJson() retries only once (line 120-121) then throws"
+    }
+  ],
+  "codeClutter": {
+    "placeholder_functions": [
+      "All base-agent.js methods - designed as abstract but called directly",
+      "ElectronIDE stub methods (getOpenFiles, getVisibleFiles) - return []",
+      "ImageUpload handler - undefined function in hideImageUpload codepath"
+    ],
+    "fake_abstractions": [
+      "GPU orchestration enum - defines types but no implementation",
+      "Remote job dispatch - budget constants with no job scheduler",
+      "Vibe coding pipeline - config flag with no feature code"
+    ],
+    "unused_interfaces": [
+      "IRemoteGpuProvider interface - defined nowhere",
+      "IVibeCodeProvider interface - defined nowhere",
+      "IStreamCompletion interface - mentioned in TODO but not used"
+    ],
+    "duplicate_logic": [
+      "JSON parsing in multiple agents - could be centralized",
+      "Permission requests in coder/debugger/tester agents - identical patterns",
+      "LLM error handling - repeated in index.js and external-providers.js"
+    ]
+  },
+  "criticalGaps": [
+    {
+      "issue": "GPU orchestration is completely missing",
+      "location": "packages/agent/src/mas/permissions.js",
+      "severity": "CRITICAL",
+      "evidence": "Permission type exists, budget constants exist, but zero provider code",
+      "impact": "Swarm cannot distribute work to remote compute - only local execution possible"
+    },
+    {
+      "issue": "Extension has no awareness of swarm",
+      "location": "packages/extension/src/",
+      "severity": "CRITICAL",
+      "evidence": "Zero imports from mas/ package, zero REST calls to /swarm/* endpoints",
+      "impact": "Swarm features completely invisible to users in VS Code"
+    },
+    {
+      "issue": "Agents never use tools - only call LLM",
+      "location": "mas/agents/**/*.js",
+      "severity": "CRITICAL",
+      "evidence": "All 10 agents only call this.callLLM() or this.callLLMJson(). No this.callTool()",
+      "impact": "MCP tools defined but not usable by agents. Permission system gates nothing"
+    },
+    {
+      "issue": "i18n providers don't have backends",
+      "location": "packages/agent/src/i18n/",
+      "severity": "CRITICAL",
+      "evidence": "AI4Bharat tries to spawn Python server, Azure/Google need creds, STT/TTS return placeholders",
+      "impact": "Multilingual features advertised but don't work"
+    },
+    {
+      "issue": "ModelRouter feedback loop stubbed",
+      "location": "model-runtime/router.js",
+      "severity": "HIGH",
+      "evidence": "getPerformanceStats() returns empty, no actual metrics collected from runs",
+      "impact": "Model selection remains static, no learning from performance data"
+    },
+    {
+      "issue": "Compute jobs don't install dependencies",
+      "location": "compute/executor.js",
+      "severity": "HIGH",
+      "evidence": "No npm install before running steps",
+      "impact": "Any job requiring node_modules fails immediately"
+    }
+  ],
+  "definitionLevels": {
+    "definitely_dead": {
+      "definition": "Code exists, has no callers, no integration path, feature doesn't work",
+      "examples": [
+        "REMOTE_GPU_SPEND provider broker",
+        "Vibe coding image handler",
+        "AI4Bharat Python backend"
+      ]
+    },
+    "probably_unused": {
+      "definition": "Code exists and is called, but call sites are dead or never reached",
+      "examples": [
+        "SwarmPanel UI (now properly routed but historically unreachable)",
+        "localComplete/premiumComplete stubs (now bypassed by completeWithFallback)"
+      ]
+    },
+    "experimental_wip": {
+      "definition": "Code exists, sometimes works, but marked TODO or has incomplete backends",
+      "examples": [
+        "i18n providers (architecture good, backends missing)",
+        "ModelRouter feedback (collection stubbed)",
+        "ComputeMultilingualAdapter (partially implemented)"
+      ]
+    }
+  },
+  "recommendations": {
+    "immediate": [
+      {
+        "priority": 1,
+        "action": "Wire extension to swarm APIs",
+        "effort": "2 days",
+        "description": "Add openSwarmPanel command implementation. Extension should call POST /swarm/tasks and subscribe to SSE /swarm/events"
+      },
+      {
+        "priority": 2,
+        "action": "Enable agents to call MCP tools",
+        "effort": "3 days",
+        "description": "Add this.callTool() to BaseAgent. Agents should iterate LLM → tool call → execute → feed back to LLM (ReAct loop)"
+      },
+      {
+        "priority": 3,
+        "action": "Fix compute dependency installation",
+        "effort": "1 day",
+        "description": "executor.js should run 'npm install' before any steps if package.json exists"
+      }
+    ],
+    "short_term": [
+      {
+        "priority": 4,
+        "action": "Remove GPU permission type or implement it",
+        "effort": "5 days if implementing, 1 hour if removing",
+        "description": "Either integrate RunPod/Modal or delete REMOTE_GPU_SPEND from types entirely"
+      },
+      {
+        "priority": 5,
+        "action": "Implement exponential backoff retry",
+        "effort": "1 day",
+        "description": "Add delay calculation to compute executor retry loop"
+      },
+      {
+        "priority": 6,
+        "action": "Deploy i18n backends",
+        "effort": "3 days",
+        "description": "Docker-ize AI4Bharat Python server, add Azure/Google credential injection"
+      }
+    ],
+    "long_term": [
+      {
+        "priority": 7,
+        "action": "Implement Vibe Coding or remove feature",
+        "effort": "10+ days if implementing, 2 hours if removing",
+        "description": "Screenshot capture → vision model → code generation. Or delete hideImageUpload feature entirely"
+      },
+      {
+        "priority": 8,
+        "action": "Implement GPU orchestration or remove it",
+        "effort": "15+ days if implementing",
+        "description": "Integrate RunPod/Modal for distributed compute, OR delete REMOTE_GPU_SPEND permission"
+      },
+      {
+        "priority": 9,
+        "action": "Enable ModelRouter feedback collection",
+        "effort": "2 days",
+        "description": "Collect actual latency/cost metrics from completed jobs, feed to router.recordPerformance()"
+      }
+    ]
+  },
+  "fileStatistics": {
+    "total_agent_files": 83,
+    "total_lines_of_code": "~150K",
+    "distribution": {
+      "real_implementations": "52 files, ~90K lines",
+      "partial_stubs": "18 files, ~35K lines",
+      "documentation_only": "13 files, ~25K lines"
+    }
+  },
+  "auditMetrics": {
+    "files_with_todo_fixme": "~45",
+    "files_with_placeholder_returns": "~22",
+    "unused_exports": "~12",
+    "untested_dead_code": "~8",
+    "fake_provider_integrations": "5"
+  },
+  "conclusion": "The codebase is **architecturally sound but functionally incomplete**. 60% is real, working code. 15% is well-designed but missing backends. 25% is aspirational (documented features with no implementation). The most dangerous pattern: permission gates and topologies built beautifully but agents only call LLM (never use tools), making entire security/capability framework decorative. Priority: (1) wire extension to swarm, (2) enable agents to call tools, (3) fix compute dependency install, (4) remove or implement GPU/vibe/i18n features. Do not add more features until these core wiring issues are fixed."
+}

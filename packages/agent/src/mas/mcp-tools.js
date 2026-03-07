@@ -270,11 +270,12 @@ function createSwarmMcpTools(swarmManager) {
       handler: async (params) => {
         try {
           const status = swarmManager.taskStatus(params.taskId);
-          if (!status)
+          if (!status) {
             return {
               content: [{ type: "text", text: "Task not found" }],
               isError: true,
             };
+          }
           return {
             content: [{ type: "text", text: JSON.stringify(status, null, 2) }],
           };
@@ -302,11 +303,12 @@ function createSwarmMcpTools(swarmManager) {
       handler: async (params) => {
         try {
           const results = swarmManager.taskResults(params.taskId);
-          if (!results)
+          if (!results) {
             return {
               content: [{ type: "text", text: "Task not found" }],
               isError: true,
             };
+          }
           return {
             content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
           };

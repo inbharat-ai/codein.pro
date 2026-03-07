@@ -105,6 +105,8 @@ const PERMISSION_DECISION = Object.freeze({
   ALLOWED: "allowed",
   BLOCKED: "blocked",
   NEEDS_APPROVAL: "needs_approval",
+  APPROVED: "approved",
+  DENIED: "denied",
 });
 
 const PERMISSION_RESPONSE = Object.freeze({
@@ -440,43 +442,55 @@ function createPermissionRequest({
 function validateSwarmConfig(config) {
   const errors = [];
   if (!config) return { valid: false, errors: ["Config is required"] };
-  if (!Object.values(TOPOLOGY).includes(config.topology))
+  if (!Object.values(TOPOLOGY).includes(config.topology)) {
     errors.push(`Invalid topology: ${config.topology}`);
-  if (!Object.values(STRATEGY).includes(config.strategy))
+  }
+  if (!Object.values(STRATEGY).includes(config.strategy)) {
     errors.push(`Invalid strategy: ${config.strategy}`);
+  }
   if (
     typeof config.maxAgents !== "number" ||
     config.maxAgents < 1 ||
     config.maxAgents > 20
-  )
+  ) {
     errors.push("maxAgents must be 1-20");
-  if (typeof config.concurrency !== "number" || config.concurrency < 1)
+  }
+  if (typeof config.concurrency !== "number" || config.concurrency < 1) {
     errors.push("concurrency must be >= 1");
-  if (config.concurrency > config.maxAgents)
+  }
+  if (config.concurrency > config.maxAgents) {
     errors.push("concurrency cannot exceed maxAgents");
-  if (typeof config.gpuBudgetUSD !== "number" || config.gpuBudgetUSD < 0)
+  }
+  if (typeof config.gpuBudgetUSD !== "number" || config.gpuBudgetUSD < 0) {
     errors.push("gpuBudgetUSD must be >= 0");
+  }
   return { valid: errors.length === 0, errors };
 }
 
 function validateTaskNode(node) {
   const errors = [];
   if (!node) return { valid: false, errors: ["Node is required"] };
-  if (!node.id || !node.id.startsWith("node_")) errors.push("Invalid node ID");
-  if (!node.goal || typeof node.goal !== "string")
+  if (!node.id || !node.id.startsWith("node_")) {
+    errors.push("Invalid node ID");
+  }
+  if (!node.goal || typeof node.goal !== "string") {
     errors.push("Node goal required");
-  if (!Object.values(NODE_STATUS).includes(node.status))
+  }
+  if (!Object.values(NODE_STATUS).includes(node.status)) {
     errors.push(`Invalid status: ${node.status}`);
+  }
   return { valid: errors.length === 0, errors };
 }
 
 function validateTaskGraph(graph) {
   const errors = [];
   if (!graph) return { valid: false, errors: ["Graph is required"] };
-  if (!graph.id || !graph.id.startsWith("task_"))
+  if (!graph.id || !graph.id.startsWith("task_")) {
     errors.push("Invalid task ID");
-  if (!graph.goal || typeof graph.goal !== "string")
+  }
+  if (!graph.goal || typeof graph.goal !== "string") {
     errors.push("Goal required");
+  }
   if (!Array.isArray(graph.nodes)) errors.push("nodes must be array");
   if (!Array.isArray(graph.edges)) errors.push("edges must be array");
 
@@ -484,10 +498,12 @@ function validateTaskGraph(graph) {
   if (Array.isArray(graph.nodes) && Array.isArray(graph.edges)) {
     const nodeIds = new Set(graph.nodes.map((n) => n.id));
     for (const edge of graph.edges) {
-      if (!nodeIds.has(edge.from))
+      if (!nodeIds.has(edge.from)) {
         errors.push(`Edge references unknown node: ${edge.from}`);
-      if (!nodeIds.has(edge.to))
+      }
+      if (!nodeIds.has(edge.to)) {
         errors.push(`Edge references unknown node: ${edge.to}`);
+      }
     }
 
     // Check for cycles
