@@ -12,7 +12,7 @@ This file only lists genuinely remaining gaps that still block an 8.5/10 release
 
 ### Why It Matters
 
-Transactional rollback is now implemented, but schema-level patch validation is still required to prevent unsafe patch intent.
+Transactional rollback and RFC6902 op validation are now implemented, but semantic policy validation is still required to prevent unsafe patch intent.
 
 ### What Is Needed
 
@@ -24,13 +24,13 @@ Transactional rollback is now implemented, but schema-level patch validation is 
 
 ### Missing
 
-- Robust restart strategy for repeated process exits
+- Robust restart strategy for repeated process exits (partially implemented)
 - Stale process and port conflict detection/recovery
 - Unified run/preview lifecycle state machine
 
 ### Why It Matters
 
-Current behavior can fail hard during repeated start/stop cycles.
+Current behavior improved with restart retry/backoff, but can still degrade with stale/orphaned processes.
 
 ### What Is Needed
 
@@ -74,9 +74,9 @@ Trust and release quality perception depend on truthful positioning.
 
 ## Estimated Remaining Effort
 
-- Vibe patch schema safety + rollback ledger: 4-6h
-- Run/preview supervision: 4-6h
+- Vibe patch semantic policy + rollback ledger: 3-5h
+- Run/preview supervision completion: 3-5h
 - Integration testing matrix: 5-7h
 - Positioning cleanup: 1-2h
 
-**Total:** 14-21 hours
+**Total:** 12-19 hours

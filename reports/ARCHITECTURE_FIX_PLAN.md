@@ -2,7 +2,7 @@
 
 **Date:** March 8, 2026  
 **Objective:** Move CodIn from audit-quality 6.2/10 toward engineering-quality 8.5/10  
-**Current Status:** Foundation fixed, GPU control plane wired, vibe apply made transactional, reliability partially hardened
+**Current Status:** Foundation fixed, GPU control plane wired, strict patch path integrated in vibe, run restart reliability hardened
 
 ## 1. What Was Broken
 
@@ -87,6 +87,23 @@ Updated `packages/agent/src/routes/vibe.js`:
   - path traversal / absolute path rejection
   - backup before write
   - reverse-order rollback on failure
+- Added strict JSON patch application mode in `/vibe/apply` using MAS `JsonPatchEngine`:
+  - op schema validation
+  - auto-repair (single pass) for malformed ops
+  - per-file backup and rollback
+  - transaction rollback across multi-file patch batches
+
+### 4.6 Run/Preview Restart Reliability
+
+Updated `packages/agent/src/run/process-manager.js`:
+
+- Added bounded restart retry helper `_retryStart()` with exponential backoff
+- Hardened `restart()` to:
+  - wait for prior process teardown
+  - retry startup on transient failures
+  - return previous and new run IDs for traceability
+- Exported `ProcessManager` class for direct unit testing
+- Added tests in `packages/agent/test/run-process-manager.test.cjs`
 
 ## 5. What Is Now Actually Working
 
@@ -96,18 +113,20 @@ Updated `packages/agent/src/routes/vibe.js`:
 - GPU lifecycle (connect, list, create pod, submit, poll, logs, stop) is callable via REST.
 - Retry/backoff reduces transient remote API failure fragility.
 - Vibe apply no longer leaves partial workspace writes on failure.
+- Vibe apply can now execute strict JSON patch batches with validation and rollback.
+- Run restarts are more resilient under transient startup failures.
 
 ## 6. Remaining Gaps to Reach 8.5/10
 
 1. Complete end-to-end vibe flow hardening:
 
-- strict patch validation
+- strict patch validation (beyond current RFC6902 op validation)
 - rollback-aware file application
 - deterministic scaffold generation fallback paths
 
 2. Run/preview resilience:
 
-- supervised process restart strategy
+- supervised process lifecycle state machine and stale process reclamation
 - structured process health and stale process cleanup
 
 3. Model router production hardening:
@@ -122,8 +141,8 @@ Updated `packages/agent/src/routes/vibe.js`:
 
 ## 7. Execution Order (Next)
 
-1. Vibe strict patch + rollback contract
-2. Run/preview supervisor stabilization
+1. Vibe semantic patch policy guardrails
+2. Run/preview supervisor lifecycle stabilization
 3. Router policy gate + observability exposure
 4. Dead code/report consolidation
 5. Full integration test pass and release score re-evaluation

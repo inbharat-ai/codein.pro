@@ -13,6 +13,7 @@ const {
   readBody,
   parseJsonBody,
 } = require("../utils/http-helpers");
+const { JsonPatchEngine } = require("../mas/json-patch");
 const path = require("path");
 const fs = require("fs").promises;
 
@@ -129,7 +130,7 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
 
   /**
    * POST /vibe/apply
-   * Apply generated files to workspace
+   * Apply generated files or JSON patches to workspace
    */
   router.post("/vibe/apply", async (req, res) => {
     await handleRoute(
@@ -141,11 +142,7 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
           return jsonResponse(res, 400, { error: parsed.error });
         }
 
-        const { files, workspaceRoot } = parsed.value || {};
-
-        if (!files || !Array.isArray(files)) {
-          return jsonResponse(res, 400, { error: "Files array is required" });
-        }
+        const { files, patches, workspaceRoot } = parsed.value || {};
 
         if (!workspaceRoot) {
           return jsonResponse(res, 400, {
@@ -153,16 +150,32 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
           });
         }
 
-        const applied = await applyFilesToWorkspace(
-          files,
-          workspaceRoot,
-          logger,
-        );
+        if (!Array.isArray(files) && !Array.isArray(patches)) {
+          return jsonResponse(res, 400, {
+            error: "Either 'files' or 'patches' array is required",
+          });
+        }
+
+        let applied = [];
+        let patchResults = [];
+        if (Array.isArray(files)) {
+          applied = await applyFilesToWorkspace(files, workspaceRoot, logger);
+        }
+
+        if (Array.isArray(patches)) {
+          patchResults = await applyPatchesToWorkspace(
+            patches,
+            workspaceRoot,
+            logger,
+          );
+        }
 
         jsonResponse(res, 200, {
           success: true,
           filesApplied: applied.length,
           paths: applied,
+          patchesApplied: patchResults.length,
+          patchResults,
         });
       },
       logger,
@@ -642,6 +655,81 @@ async function applyFilesToWorkspace(files, workspaceRoot, logger) {
 
     logger?.error("Failed to apply vibe files transactionally:", error);
     throw new Error(`Vibe apply failed and was rolled back: ${error.message}`);
+  }
+}
+
+/**
+ * Apply strict JSON patches to workspace files with rollback-on-failure.
+ */
+async function applyPatchesToWorkspace(patches, workspaceRoot, logger) {
+  const rootResolved = path.resolve(workspaceRoot);
+  const engine = new JsonPatchEngine({
+    workspaceHash: rootResolved.replace(/[^a-zA-Z0-9]/g, "_").slice(-40),
+  });
+
+  const applied = [];
+  const appliedBackups = [];
+
+  const normalizeTarget = (relativePath) => {
+    if (!relativePath || typeof relativePath !== "string") {
+      throw new Error("Each patch entry requires 'filePath'");
+    }
+    if (path.isAbsolute(relativePath)) {
+      throw new Error(`Absolute paths are not allowed: ${relativePath}`);
+    }
+    if (relativePath.includes("..") || relativePath.includes("\\..")) {
+      throw new Error(`Path traversal is not allowed: ${relativePath}`);
+    }
+    const resolved = path.resolve(workspaceRoot, relativePath);
+    if (!resolved.startsWith(rootResolved)) {
+      throw new Error(`Patch path escapes workspace root: ${relativePath}`);
+    }
+    return resolved;
+  };
+
+  try {
+    for (const patchEntry of patches) {
+      const filePath = normalizeTarget(patchEntry.filePath);
+      const ops = patchEntry.ops;
+
+      const result = await engine.applyToFile(filePath, ops, {
+        autoRepair: true,
+      });
+
+      if (!result.success) {
+        throw new Error(
+          `Patch apply failed for '${patchEntry.filePath}': ${result.error}`,
+        );
+      }
+
+      applied.push({
+        filePath: patchEntry.filePath,
+        appliedOps: result.appliedOps,
+        fixes: result.fixes || [],
+      });
+
+      appliedBackups.push({
+        filePath,
+        backupPath: result.backupPath,
+      });
+    }
+
+    return applied;
+  } catch (error) {
+    // Roll back previously applied patches in reverse order
+    for (let i = appliedBackups.length - 1; i >= 0; i--) {
+      const b = appliedBackups[i];
+      try {
+        engine.rollback(b.filePath, b.backupPath);
+      } catch {
+        // best effort rollback
+      }
+    }
+
+    logger?.error("Failed to apply vibe JSON patches transactionally:", error);
+    throw new Error(
+      `Vibe patch apply failed and was rolled back: ${error.message}`,
+    );
   }
 }
 

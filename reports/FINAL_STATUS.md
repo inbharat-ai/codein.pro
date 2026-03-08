@@ -2,14 +2,14 @@
 
 **Date:** March 8, 2026  
 **Decision:** **NO-SHIP**  
-**Current Score:** **7.9/10**
+**Current Score:** **8.1/10**
 
 ## Honest Scores
 
 - Architecture: **8.5/10**
-- Reliability: **7.2/10**
+- Reliability: **7.6/10**
 - Security: **7.7/10**
-- UX: **6.5/10**
+- UX: **6.7/10**
 - Uniqueness: **9.0/10**
 
 ## Ship Decision
@@ -24,11 +24,13 @@
 4. Model router is deterministic with tracked performance scoring.
 5. MCP and MAS paths are functional and not placeholder-only.
 6. Vibe apply path now performs transactional writes with rollback on failure.
+7. Vibe apply supports strict JSON patch execution with validation/repair/rollback.
+8. Run restart path now retries with bounded exponential backoff.
 
 ## What Is Not Yet True
 
-1. Vibe flow still needs stricter patch-schema validation end-to-end.
-2. Run/preview lifecycle is not yet resilient enough for production-grade failure modes.
+1. Vibe flow still needs semantic patch-policy enforcement end-to-end.
+2. Run/preview lifecycle still needs stale process reclamation and full supervisor state machine.
 3. Full-scale integration test coverage for new GPU+vibe+run paths is incomplete.
 4. Public positioning still overstates current UX maturity.
 
@@ -36,9 +38,9 @@
 
 - Is the extension fully integrated with CodingAgent? **Yes, with remaining UX hardening.**
 - Is remote GPU actually real? **Yes (API wired, lifecycle callable).**
-- Is vibe coding actually working? **Partially (runtime works, still needs schema-level hardening).**
+- Is vibe coding actually working? **Partially (runtime + strict patch mode works, semantic policy hardening remains).**
 - Is the model router honest and real? **Yes (deterministic, tracked).**
-- Is the run/preview flow stable? **Not yet at production standard.**
+- Is the run/preview flow stable? **Improved, but not yet at production standard.**
 - Is the architecture simpler and cleaner than before? **Yes.**
 - Is this now truly closer to 8.5/10? **Yes, but not there yet.**
 

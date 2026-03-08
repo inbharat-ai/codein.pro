@@ -34,6 +34,8 @@ class ProcessManager extends EventEmitter {
     this.processes = new Map(); // runId -> { process, profile, logs, status, url }
     this.timeout = 300000; // 5 minutes default timeout
     this.maxWorkers = 5; // Max concurrent processes
+    this.restartMaxAttempts = 3;
+    this.restartBaseDelayMs = 800;
     this.ensureDirectories();
   }
 
@@ -211,6 +213,25 @@ class ProcessManager extends EventEmitter {
     };
   }
 
+  async _retryStart(profile, options = {}) {
+    let lastError;
+    const attempts = Math.max(1, options.attempts || this.restartMaxAttempts);
+
+    for (let i = 1; i <= attempts; i++) {
+      try {
+        const result = await this.start(profile, options);
+        return { ...result, attemptsUsed: i };
+      } catch (err) {
+        lastError = err;
+        if (i === attempts) break;
+        const delay = Math.min(this.restartBaseDelayMs * 2 ** (i - 1), 5000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError;
+  }
+
   /**
    * Detect URL from logs
    */
@@ -283,10 +304,20 @@ class ProcessManager extends EventEmitter {
 
     await this.stop(runId);
 
-    // Wait a bit
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Wait briefly for process exit and port release
+    await new Promise((resolve) => setTimeout(resolve, 1200));
 
-    return this.start(runInfo.profile);
+    const restarted = await this._retryStart(runInfo.profile, {
+      approved: true,
+      timeout: runInfo.timeout,
+      attempts: this.restartMaxAttempts,
+    });
+
+    return {
+      ...restarted,
+      previousRunId: runId,
+      restarted: true,
+    };
   }
 
   /**
@@ -381,4 +412,4 @@ class ProcessManager extends EventEmitter {
 
 const processManager = new ProcessManager();
 
-module.exports = { processManager };
+module.exports = { processManager, ProcessManager };
