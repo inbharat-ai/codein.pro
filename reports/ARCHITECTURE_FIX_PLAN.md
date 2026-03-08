@@ -2,7 +2,7 @@
 
 **Date:** March 8, 2026  
 **Objective:** Move CodIn from audit-quality 6.2/10 toward engineering-quality 8.5/10  
-**Current Status:** Foundation fixed, GPU control plane wired, strict patch path integrated in vibe, run restart reliability hardened
+**Current Status:** Foundation fixed, GPU control plane wired, semantic patch policy enforced in vibe, run process supervision hardened
 
 ## 1. What Was Broken
 
@@ -105,6 +105,34 @@ Updated `packages/agent/src/run/process-manager.js`:
 - Exported `ProcessManager` class for direct unit testing
 - Added tests in `packages/agent/test/run-process-manager.test.cjs`
 
+### 4.7 Run/Preview Stale Process Supervision
+
+Updated `packages/agent/src/run/process-manager.js`:
+
+- Added periodic supervision loop (unref'ed timer)
+- Added `cleanupStaleProcesses()`:
+  - detects unreachable child processes
+  - marks stale long-running processes failed
+  - prunes terminal processes after retention window
+- Added supervision metrics surfaced by `getStats()`
+- Added lifecycle `destroy()` cleanup for deterministic shutdown/test hygiene
+
+Updated `packages/agent/src/routes/run.js`:
+
+- Added `GET /run/health` for supervisor/process stats
+- Added `POST /run/cleanup` for explicit stale-process sweep
+
+### 4.8 Vibe Semantic Patch Policy Enforcement
+
+Updated `packages/agent/src/routes/vibe.js`:
+
+- Added patch-policy guardrails before JSON patch apply:
+  - allowed extensions list
+  - blocked path segments (`.git`, `node_modules`, etc.)
+  - allowed ops subset (`add`, `remove`, `replace`, `test`)
+  - max ops per file
+- Added dedicated tests in `packages/agent/test/vibe-routes-policy.test.cjs`
+
 ## 5. What Is Now Actually Working
 
 - Extension-agent path remains functional (health + task submission + SSE).
@@ -115,18 +143,20 @@ Updated `packages/agent/src/run/process-manager.js`:
 - Vibe apply no longer leaves partial workspace writes on failure.
 - Vibe apply can now execute strict JSON patch batches with validation and rollback.
 - Run restarts are more resilient under transient startup failures.
+- Run process supervision can now detect and clean stale/unreachable processes.
+- Vibe patch application now enforces semantic policy, not only RFC op schema.
 
 ## 6. Remaining Gaps to Reach 8.5/10
 
 1. Complete end-to-end vibe flow hardening:
 
-- strict patch validation (beyond current RFC6902 op validation)
+- policy-aware patch target scoping by project/app profile
 - rollback-aware file application
 - deterministic scaffold generation fallback paths
 
 2. Run/preview resilience:
 
-- supervised process lifecycle state machine and stale process reclamation
+- richer lifecycle state machine transitions and port-conflict diagnostics
 - structured process health and stale process cleanup
 
 3. Model router production hardening:

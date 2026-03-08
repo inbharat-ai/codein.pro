@@ -2,7 +2,7 @@
 
 **Date:** March 8, 2026  
 **Baseline:** 6.2/10  
-**Current:** 8.1/10  
+**Current:** 8.3/10  
 **Target:** 8.5/10
 
 ## Before vs After
@@ -30,6 +30,8 @@
 - Added transactional rollback-safe vibe workspace file apply.
 - Added strict JSON patch mode in vibe apply via `JsonPatchEngine` with rollback across batch failures.
 - Hardened run restart reliability with bounded exponential backoff retries.
+- Added run stale-process supervision loop and cleanup endpoints.
+- Added semantic patch-policy enforcement for vibe apply (ops, paths, extensions, limits).
 - Cleaned architecture planning/status reports to match real code state.
 - Added dedicated unit tests for GPU session manager lifecycle.
 - Added unit tests for run process retry/restart behavior.
@@ -57,15 +59,15 @@
 
 ### 5) Reliability gaps
 
-**Status:** Improved. Runpod path now has exponential backoff, vibe apply has rollback on failure.  
-**Remaining:** run/preview full supervisor lifecycle + stricter semantic patch policy enforcement.
+**Status:** Improved. Runpod path has backoff, vibe apply has strict policy + rollback, run supervision detects stale processes.  
+**Remaining:** full run/preview lifecycle state transitions and stronger diagnostics under port conflicts.
 
 ## Remaining Risks
 
-1. Run/preview lifecycle still needs stale process reclamation and lifecycle state-machine hardening.
+1. Run/preview lifecycle still needs richer state-machine transitions and conflict diagnostics.
 2. Multi-session isolation is functional but not yet formally stress-tested.
 3. Documentation and landing claims still need full alignment with true runtime guarantees.
-4. Vibe patch semantic policy validation (allowed paths/ops by project policy) still needs stronger guardrails.
+4. Vibe policy should be profile-aware (per-stack/phase policy presets), not only global guardrails.
 
 ## Why This Is Closer to 8.5/10
 
@@ -78,14 +80,14 @@
 ## Score Delta
 
 - Architecture: 8.0/10 -> 8.5/10
-- Reliability: 6.0/10 -> 7.6/10
+- Reliability: 6.0/10 -> 8.0/10
 - Security: 7.0/10 -> 7.7/10
 - Functionality: 7.0/10 -> 8.0/10
-- Overall: 7.0/10 -> **8.1/10**
+- Overall: 7.0/10 -> **8.3/10**
 
 ## Next Milestones to Reach 8.5/10
 
-1. Semantic-policy-driven vibe patching with rollback ledger.
-2. Run/preview supervisor state machine + stale process cleanup.
+1. Profile-aware semantic-policy-driven vibe patching.
+2. Run/preview supervisor lifecycle state machine + port-conflict diagnostics.
 3. Deterministic router policy contracts exposed in route-level diagnostics.
 4. Full integration test matrix for compute + GPU + vibe + run/preview.

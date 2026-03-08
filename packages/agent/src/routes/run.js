@@ -239,6 +239,28 @@ function registerRunRoutes(router, deps) {
       logger,
     );
   });
+
+  router.get("/run/health", async (req, res) => {
+    await handleRoute(
+      res,
+      async () => {
+        const stats = processManager?.getStats() || null;
+        jsonResponse(res, 200, { stats });
+      },
+      logger,
+    );
+  });
+
+  router.post("/run/cleanup", async (req, res) => {
+    await handleRoute(
+      res,
+      async () => {
+        const result = processManager?.cleanupStaleProcesses?.() || null;
+        jsonResponse(res, 200, { result });
+      },
+      logger,
+    );
+  });
 }
 
 module.exports = { registerRunRoutes };

@@ -670,6 +670,81 @@ async function applyPatchesToWorkspace(patches, workspaceRoot, logger) {
   const applied = [];
   const appliedBackups = [];
 
+  const allowedExt = new Set([
+    ".json",
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".css",
+    ".md",
+  ]);
+
+  const blockedPathParts = new Set([
+    "node_modules",
+    ".git",
+    ".codin",
+    "dist",
+    "build",
+  ]);
+
+  const allowedOps = new Set(["add", "remove", "replace", "test"]);
+  const maxOpsPerFile = 200;
+
+  const validatePatchPolicy = (patchEntry) => {
+    if (!Array.isArray(patchEntry.ops)) {
+      throw new Error(
+        `Patch entry '${patchEntry.filePath}' requires 'ops' array`,
+      );
+    }
+    if (patchEntry.ops.length === 0) {
+      throw new Error(
+        `Patch entry '${patchEntry.filePath}' has empty ops array`,
+      );
+    }
+    if (patchEntry.ops.length > maxOpsPerFile) {
+      throw new Error(
+        `Patch entry '${patchEntry.filePath}' exceeds max ops (${maxOpsPerFile})`,
+      );
+    }
+
+    const ext = path.extname(patchEntry.filePath || "").toLowerCase();
+    if (!allowedExt.has(ext)) {
+      throw new Error(
+        `Patch entry '${patchEntry.filePath}' extension '${ext}' is not allowed`,
+      );
+    }
+
+    const segments = String(patchEntry.filePath || "")
+      .split(/[\\/]+/)
+      .filter(Boolean);
+    for (const segment of segments) {
+      if (blockedPathParts.has(segment)) {
+        throw new Error(
+          `Patch entry '${patchEntry.filePath}' targets blocked path segment '${segment}'`,
+        );
+      }
+    }
+
+    for (const [idx, op] of patchEntry.ops.entries()) {
+      if (!op || typeof op !== "object") {
+        throw new Error(
+          `Patch op at index ${idx} for '${patchEntry.filePath}' must be an object`,
+        );
+      }
+      if (!allowedOps.has(op.op)) {
+        throw new Error(
+          `Patch op '${op.op}' at index ${idx} for '${patchEntry.filePath}' is not allowed`,
+        );
+      }
+      if (typeof op.path !== "string" || !op.path.startsWith("/")) {
+        throw new Error(
+          `Patch op at index ${idx} for '${patchEntry.filePath}' has invalid JSON pointer path`,
+        );
+      }
+    }
+  };
+
   const normalizeTarget = (relativePath) => {
     if (!relativePath || typeof relativePath !== "string") {
       throw new Error("Each patch entry requires 'filePath'");
@@ -689,6 +764,7 @@ async function applyPatchesToWorkspace(patches, workspaceRoot, logger) {
 
   try {
     for (const patchEntry of patches) {
+      validatePatchPolicy(patchEntry);
       const filePath = normalizeTarget(patchEntry.filePath);
       const ops = patchEntry.ops;
 
@@ -761,4 +837,10 @@ async function startDevServer(workspaceRoot, _logger) {
   };
 }
 
-module.exports = { registerVibeRoutes };
+module.exports = {
+  registerVibeRoutes,
+  __test: {
+    applyFilesToWorkspace,
+    applyPatchesToWorkspace,
+  },
+};

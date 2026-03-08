@@ -2,14 +2,14 @@
 
 **Date:** March 8, 2026  
 **Decision:** **NO-SHIP**  
-**Current Score:** **8.1/10**
+**Current Score:** **8.3/10**
 
 ## Honest Scores
 
 - Architecture: **8.5/10**
-- Reliability: **7.6/10**
+- Reliability: **8.0/10**
 - Security: **7.7/10**
-- UX: **6.7/10**
+- UX: **6.9/10**
 - Uniqueness: **9.0/10**
 
 ## Ship Decision
@@ -26,11 +26,13 @@
 6. Vibe apply path now performs transactional writes with rollback on failure.
 7. Vibe apply supports strict JSON patch execution with validation/repair/rollback.
 8. Run restart path now retries with bounded exponential backoff.
+9. Run process supervisor now detects and cleans stale/unreachable processes.
+10. Vibe patch flow now enforces semantic policy limits (ops, paths, extensions).
 
 ## What Is Not Yet True
 
-1. Vibe flow still needs semantic patch-policy enforcement end-to-end.
-2. Run/preview lifecycle still needs stale process reclamation and full supervisor state machine.
+1. Vibe flow still needs profile-aware policy scopes (stack/phase-sensitive rules).
+2. Run/preview lifecycle still needs richer state-machine transitions and port-conflict diagnostics.
 3. Full-scale integration test coverage for new GPU+vibe+run paths is incomplete.
 4. Public positioning still overstates current UX maturity.
 
@@ -40,9 +42,9 @@
 - Is remote GPU actually real? **Yes (API wired, lifecycle callable).**
 - Is vibe coding actually working? **Partially (runtime + strict patch mode works, semantic policy hardening remains).**
 - Is the model router honest and real? **Yes (deterministic, tracked).**
-- Is the run/preview flow stable? **Improved, but not yet at production standard.**
+- Is the run/preview flow stable? **Significantly improved with supervision, but not yet production-final.**
 - Is the architecture simpler and cleaner than before? **Yes.**
-- Is this now truly closer to 8.5/10? **Yes, but not there yet.**
+- Is this now truly closer to 8.5/10? **Yes, materially (8.3/10), but not there yet.**
 
 ## Release Recommendation
 

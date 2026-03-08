@@ -2,35 +2,34 @@
 
 This file only lists genuinely remaining gaps that still block an 8.5/10 release quality bar.
 
-## 1. Vibe Patch Schema Hardening (Blocking)
+## 1. Vibe Profile-Aware Policy Hardening (Blocking)
 
 ### Missing
 
-- Strict JSON patch validation before write
-- Semantic validation for allowed file operations and patch bounds
+- Profile-aware semantic validation for allowed file operations and patch bounds
 - Durable rollback ledger for recovery after process interruption
 
 ### Why It Matters
 
-Transactional rollback and RFC6902 op validation are now implemented, but semantic policy validation is still required to prevent unsafe patch intent.
+Transactional rollback, RFC6902 op validation, and baseline semantic policy are now implemented. Remaining gap is profile-aware policy controls to reduce over/under-blocking by stack and phase.
 
 ### What Is Needed
 
-- Patch schema validation + semantic guards
+- Stack/profile-aware policy guards (Next.js, API-only, docs-only, etc.)
 - Write-ahead transaction log
 - Rollback command path integrated into vibe/apply with recovery replay
 
-## 2. Run/Preview Process Supervision (Blocking)
+## 2. Run/Preview Lifecycle Finalization (Blocking)
 
 ### Missing
 
-- Robust restart strategy for repeated process exits (partially implemented)
+- Rich lifecycle state transitions across startup/restart/failure states
 - Stale process and port conflict detection/recovery
 - Unified run/preview lifecycle state machine
 
 ### Why It Matters
 
-Current behavior improved with restart retry/backoff, but can still degrade with stale/orphaned processes.
+Current behavior improved with restart retry/backoff and stale-process supervision, but port conflict diagnostics and lifecycle transitions are still incomplete.
 
 ### What Is Needed
 
@@ -74,9 +73,9 @@ Trust and release quality perception depend on truthful positioning.
 
 ## Estimated Remaining Effort
 
-- Vibe patch semantic policy + rollback ledger: 3-5h
-- Run/preview supervision completion: 3-5h
+- Vibe profile-aware policy + rollback ledger: 2-4h
+- Run/preview lifecycle finalization: 2-4h
 - Integration testing matrix: 5-7h
 - Positioning cleanup: 1-2h
 
-**Total:** 12-19 hours
+**Total:** 10-17 hours

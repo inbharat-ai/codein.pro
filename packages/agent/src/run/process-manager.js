@@ -36,7 +36,40 @@ class ProcessManager extends EventEmitter {
     this.maxWorkers = 5; // Max concurrent processes
     this.restartMaxAttempts = 3;
     this.restartBaseDelayMs = 800;
+    this.completedRetentionMs = 60000;
+    this.staleRunningTtlMs = 15 * 60 * 1000;
+    this.supervisionIntervalMs = 15000;
+    this.supervisionStats = {
+      staleMarked: 0,
+      staleRemoved: 0,
+      lastSweepAt: null,
+    };
+    this._supervisionTimer = null;
     this.ensureDirectories();
+    this._startSupervision();
+  }
+
+  _startSupervision() {
+    if (this._supervisionTimer) return;
+    this._supervisionTimer = setInterval(() => {
+      try {
+        this.cleanupStaleProcesses();
+      } catch {
+        // Never crash supervision loop
+      }
+    }, this.supervisionIntervalMs);
+
+    // Do not keep event loop alive just for supervision.
+    if (typeof this._supervisionTimer.unref === "function") {
+      this._supervisionTimer.unref();
+    }
+  }
+
+  _stopSupervision() {
+    if (this._supervisionTimer) {
+      clearInterval(this._supervisionTimer);
+      this._supervisionTimer = null;
+    }
   }
 
   ensureDirectories() {
@@ -188,11 +221,12 @@ class ProcessManager extends EventEmitter {
       runInfo.status = code === 0 || runInfo.timedOut ? "stopped" : "failed";
       runInfo.exitCode = code;
       this.emit("exited", { runId, code, timedOut: runInfo.timedOut });
+      runInfo.endedAt = Date.now();
 
       // Clean up process reference
       setTimeout(() => {
         this.processes.delete(runId);
-      }, 60000); // Keep logs for 60 seconds after process ends
+      }, this.completedRetentionMs); // Keep logs briefly after process ends
     });
 
     child.on("error", (err) => {
@@ -205,6 +239,7 @@ class ProcessManager extends EventEmitter {
       });
       runInfo.status = "failed";
       runInfo.error = err.message;
+      runInfo.endedAt = Date.now();
     });
 
     return {
@@ -288,8 +323,59 @@ class ProcessManager extends EventEmitter {
     }
 
     runInfo.status = "stopped";
+    runInfo.endedAt = Date.now();
 
     return { success: true };
+  }
+
+  _isProcessAlive(pid) {
+    if (!pid || typeof pid !== "number") return false;
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  cleanupStaleProcesses() {
+    const now = Date.now();
+    this.supervisionStats.lastSweepAt = new Date(now).toISOString();
+
+    for (const [runId, runInfo] of this.processes.entries()) {
+      const startedAt = new Date(runInfo.startedAt).getTime();
+      const endedAt = runInfo.endedAt || null;
+
+      if (runInfo.status === "running") {
+        const alive = runInfo.process
+          ? this._isProcessAlive(runInfo.process.pid)
+          : false;
+        const staleByAge = now - startedAt > this.staleRunningTtlMs;
+
+        if (!alive || staleByAge) {
+          runInfo.status = "failed";
+          runInfo.error = !alive
+            ? "Process became unreachable"
+            : "Process exceeded stale running TTL";
+          runInfo.endedAt = now;
+          runInfo.logs.push({
+            type: "system",
+            text: `SUPERVISOR: Marked stale process (${runInfo.error})`,
+            timestamp: now,
+          });
+          this.supervisionStats.staleMarked += 1;
+        }
+      }
+
+      const isTerminal =
+        runInfo.status === "stopped" || runInfo.status === "failed";
+      if (isTerminal && endedAt && now - endedAt > this.completedRetentionMs) {
+        this.processes.delete(runId);
+        this.supervisionStats.staleRemoved += 1;
+      }
+    }
+
+    return { ...this.supervisionStats };
   }
 
   /**
@@ -398,6 +484,11 @@ class ProcessManager extends EventEmitter {
       activeProcesses: this.processes.size,
       maxWorkers: this.maxWorkers,
       timeout: this.timeout,
+      supervision: {
+        ...this.supervisionStats,
+        staleRunningTtlMs: this.staleRunningTtlMs,
+        completedRetentionMs: this.completedRetentionMs,
+      },
       processes: Array.from(this.processes.values()).map((p) => ({
         runId: p.runId,
         status: p.status,
@@ -407,6 +498,19 @@ class ProcessManager extends EventEmitter {
         logsCount: p.logs.length,
       })),
     };
+  }
+
+  async destroy() {
+    this._stopSupervision();
+    const ids = Array.from(this.processes.keys());
+    for (const runId of ids) {
+      try {
+        await this.stop(runId);
+      } catch {
+        // ignore shutdown cleanup errors
+      }
+    }
+    this.processes.clear();
   }
 }
 
