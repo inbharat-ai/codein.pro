@@ -1,17 +1,20 @@
 ﻿/**
  * CodeIn Landing Page — Internationalisation (i18n)
  *
- * Supported UI languages:
- *   en — English
- *   hi — हिन्दी (Hindi)
- *   ta — தமிழ் (Tamil)
- *   te — తెలుగు (Telugu)
- *   bn — বাংলা (Bengali)
- *   mr — मराठी (Marathi)
- *   gu — ગુજરાતી (Gujarati)
- *   kn — ಕನ್ನಡ (Kannada)
- *   ml — മലയാളം (Malayalam)
- *   pa — ਪੰਜਾਬੀ (Punjabi)
+ * Supported UI languages (landing page translations):
+ *   en — English         (full)
+ *   hi — हिन्दी (Hindi)   (full)
+ *   ta — தமிழ் (Tamil)    (full)
+ *   te — తెలుగు (Telugu)   (partial)
+ *   bn — বাংলা (Bengali)   (partial)
+ *   mr — मराठी (Marathi)   (partial)
+ *   gu — ગુજરાતી (Gujarati) (beta — hero + CTA only)
+ *   kn — ಕನ್ನಡ (Kannada)   (beta — hero + CTA only)
+ *   ml — മലയാളം (Malayalam) (beta — hero + CTA only)
+ *   pa — ਪੰਜਾਬੀ (Punjabi)  (beta — hero + CTA only)
+ *
+ * Note: The AI agent supports 19 languages (18 Indian + English).
+ * Missing landing-page keys fall back to English via t().
  *
  * Usage:
  *   setLanguage('hi');
@@ -48,7 +51,7 @@ const I18N = {
     "features.subtitle":
       "Built from the ground up for Indian developers who think in their mother tongue but code for the world.",
 
-    "feat.languages.title": "20+ Indian Languages",
+    "feat.languages.title": "19 Indian Languages",
     "feat.languages.desc":
       "Code with comments, prompts, and AI chat in Hindi, Tamil, Bengali, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, and more.",
     "feat.offline.title": "Offline AI Agent",
@@ -166,7 +169,7 @@ const I18N = {
       "No. CodeIn ships with a bundled llama.cpp inference engine that runs entirely on your machine. Your code, prompts, and AI responses never leave your computer. You can optionally connect cloud providers like OpenAI or Anthropic, but that's entirely your choice.",
     "faq.q3": "Which Indian languages are supported?",
     "faq.a3":
-      "Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more — over 20 languages. The AI agent can understand prompts, generate comments, and explain code in all of these.",
+      "Hindi, Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu, Sindhi, Konkani, Manipuri, Dogri, Bodo, and Santali — 18 Indian languages plus English. The AI agent can understand prompts, generate comments, and explain code in all of these.",
     "faq.q4": "Do I need a GPU?",
     "faq.a4":
       "No. CodeIn works on CPU-only machines. However, if you have an NVIDIA GPU with CUDA support, the inference engine will automatically use it for significantly faster AI responses.",
@@ -175,7 +178,7 @@ const I18N = {
       "Absolutely. CodeIn supports OpenAI, Anthropic, Google Gemini, Ollama, and many other providers. Just add your API key in Settings. The local engine is the default, but you can switch anytime.",
     "faq.q6": "What makes CodeIn different from Cursor or Copilot?",
     "faq.a6":
-      "CodeIn is built for Bharat. It supports 20+ Indian languages for voice coding, AI chat, and comments. It runs fully offline with Sovereign Mode. It has a built-in compute engine, web research, and MCP tools — all free, open-source, and private.",
+      "CodeIn is built for Bharat. It supports 19 Indian languages for voice coding, AI chat, and comments. It runs fully offline with Sovereign Mode. It has a built-in compute engine, web research, and MCP tools — all free, open-source, and private.",
 
     // --- CTA section ---
     "cta.title1": "Ready to code in",
@@ -200,7 +203,7 @@ const I18N = {
       "Paid tools send your code to their servers for processing. CodeIn's local AI means your proprietary code, API keys, and secrets never leave your machine.",
     "compare.card3.title": "By Bharat, for the world",
     "compare.card3.desc":
-      "No other AI code editor combines 20+ Indian languages with a global, local-first workflow. CodeIn lets you think in your mother tongue and ship for the world.",
+      "No other AI code editor combines 19 Indian languages with a global, local-first workflow. CodeIn lets you think in your mother tongue and ship for the world.",
 
     // --- Footer ---
     "footer.tagline": "By Bharat, for the world.",
@@ -225,7 +228,7 @@ const I18N = {
     "hero.title1": "भारत की हर भाषा में",
     "hero.title2": "कोड लिखो",
     "hero.subtitle":
-      "CodeIn एक AI-संचालित कोड एडिटर है जो हिंदी, तमिल, बंगाली और 20+ भारतीय भाषाएँ समझता है। ओपन-सोर्स। ऑफ़लाइन चलता है। आपका कोड कभी बाहर नहीं जाता।",
+      "CodeIn एक AI-संचालित कोड एडिटर है जो हिंदी, तमिल, बंगाली और 19 भारतीय भाषाएँ समझता है। ओपन-सोर्स। ऑफ़लाइन चलता है। आपका कोड कभी बाहर नहीं जाता।",
     "hero.download": "डाउनलोड करें",
     "hero.all_platforms": "सभी प्लेटफ़ॉर्म",
     "hero.detected": "पहचाना:",
@@ -237,7 +240,7 @@ const I18N = {
     "features.subtitle":
       "उन भारतीय डेवलपर्स के लिए बनाया गया जो अपनी मातृभाषा में सोचते हैं लेकिन दुनिया के लिए कोड लिखते हैं।",
 
-    "feat.languages.title": "20+ भारतीय भाषाएँ",
+    "feat.languages.title": "19 भारतीय भाषाएँ",
     "feat.languages.desc":
       "हिंदी, तमिल, बंगाली, तेलुगु, मराठी, गुजराती, कन्नड़, मलयालम, पंजाबी और अन्य भाषाओं में AI चैट और कोड लिखें।",
     "feat.offline.title": "ऑफ़लाइन AI एजेंट",
@@ -354,7 +357,7 @@ const I18N = {
       "नहीं। CodeIn में बंडल llama.cpp इंजन है जो पूरी तरह आपकी मशीन पर चलता है। आपका कोड, प्रॉम्प्ट और AI जवाब कभी बाहर नहीं जाते। आप वैकल्पिक रूप से OpenAI या Anthropic कनेक्ट कर सकते हैं, लेकिन यह पूरी तरह आपकी पसंद है।",
     "faq.q3": "कौन सी भारतीय भाषाएँ समर्थित हैं?",
     "faq.a3":
-      "हिंदी, तमिल, तेलुगु, बंगाली, मराठी, गुजराती, कन्नड़, मलयालम, पंजाबी, ओडिया, असमिया, उर्दू, संस्कृत और अन्य — 20+ भाषाएँ। AI एजेंट इन सभी में प्रॉम्प्ट समझ सकता है और कमेंट और कोड एक्सप्लेनेशन दे सकता है।",
+      "हिंदी, तमिल, तेलुगु, बंगाली, मराठी, गुजराती, कन्नड़, मलयालम, पंजाबी, ओडिया, असमिया, उर्दू, सिंधी, कोंकणी, मणिपुरी, डोगरी, बोडो और संताली — 18 भारतीय भाषाएँ + अंग्रेज़ी। AI एजेंट इन सभी में प्रॉम्प्ट समझ सकता है और कमेंट और कोड एक्सप्लेनेशन दे सकता है।",
     "faq.q4": "क्या मुझे GPU चाहिए?",
     "faq.a4":
       "नहीं। CodeIn CPU-ओनली मशीनों पर काम करता है। लेकिन अगर CUDA वाला NVIDIA GPU है तो इंजन ऑटोमैटिक इसका उपयोग करेगा।",
@@ -363,7 +366,7 @@ const I18N = {
       "बिल्कुल। CodeIn OpenAI, Anthropic, Google Gemini, Ollama और कई अन्य प्रोवाइडर्स सपोर्ट करता है। बस Settings में API कुंजी डालें।",
     "faq.q6": "CodeIn Cursor या Copilot से कैसे अलग है?",
     "faq.a6":
-      "CodeIn भारत के लिए बना है। 20+ भारतीय भाषाओं में वॉइस कोडिंग, AI चैट और कमेंट। सॉवरेन मोड में पूरी तरह ऑफ़लाइन। बिल्ट-इन कम्प्यूट इंजन, वेब रिसर्च, MCP टूल्स — सब मुफ़्त, ओपन-सोर्स और प्राइवेट।",
+      "CodeIn भारत के लिए बना है। 19 भारतीय भाषाओं में वॉइस कोडिंग, AI चैट और कमेंट। सॉवरेन मोड में पूरी तरह ऑफ़लाइन। बिल्ट-इन कम्प्यूट इंजन, वेब रिसर्च, MCP टूल्स — सब मुफ़्त, ओपन-सोर्स और प्राइवेट।",
 
     "cta.title1": "अपनी भाषा में",
     "cta.title2": "कोड करने के लिए तैयार?",
@@ -387,7 +390,7 @@ const I18N = {
       "पेड टूल्स प्रोसेसिंग के लिए आपका कोड सर्वर पर भेजते हैं। CodeIn का लोकल AI मतलब आपका कोड, API कुंजियाँ और सीक्रेट कभी बाहर नहीं जाते।",
     "compare.card3.title": "भारत के लिए बना",
     "compare.card3.desc":
-      "कोई और AI कोड एडिटर वॉइस, चैट और कमेंट्स में 20+ भारतीय भाषाएँ सपोर्ट नहीं करता। CodeIn आपकी मातृभाषा में सोचता है।",
+      "कोई और AI कोड एडिटर वॉइस, चैट और कमेंट्स में 19 भारतीय भाषाएँ सपोर्ट नहीं करता। CodeIn आपकी मातृभाषा में सोचता है।",
 
     "footer.tagline": "भारत का AI-संचालित कोड एडिटर।",
     "footer.madeWith": "भारत में ❤️ से बनाया।",
@@ -411,7 +414,7 @@ const I18N = {
     "hero.title1": "பாரதத்தின் ஒவ்வொரு",
     "hero.title2": "மொழியிலும் குறியிடு",
     "hero.subtitle":
-      "CodeIn ஒரு AI-இயங்கும் குறியீடு திருத்தி, தமிழ், ஹிந்தி, வங்காளம் மற்றும் 20+ இந்திய மொழிகளைப் புரிந்துகொள்கிறது. திறந்த மூலம். உள்ளூரில் இயங்கும். உங்கள் குறியீடு உங்கள் கணினியை விட்டு வெளியேறாது.",
+      "CodeIn ஒரு AI-இயங்கும் குறியீடு திருத்தி, தமிழ், ஹிந்தி, வங்காளம் மற்றும் 19 இந்திய மொழிகளைப் புரிந்துகொள்கிறது. திறந்த மூலம். உள்ளூரில் இயங்கும். உங்கள் குறியீடு உங்கள் கணினியை விட்டு வெளியேறாது.",
     "hero.download": "பதிவிறக்கு",
     "hero.all_platforms": "எல்லா தளங்களும்",
     "hero.detected": "கண்டறியப்பட்டது:",
@@ -423,7 +426,7 @@ const I18N = {
     "features.subtitle":
       "தாய்மொழியில் சிந்தித்து உலகிற்காக குறியிடும் இந்திய டெவலப்பர்களுக்காக உருவாக்கப்பட்டது.",
 
-    "feat.languages.title": "20+ இந்திய மொழிகள்",
+    "feat.languages.title": "19 இந்திய மொழிகள்",
     "feat.languages.desc":
       "தமிழ், ஹிந்தி, வங்காளம், தெலுங்கு, மராத்தி, குஜராத்தி, கன்னடம், மலையாளம் மற்றும் பலவற்றில் AI உரையாடல்.",
     "feat.offline.title": "ஆஃப்லைன் AI ஏஜெண்ட்",
@@ -517,7 +520,7 @@ const I18N = {
       "கட்டண கருவிகள் உங்கள் குறியீட்டை சேவையகங்களுக்கு அனுப்புகின்றன. CodeIn-ன் உள்ளூர் AI உங்கள் குறியீடு வெளியே செல்லாது.",
     "compare.card3.title": "பாரதத்திற்காக உருவாக்கப்பட்டது",
     "compare.card3.desc":
-      "வேறு எந்த AI குறியீடு திருத்தியும் 20+ இந்திய மொழிகளை ஆதரிக்காது. CodeIn உங்கள் தாய்மொழியில் சிந்திக்கிறது.",
+      "வேறு எந்த AI குறியீடு திருத்தியும் 19 இந்திய மொழிகளை ஆதரிக்காது. CodeIn உங்கள் தாய்மொழியில் சிந்திக்கிறது.",
 
     "footer.tagline": "பாரதத்தின் AI-இயங்கும் குறியீடு திருத்தி.",
     "footer.madeWith": "இந்தியாவில் ❤️ உடன் உருவாக்கப்பட்டது.",
@@ -541,7 +544,7 @@ const I18N = {
     "hero.title1": "భారత్ లోని ప్రతి",
     "hero.title2": "భాషలో కోడ్ చేయండి",
     "hero.subtitle":
-      "CodeIn ఒక AI-ఆధారిత కోడ్ ఎడిటర్, తెలుగు, హిందీ, తమిళం మరియు 20+ భారతీయ భాషలను అర్థం చేసుకుంటుంది. ఓపెన్-సోర్స్. లోకల్‌గా నడుస్తుంది.",
+      "CodeIn ఒక AI-ఆధారిత కోడ్ ఎడిటర్, తెలుగు, హిందీ, తమిళం మరియు 19 భారతీయ భాషలను అర్థం చేసుకుంటుంది. ఓపెన్-సోర్స్. లోకల్‌గా నడుస్తుంది.",
     "hero.download": "డౌన్‌లోడ్ చేయండి",
     "hero.all_platforms": "అన్ని ప్లాట్‌ఫారమ్‌లు",
     "hero.detected": "గుర్తించబడింది:",
@@ -553,7 +556,7 @@ const I18N = {
     "features.subtitle":
       "మాతృభాషలో ఆలోచించి ప్రపంచానికి కోడ్ వ్రాసే భారతీయ డెవలపర్ల కోసం నిర్మించబడింది.",
 
-    "feat.languages.title": "20+ భారతీయ భాషలు",
+    "feat.languages.title": "19 భారతీయ భాషలు",
     "feat.languages.desc":
       "తెలుగు, హిందీ, తమిళం, బెంగాలీ, మరాఠీ, గుజరాతీ, కన్నడం, మలయాళం మరియు మరిన్నిటిలో AI చాట్.",
     "feat.offline.title": "ఆఫ్‌లైన్ AI ఏజెంట్",
@@ -666,7 +669,7 @@ const I18N = {
     "hero.title1": "भारताच्या प्रत्येक",
     "hero.title2": "भाषेत कोड करा",
     "hero.subtitle":
-      "CodeIn एक AI-संचालित कोड एडिटर आहे जो मराठी, हिंदी, तमिळ आणि 20+ भारतीय भाषा समजतो. ओपन-सोर्स. स्थानिक पातळीवर चालतो.",
+      "CodeIn एक AI-संचालित कोड एडिटर आहे जो मराठी, हिंदी, तमिळ आणि 19 भारतीय भाषा समजतो. ओपन-सोर्स. स्थानिक पातळीवर चालतो.",
     "hero.download": "डाउनलोड करा",
     "hero.all_platforms": "सर्व प्लॅटफॉर्म",
     "hero.detected": "शोधले:",
@@ -698,7 +701,7 @@ const I18N = {
     "hero.title1": "ભારતની દરેક",
     "hero.title2": "ભાષામાં કોડ કરો",
     "hero.subtitle":
-      "CodeIn એક AI-સંચાલિત કોડ એડિટર છે જે ગુજરાતી, હિન્દી, તમિલ અને 20+ ભારતીય ભાષાઓ સમજે છે. ઓપન-સોર્સ. સ્થાનિક રીતે ચાલે છે.",
+      "CodeIn એક AI-સંચાલિત કોડ એડિટર છે જે ગુજરાતી, હિન્દી, તમિલ અને 19 ભારતીય ભાષાઓ સમજે છે. ઓપન-સોર્સ. સ્થાનિક રીતે ચાલે છે.",
     "hero.download": "ડાઉનલોડ કરો",
     "hero.all_platforms": "બધા પ્લેટફોર્મ",
     "cta.title1": "તમારી ભાષામાં",
@@ -713,7 +716,7 @@ const I18N = {
     "hero.title1": "ಭಾರತದ ಪ್ರತಿ",
     "hero.title2": "ಭಾಷೆಯಲ್ಲಿ ಕೋಡ್ ಮಾಡಿ",
     "hero.subtitle":
-      "CodeIn ಒಂದು AI-ಚಾಲಿತ ಕೋಡ್ ಸಂಪಾದಕ, ಕನ್ನಡ, ಹಿಂದಿ, ತಮಿಳು ಮತ್ತು 20+ ಭಾರತೀಯ ಭಾಷೆಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತದೆ.",
+      "CodeIn ಒಂದು AI-ಚಾಲಿತ ಕೋಡ್ ಸಂಪಾದಕ, ಕನ್ನಡ, ಹಿಂದಿ, ತಮಿಳು ಮತ್ತು 19 ಭಾರತೀಯ ಭಾಷೆಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತದೆ.",
     "hero.download": "ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
     "cta.title1": "ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ",
     "cta.title2": "ಕೋಡ್ ಮಾಡಲು ಸಿದ್ಧರೇ?",
@@ -727,7 +730,7 @@ const I18N = {
     "hero.title1": "ഭാരതത്തിന്റെ ഓരോ",
     "hero.title2": "ഭാഷയിലും കോഡ് ചെയ്യൂ",
     "hero.subtitle":
-      "CodeIn ഒരു AI-പവർഡ് കോഡ് എഡിറ്ററാണ്, മലയാളം, ഹിന്ദി, തമിഴ് തുടങ്ങി 20+ ഇന്ത്യൻ ഭാഷകൾ മനസ്സിലാക്കുന്നു.",
+      "CodeIn ഒരു AI-പവർഡ് കോഡ് എഡിറ്ററാണ്, മലയാളം, ഹിന്ദി, തമിഴ് തുടങ്ങി 19 ഇന്ത്യൻ ഭാഷകൾ മനസ്സിലാക്കുന്നു.",
     "hero.download": "ഡൗൺലോഡ്",
     "cta.title1": "നിങ്ങളുടെ ഭാഷയിൽ",
     "cta.title2": "കോഡ് ചെയ്യാൻ തയ്യാറാണോ?",
@@ -741,7 +744,7 @@ const I18N = {
     "hero.title1": "ਭਾਰਤ ਦੀ ਹਰ",
     "hero.title2": "ਭਾਸ਼ਾ ਵਿੱਚ ਕੋਡ ਕਰੋ",
     "hero.subtitle":
-      "CodeIn ਇੱਕ AI-ਸੰਚਾਲਿਤ ਕੋਡ ਐਡੀਟਰ ਹੈ ਜੋ ਪੰਜਾਬੀ, ਹਿੰਦੀ, ਤਮਿਲ ਅਤੇ 20+ ਭਾਰਤੀ ਭਾਸ਼ਾਵਾਂ ਸਮਝਦਾ ਹੈ। ਓਪਨ-ਸੋਰਸ। ਲੋਕਲ ਚੱਲਦਾ ਹੈ।",
+      "CodeIn ਇੱਕ AI-ਸੰਚਾਲਿਤ ਕੋਡ ਐਡੀਟਰ ਹੈ ਜੋ ਪੰਜਾਬੀ, ਹਿੰਦੀ, ਤਮਿਲ ਅਤੇ 19 ਭਾਰਤੀ ਭਾਸ਼ਾਵਾਂ ਸਮਝਦਾ ਹੈ। ਓਪਨ-ਸੋਰਸ। ਲੋਕਲ ਚੱਲਦਾ ਹੈ।",
     "hero.download": "ਡਾਊਨਲੋਡ ਕਰੋ",
     "cta.title1": "ਆਪਣੀ ਭਾਸ਼ਾ ਵਿੱਚ",
     "cta.title2": "ਕੋਡ ਕਰਨ ਲਈ ਤਿਆਰ?",
@@ -752,16 +755,16 @@ const I18N = {
 
 // ─── Language Metadata ──────────────────────────────────────
 const LANG_META = {
-  en: { label: "English", native: "English", flag: "🇬🇧" },
-  hi: { label: "Hindi", native: "हिन्दी", flag: "🇮🇳" },
-  ta: { label: "Tamil", native: "தமிழ்", flag: "🇮🇳" },
-  te: { label: "Telugu", native: "తెలుగు", flag: "🇮🇳" },
-  bn: { label: "Bengali", native: "বাংলা", flag: "🇮🇳" },
-  mr: { label: "Marathi", native: "मराठी", flag: "🇮🇳" },
-  gu: { label: "Gujarati", native: "ગુજરાતી", flag: "🇮🇳" },
-  kn: { label: "Kannada", native: "ಕನ್ನಡ", flag: "🇮🇳" },
-  ml: { label: "Malayalam", native: "മലയാളം", flag: "🇮🇳" },
-  pa: { label: "Punjabi", native: "ਪੰਜਾਬੀ", flag: "🇮🇳" },
+  en: { label: "English", native: "English", flag: "🇬🇧", coverage: "full" },
+  hi: { label: "Hindi", native: "हिन्दी", flag: "🇮🇳", coverage: "full" },
+  ta: { label: "Tamil", native: "தமிழ்", flag: "🇮🇳", coverage: "full" },
+  te: { label: "Telugu", native: "తెలుగు", flag: "🇮🇳", coverage: "partial" },
+  bn: { label: "Bengali", native: "বাংলা", flag: "🇮🇳", coverage: "partial" },
+  mr: { label: "Marathi", native: "मराठी", flag: "🇮🇳", coverage: "partial" },
+  gu: { label: "Gujarati", native: "ગુજરાતી", flag: "🇮🇳", coverage: "beta" },
+  kn: { label: "Kannada", native: "ಕನ್ನಡ", flag: "🇮🇳", coverage: "beta" },
+  ml: { label: "Malayalam", native: "മലയാളം", flag: "🇮🇳", coverage: "beta" },
+  pa: { label: "Punjabi", native: "ਪੰਜਾਬੀ", flag: "🇮🇳", coverage: "beta" },
 };
 
 // ─── Engine ─────────────────────────────────────────────────

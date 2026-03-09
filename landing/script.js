@@ -480,9 +480,15 @@ function buildLangMenus() {
     menu.innerHTML = langs
       .map((code) => {
         const m = LANG_META[code];
+        const badge =
+          m.coverage === "beta"
+            ? '<span class="text-[9px] ml-1 px-1 rounded bg-yellow-500/20 text-yellow-400">BETA</span>'
+            : m.coverage === "partial"
+              ? '<span class="text-[9px] ml-1 px-1 rounded bg-blue-500/20 text-blue-400">PARTIAL</span>'
+              : "";
         return `<button onclick="switchLang('${code}')" data-lang="${code}" class="lang-btn w-full text-left px-4 py-2 text-sm hover:bg-white/10 transition-colors flex items-center gap-2">
         <span>${m.flag}</span>
-        <span class="text-gray-300">${m.native}</span>
+        <span class="text-gray-300">${m.native}${badge}</span>
         <span class="text-gray-600 text-xs ml-auto">${m.label}</span>
       </button>`;
       })
@@ -493,8 +499,12 @@ function buildLangMenus() {
     mobileList.innerHTML = langs
       .map((code) => {
         const m = LANG_META[code];
+        const badge =
+          m.coverage === "beta"
+            ? ' <span class="text-[8px] px-1 rounded bg-yellow-500/20 text-yellow-400">β</span>'
+            : "";
         return `<button onclick="switchLang('${code}')" data-lang="${code}" class="lang-btn-mobile px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-gray-300 hover:bg-white/10 transition-all">
-        ${m.flag} ${m.native}
+        ${m.flag} ${m.native}${badge}
       </button>`;
       })
       .join("");
