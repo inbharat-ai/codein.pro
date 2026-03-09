@@ -21,7 +21,7 @@ type ComputeLocalModule = {
   };
 };
 
-function loadComputeLocal(): ComputeLocalModule {
+function loadComputeLocal(): ComputeLocalModule | null {
   try {
     // Prefer a local dependency if installed.
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -35,71 +35,79 @@ function loadComputeLocal(): ComputeLocalModule {
       "src",
       "index.js",
     );
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require(fallbackPath);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      return require(fallbackPath);
+    } catch {
+      console.warn(
+        "[ComputeLocal] Module not found — compute features disabled",
+      );
+      return null;
+    }
   }
 }
 
 export class ComputeLocalService {
-  private client: InstanceType<ComputeLocalModule["ComputeLocalClient"]>;
+  private client: InstanceType<ComputeLocalModule["ComputeLocalClient"]> | null;
   private subscriptions = new Map<string, { close: () => void }>();
 
   constructor(private agentService: AgentService) {
     const computeLocal = loadComputeLocal();
-    this.client = new computeLocal.ComputeLocalClient();
+    this.client = computeLocal ? new computeLocal.ComputeLocalClient() : null;
   }
 
   public async submitJob(params: any): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.submitJob(params);
+    await this.ensureReady();
+    return this.client!.submitJob(params);
   }
 
   public async listJobs(params?: any): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.listJobs(params);
+    await this.ensureReady();
+    return this.client!.listJobs(params);
   }
 
   public async getJob(jobId: string): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.getJob(jobId);
+    await this.ensureReady();
+    return this.client!.getJob(jobId);
   }
 
   public async deleteJob(jobId: string): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.deleteJob(jobId);
+    await this.ensureReady();
+    return this.client!.deleteJob(jobId);
   }
 
   public async cancelJob(jobId: string): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.cancelJob(jobId);
+    await this.ensureReady();
+    return this.client!.cancelJob(jobId);
   }
 
   public async pauseJob(jobId: string): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.pauseJob(jobId);
+    await this.ensureReady();
+    return this.client!.pauseJob(jobId);
   }
 
   public async resumeJob(jobId: string): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.resumeJob(jobId);
+    await this.ensureReady();
+    return this.client!.resumeJob(jobId);
   }
 
   public async getStats(): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.getStats();
+    await this.ensureReady();
+    return this.client!.getStats();
   }
 
   public async listLanguages(): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.listLanguages();
+    await this.ensureReady();
+    return this.client!.listLanguages();
   }
 
   public async runWorkflow(name: string, body?: any): Promise<any> {
-    await this.ensureAgentReady();
-    return this.client.runWorkflow(name, body);
+    await this.ensureReady();
+    return this.client!.runWorkflow(name, body);
   }
 
   public subscribe(jobId: string, onEvent: (payload: any) => void): void {
+    if (!this.client) return;
     this.unsubscribe(jobId);
     const subscription = this.client.subscribeToJobEvents(jobId, onEvent);
     this.subscriptions.set(jobId, subscription);
@@ -119,7 +127,10 @@ export class ComputeLocalService {
     }
   }
 
-  private async ensureAgentReady(): Promise<void> {
+  private async ensureReady(): Promise<void> {
+    if (!this.client) {
+      throw new Error("ComputeLocal module not available");
+    }
     if (!this.agentService.isRunning()) {
       await this.agentService.start();
     }

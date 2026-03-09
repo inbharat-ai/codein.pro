@@ -1,0 +1,234 @@
+/**
+ * CodIn IDE Shell Styles
+ * Cursor/Copilot-grade layout: Activity Bar | Content | Status Bar
+ */
+
+/* ── Shell Grid ── */
+.ide-shell {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  grid-template-rows: 1fr 24px;
+  grid-template-areas:
+    "actbar  main"
+    "status  status";
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--vscode-editor-background, #1e1e1e);
+  color: var(--vscode-editor-foreground, #cccccc);
+}
+
+/* ── Activity Bar ── */
+.ide-activity-bar {
+  grid-area: actbar;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--vscode-activityBar-background, #181818);
+  border-right: 1px solid var(--vscode-activityBar-border, #2b2b2b);
+  padding: 0;
+  width: 48px;
+  user-select: none;
+  z-index: 10;
+}
+
+.ide-activity-top,
+.ide-activity-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.ide-activity-top {
+  padding-top: 4px;
+}
+
+.ide-activity-bottom {
+  padding-bottom: 8px;
+}
+
+/* Logo */
+.ide-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 40px;
+  margin-bottom: 4px;
+  cursor: default;
+}
+
+.ide-logo-svg {
+  width: 22px;
+  height: 22px;
+  color: var(--vscode-activityBar-foreground, #858585);
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+}
+
+.ide-logo:hover .ide-logo-svg {
+  opacity: 1;
+  color: #ff9933; /* Saffron accent */
+}
+
+/* Activity Buttons */
+.ide-activity-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  border-left: 2px solid transparent;
+}
+
+.ide-activity-btn:hover {
+  background: var(
+    --vscode-activityBar-activeBackground,
+    rgba(255, 255, 255, 0.06)
+  );
+}
+
+.ide-activity-btn.active {
+  border-left-color: var(--vscode-activityBar-activeBorder, #ffffff);
+}
+
+.ide-activity-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--vscode-activityBar-inactiveForeground, #858585);
+  transition: color 0.1s ease;
+}
+
+.ide-activity-btn:hover .ide-activity-icon,
+.ide-activity-btn.active .ide-activity-icon {
+  color: var(--vscode-activityBar-foreground, #ffffff);
+}
+
+/* Tooltip */
+.ide-activity-tooltip {
+  position: absolute;
+  left: 54px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--vscode-editorHoverWidget-background, #2d2d30);
+  border: 1px solid var(--vscode-editorHoverWidget-border, #454545);
+  color: var(--vscode-editorHoverWidget-foreground, #cccccc);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: tooltipFade 0.1s ease-in;
+}
+
+@keyframes tooltipFade {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+/* ── Main Content ── */
+.ide-main {
+  grid-area: main;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ── Status Bar ── */
+.ide-status-bar {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  padding: 0 10px;
+  background: var(--vscode-statusBar-background, #007acc);
+  color: var(--vscode-statusBar-foreground, #ffffff);
+  font-size: 12px;
+  line-height: 24px;
+  user-select: none;
+  border-top: 1px solid var(--vscode-statusBar-border, transparent);
+  z-index: 10;
+}
+
+.ide-status-left,
+.ide-status-center,
+.ide-status-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ide-status-center {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.ide-status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  cursor: default;
+  transition: background 0.1s ease;
+}
+
+.ide-status-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ide-status-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.ide-status-branch {
+  font-weight: 500;
+}
+
+.ide-status-lang {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .ide-shell {
+    grid-template-columns: 40px 1fr;
+  }
+  .ide-activity-bar {
+    width: 40px;
+  }
+  .ide-activity-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .ide-activity-icon {
+    width: 18px;
+    height: 18px;
+  }
+  .ide-status-center {
+    display: none;
+  }
+}

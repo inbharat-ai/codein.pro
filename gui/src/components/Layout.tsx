@@ -18,6 +18,7 @@ import { ROUTES } from "../util/navigation";
 import { FatalErrorIndicator } from "./config/FatalErrorNotice";
 import TextDialog from "./dialogs";
 import { GenerateRuleDialog } from "./GenerateRuleDialog";
+import { IdeShell } from "./IdeShell";
 import { useMainEditor } from "./mainInput/TipTapEditor";
 import {
   isNewUserOnboarding,
@@ -41,7 +42,7 @@ const GeoBackgroundDiv = styled.div.attrs({ className: "codin-geo-bg" })`
 const GridDiv = styled.div`
   display: grid;
   grid-template-rows: 1fr auto;
-  height: 100vh;
+  height: 100%;
   overflow-x: visible;
 `;
 
@@ -243,52 +244,57 @@ const Layout = () => {
     <LocalStorageProvider>
       <AuthProvider>
         <TelemetryProviders>
-          <GeoBackgroundDiv>
-            <LayoutTopDiv>
-              {showStagingIndicator && (
-                <span
-                  title="Staging environment"
-                  className="absolute right-0 mx-1.5 h-1.5 w-1.5 rounded-full"
+          <IdeShell>
+            <GeoBackgroundDiv>
+              <LayoutTopDiv>
+                {showStagingIndicator && (
+                  <span
+                    title="Staging environment"
+                    className="absolute right-0 mx-1.5 h-1.5 w-1.5 rounded-full"
+                    style={{
+                      backgroundColor: "var(--vscode-list-warningForeground)",
+                    }}
+                  />
+                )}
+                <OSRContextMenu />
+                <div
                   style={{
-                    backgroundColor: "var(--vscode-list-warningForeground)",
+                    scrollbarGutter: "stable both-edges",
+                    minHeight: "100%",
+                    display: "grid",
+                    gridTemplateRows: "1fr auto",
                   }}
-                />
-              )}
-              <OSRContextMenu />
-              <div
-                style={{
-                  scrollbarGutter: "stable both-edges",
-                  minHeight: "100%",
-                  display: "grid",
-                  gridTemplateRows: "1fr auto",
-                }}
-              >
-                <TextDialog
-                  showDialog={showDialog}
-                  onEnter={() => {
-                    dispatch(setShowDialog(false));
-                  }}
-                  onClose={() => {
-                    dispatch(setShowDialog(false));
-                  }}
-                  message={dialogMessage}
-                />
+                >
+                  <TextDialog
+                    showDialog={showDialog}
+                    onEnter={() => {
+                      dispatch(setShowDialog(false));
+                    }}
+                    onClose={() => {
+                      dispatch(setShowDialog(false));
+                    }}
+                    message={dialogMessage}
+                  />
 
-                <GridDiv>
-                  <PostHogPageView />
-                  <div
-                    key={location.pathname}
-                    className="codin-page-transition"
-                  >
-                    <Outlet />
-                  </div>
-                  {/* The fatal error for chat is shown below input */}
-                  {!isHome && <FatalErrorIndicator />}
-                </GridDiv>
-              </div>
-              <div style={{ fontSize: fontSize(-4) }} id="tooltip-portal-div" />
-            </LayoutTopDiv>
-          </GeoBackgroundDiv>
+                  <GridDiv>
+                    <PostHogPageView />
+                    <div
+                      key={location.pathname}
+                      className="codin-page-transition"
+                    >
+                      <Outlet />
+                    </div>
+                    {/* The fatal error for chat is shown below input */}
+                    {!isHome && <FatalErrorIndicator />}
+                  </GridDiv>
+                </div>
+                <div
+                  style={{ fontSize: fontSize(-4) }}
+                  id="tooltip-portal-div"
+                />
+              </LayoutTopDiv>
+            </GeoBackgroundDiv>
+          </IdeShell>
         </TelemetryProviders>
       </AuthProvider>
     </LocalStorageProvider>

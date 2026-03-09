@@ -4,6 +4,7 @@
  */
 
 import { app, BrowserWindow } from "electron";
+import { buildAppMenu } from "./AppMenu";
 import { WindowManager } from "./WindowManager";
 import { IpcHandler } from "./ipc/IpcHandler";
 import { AgentService } from "./services/AgentService";
@@ -72,21 +73,22 @@ class CodInApp {
     }
 
     try {
-      // Initialize services
-      await this.initializeServices();
-
-      // Create window manager
+      // Create window manager and show the UI first
       this.windowManager = new WindowManager();
-
-      // Setup IPC handlers
-      this.setupIpcHandlers();
-
-      // Create main window
+      buildAppMenu(this.windowManager);
       await this.windowManager.createMainWindow();
+      console.log("CodIn: Window created");
 
-      console.log("CodIn: Initialization complete");
+      // Initialize services (non-fatal — UI stays up even if backend is slow)
+      try {
+        await this.initializeServices();
+        this.setupIpcHandlers();
+        console.log("CodIn: Initialization complete");
+      } catch (serviceError) {
+        console.warn("CodIn: Some services failed to start:", serviceError);
+      }
     } catch (error) {
-      console.error("CodIn: Failed to initialize:", error);
+      console.error("CodIn: Failed to create window:", error);
       app.quit();
     }
   }
@@ -169,14 +171,18 @@ class CodInApp {
 
     // Initialize agent service (AI4Bharat + CodIn Agent)
     this.agentService = new AgentService();
-    await this.agentService.start();
+    this.agentService.start().catch((err) => {
+      console.warn("[Agent] Background start failed:", err);
+    });
 
     // Initialize compute-local service (local-only compute bridge)
     this.computeLocalService = new ComputeLocalService(this.agentService);
 
     // Initialize media service (local media generation)
     this.mediaService = new MediaService();
-    await this.mediaService.initialize();
+    this.mediaService.initialize().catch((err) => {
+      console.warn("[Media] Background initialization failed:", err);
+    });
 
     console.log("CodIn: All services initialized");
   }
@@ -189,22 +195,23 @@ class CodInApp {
       !this.modelManagerService ||
       !this.agentService ||
       !this.computeLocalService ||
-      !this.mediaService ||
-      !this.llmBootstrapService
+      !this.mediaService
     ) {
-      throw new Error("Services not initialized");
+      console.warn(
+        "CodIn: Some services not yet ready for IPC — handlers may be limited",
+      );
     }
 
     this.ipcHandler = new IpcHandler(
-      this.fileSystemService,
-      this.gitService,
-      this.terminalService,
-      this.modelManagerService,
-      this.agentService,
-      this.computeLocalService,
-      this.mediaService,
-      this.llmBootstrapService,
-      this.localModulesBootstrapService,
+      this.fileSystemService!,
+      this.gitService!,
+      this.terminalService!,
+      this.modelManagerService!,
+      this.agentService!,
+      this.computeLocalService!,
+      this.mediaService!,
+      this.llmBootstrapService!,
+      this.localModulesBootstrapService!,
       this.windowManager!,
     );
 

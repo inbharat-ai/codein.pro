@@ -67,6 +67,49 @@ export class IpcHandler {
     this.registerBootstrapHandlers();
     this.registerSystemHandlers();
     this.registerWindowHandlers();
+    this.registerWebviewBridge();
+  }
+
+  /**
+   * Webview bridge — forwards GUI vscode.postMessage() calls to the agent backend
+   * and returns responses via webContents.send() → window.postMessage()
+   */
+  private registerWebviewBridge(): void {
+    ipcMain.on("webview:message", async (event, message) => {
+      const { messageType, messageId, data } = message || {};
+      if (!messageType) return;
+
+      try {
+        // Forward to agent service HTTP API
+        const agentUrl = `http://127.0.0.1:43120`;
+        const response = await fetch(`${agentUrl}/api/gui/${messageType}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageId, data }),
+        });
+
+        let result;
+        try {
+          result = await response.json();
+        } catch {
+          result = { status: "error", error: "Invalid response from agent" };
+        }
+
+        // Send response back to renderer in the same format the GUI expects
+        event.sender.send("webview:message", {
+          messageId,
+          messageType,
+          data: result,
+        });
+      } catch (err: any) {
+        // Agent not running or request failed — send error response
+        event.sender.send("webview:message", {
+          messageId,
+          messageType,
+          data: { status: "error", error: err?.message ?? "Agent unavailable" },
+        });
+      }
+    });
   }
 
   /**

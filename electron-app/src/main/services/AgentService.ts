@@ -69,6 +69,12 @@ export class AgentService {
         console.error(`[Agent Error] ${data.toString()}`);
       });
 
+      this.agentProcess.on("error", (err) => {
+        console.warn(`[Agent] Process spawn error: ${err.message}`);
+        this.agentProcess = null;
+        this.isAgentReady = false;
+      });
+
       this.agentProcess.on("exit", (code) => {
         console.log(`Agent process exited with code ${code}`);
         this.agentProcess = null;

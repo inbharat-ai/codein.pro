@@ -271,6 +271,33 @@ contextBridge.exposeInMainWorld("codinAPI", {
   window: windowAPI,
 });
 
+/**
+ * VS Code webview API shim for Electron
+ * The GUI was built for VS Code webview and uses vscode.postMessage().
+ * This shim bridges those calls to Electron IPC so the same GUI works standalone.
+ */
+const vscodeShim = {
+  postMessage(message: any) {
+    ipcRenderer.send("webview:message", message);
+    return vscodeShim;
+  },
+  getState() {
+    return {};
+  },
+  setState(_state: any) {
+    // no-op in Electron
+  },
+};
+
+// Expose acquireVsCodeApi and the vscode global
+contextBridge.exposeInMainWorld("acquireVsCodeApi", () => vscodeShim);
+contextBridge.exposeInMainWorld("vscode", vscodeShim);
+
+// Forward messages from main process → window.postMessage (same as VS Code webview)
+ipcRenderer.on("webview:message", (_event: IpcRendererEvent, message: any) => {
+  window.postMessage(message, "*");
+});
+
 // Type definitions for TypeScript
 export interface CodInAPI {
   fs: typeof fileSystemAPI;

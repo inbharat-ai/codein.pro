@@ -1,9 +1,9 @@
+/* CodeIn India-Tech Design System */
+@import "./styles/codin-theme.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* CodeIn India-Tech Design System */
-@import "./styles/codin-theme.css";
 
 @font-face {
   font-family: "Inter";
