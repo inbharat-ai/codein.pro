@@ -399,12 +399,12 @@ Azure OpenAI · AWS Bedrock · Google VertexAI · SageMaker · WatsonX · Nvidia
 | 🎙️ **Voice Coding**      | STT/TTS infrastructure for 13 languages. Requires external setup: Whisper/Piper/espeak or Azure/Google credentials                               |
 | ⚡ **Vibe Coding**       | Live agent orchestration, session isolation, compute pipeline, pause/resume/cancel                                                               |
 | 🔗 **Live Bridge**       | Client ↔ Agent HTTP + SSE for task streaming, permission loops, real-time feedback                                                              |
-| 🧮 **Compute Routing**   | Local, swarm, GPU, and external API escalation with budget guardrails                                                                            |
+| 🧮 **Compute Routing**   | Local, swarm, GPU (RunPod), and external API escalation with budget guardrails                                                                   |
 | 🔒 **Session Isolation** | Safe multi-user and parallel workflows, sandboxed workspaces, policy enforcement                                                                 |
 | 🛡️ **Reliability**       | Circuit breaker, retry/backoff, timeout, audit logging                                                                                           |
 | 📊 **Observability**     | Health, compute, sessions, agents, pipeline, metrics, audit logs                                                                                 |
 | 🔍 **Research API**      | Serper-compatible endpoint; DuckDuckGo fallback (no API keys); premium providers optional                                                        |
-| 🔌 **MCP Tools**         | Connect to MCP-compatible servers — GitHub, Slack, Jira, DBs, Docker, Kubernetes                                                                 |
+| 🔌 **MCP Tools**         | Connect to MCP-compatible servers — GitHub, Slack, Jira, DBs, Docker, Kubernetes, RunPod GPU                                                     |
 | 📋 **Compute Pipeline**  | Goal → plan → execute → artifact, sandbox isolation, multilingual I/O                                                                            |
 | 🤖 **Local AI**          | llama.cpp integration (binaries downloaded at build/first launch); local inference, no mandatory cloud                                           |
 | 🔌 **BYO Providers**     | 50+ LLM providers: OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, and more. Bring your own API key                  |
@@ -422,6 +422,59 @@ Azure OpenAI · AWS Bedrock · Google VertexAI · SageMaker · WatsonX · Nvidia
 - Unified local/swarm/GPU routing
 - Autonomous coding pipeline infrastructure: idea → spec → code → test → review → delivery
 - Tool-execution safety built into agent behavior
+
+<br/>
+
+---
+
+<br/>
+
+## 🖥️ GPU on Demand — RunPod Integration
+
+> **Need GPU compute?** CodIn connects directly to [RunPod](https://www.runpod.io/) via MCP, so the AI agent can help you provision, manage, and tear down GPU pods on demand.
+
+### How It Works
+
+```
+You:   "I need an A100 to fine-tune my model"
+CodIn: → Checks available GPUs & pricing via RunPod GraphQL API
+       → Provisions a pod with your chosen Docker image
+       → Monitors cost, auto-stops on TTL/idle/budget
+       → Tears down when done
+```
+
+### MCP-Powered — The Agent Helps You
+
+CodIn ships a **built-in RunPod MCP server** (`runpod-gpu`) that exposes 10 tools the AI can use:
+
+| Tool                   | What it does                            |
+| ---------------------- | --------------------------------------- |
+| `runpod_connect`       | Store your RunPod API key securely      |
+| `runpod_list_gpus`     | Browse available GPUs with live pricing |
+| `runpod_create_pod`    | Spin up an on-demand GPU pod            |
+| `runpod_pod_info`      | Check pod status, utilization, ports    |
+| `runpod_stop_pod`      | Stop pod (keeps volume for later)       |
+| `runpod_terminate_pod` | Destroy pod + volume permanently        |
+| `runpod_list_pods`     | See all pods in your account            |
+| `runpod_run_job`       | Submit serverless inference jobs        |
+| `runpod_job_status`    | Check async job progress                |
+| `runpod_session_info`  | View spend, budget remaining, timers    |
+
+### Safety Guardrails
+
+- **Budget cap** — Set max spend per session (default $100). Auto-stops pods when exceeded.
+- **TTL timer** — Pods auto-stop after configurable minutes (default 30).
+- **Idle shutdown** — Unused pods stop automatically (default 10 min).
+- **No surprise bills** — Cost tracking with per-minute accumulation.
+
+### Quick Setup
+
+1. Get your RunPod API key from [runpod.io/console/user/settings](https://www.runpod.io/console/user/settings)
+2. Tell CodIn: _"Connect to RunPod with my API key rp\_..."_
+3. Ask: _"What GPUs are available under $1/hr?"_
+4. Launch: _"Create a pod with RTX A6000 running PyTorch 2.1"_
+
+**Real API, real compute.** Uses RunPod's actual GraphQL API (`api.runpod.io/graphql`) for pod management and REST `/v2/{endpoint}/run` for serverless inference.
 
 <br/>
 

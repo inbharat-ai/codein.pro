@@ -139,7 +139,33 @@ class GpuSessionManager {
     if (!session.provider) {
       await this.connect(userId);
     }
-    return session.provider.createPod(podConfig);
+    // Map legacy parameter names for backward compatibility
+    const opts = { ...podConfig };
+    if (opts.gpuName && !opts.gpuTypeId) {
+      opts.gpuTypeId = opts.gpuName;
+      delete opts.gpuName;
+    }
+    if (opts.containerImage && !opts.imageName) {
+      opts.imageName = opts.containerImage;
+      delete opts.containerImage;
+    }
+    return session.provider.createPod(opts);
+  }
+
+  async listPods(userId) {
+    const session = this._getSession(userId);
+    if (!session.provider) {
+      await this.connect(userId);
+    }
+    return session.provider.listPods();
+  }
+
+  async getPodInfo(userId) {
+    const session = this._getSession(userId);
+    if (!session.provider) {
+      throw new Error("GPU session not connected");
+    }
+    return session.provider.getPodInfo();
   }
 
   async submitJob(userId, jobConfig) {
@@ -150,16 +176,24 @@ class GpuSessionManager {
       );
     }
 
-    const result = await session.provider.submitJob(jobConfig);
-    session.jobs.set(result.jobId, {
+    const { endpointId, input, jobName, sync } = jobConfig;
+    if (!endpointId) {
+      throw new Error("endpointId is required for serverless jobs");
+    }
+
+    const result = sync
+      ? await session.provider.runServerlessSync(endpointId, input)
+      : await session.provider.runServerless(endpointId, input);
+
+    const jobId = result.id || `job-${Date.now()}`;
+    session.jobs.set(jobId, {
       submittedAt: new Date().toISOString(),
-      payload: {
-        jobName: jobConfig.jobName || null,
-      },
+      endpointId,
+      payload: { jobName: jobName || null },
     });
     this._saveState();
 
-    return result;
+    return { jobId, status: result.status || "submitted", ...result };
   }
 
   async getJobStatus(userId, jobId) {
@@ -167,7 +201,12 @@ class GpuSessionManager {
     if (!session.provider) {
       throw new Error("GPU session not connected");
     }
-    return session.provider.getJobStatus(jobId);
+    // Look up endpointId from tracked jobs
+    const job = session.jobs.get(jobId);
+    if (!job || !job.endpointId) {
+      throw new Error(`Unknown job ${jobId} — endpointId not found`);
+    }
+    return session.provider.getServerlessJobStatus(job.endpointId, jobId);
   }
 
   async getLogs(userId) {
@@ -175,7 +214,9 @@ class GpuSessionManager {
     if (!session.provider) {
       throw new Error("GPU session not connected");
     }
-    return session.provider.getPodLogs();
+    // Use pod info since direct log endpoint no longer exists
+    const info = await session.provider.getPodInfo();
+    return { podId: info.id, runtime: info.runtime };
   }
 
   getStatus(userId) {

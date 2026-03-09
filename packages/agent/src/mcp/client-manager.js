@@ -493,4 +493,27 @@ class MCPClientManager extends EventEmitter {
 
 const mcpClientManager = new MCPClientManager();
 
+// ─── Auto-register built-in MCP servers ────────────────────
+(function registerBuiltInServers() {
+  const config = mcpClientManager.loadServersConfig();
+  if (!config.servers["runpod-gpu"]) {
+    const serverPath = path.join(__dirname, "runpod-mcp-server.js");
+    if (fs.existsSync(serverPath)) {
+      config.servers["runpod-gpu"] = {
+        name: "runpod-gpu",
+        command: "node",
+        args: [serverPath],
+        env: {},
+        url: null,
+        enabled: true,
+        builtIn: true,
+        description:
+          "RunPod GPU-on-demand — provision GPUs and run serverless inference",
+        addedAt: new Date().toISOString(),
+      };
+      mcpClientManager.saveServersConfig(config);
+    }
+  }
+})();
+
 module.exports = { mcpClientManager };

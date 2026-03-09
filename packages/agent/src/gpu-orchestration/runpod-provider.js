@@ -1,17 +1,19 @@
 /**
- * Runpod BYO Provider Implementation
+ * RunPod BYO Provider — Real Implementation
  *
- * Provides real GPU compute via Runpod's "bring your own" endpoint system.
+ * Uses RunPod's actual API:
+ *   • GraphQL  → https://api.runpod.io/graphql   (pod CRUD, GPU listing)
+ *   • REST     → https://api.runpod.io/v2/{id}/run  (serverless jobs)
+ *
  * Lifecycle:
- * 1. User provides Runpod API key (stored securely)
- * 2. List available GPU types with pricing
- * 3. Create session (pod) on demand
- * 4. Submit compute job to pod
- * 5. Poll for completion
- * 6. Stop pod (auto-stop after TTL)
- * 7. Retrieve logs and results
+ *   1. User provides RunPod API key
+ *   2. List available GPU types via GraphQL
+ *   3. Create on-demand pod or use serverless endpoint
+ *   4. Submit jobs, poll status
+ *   5. Auto-stop after TTL / idle timeout
+ *   6. Budget enforcement
  *
- * Reference: https://docs.runpod.io/serverless/endpoints/about
+ * Reference: https://docs.runpod.io/
  */
 
 "use strict";
@@ -19,25 +21,119 @@
 const https = require("https");
 const { EventEmitter } = require("events");
 
-/**
- * Runpod BYO Provider Instance
- *
- * Manages lifecycle of GPU compute for one user session
- */
+// ─── GraphQL Queries ────────────────────────────────────────
+
+const GQL_GPU_TYPES = `
+  query GpuTypes {
+    gpuTypes {
+      id
+      displayName
+      memoryInGb
+      secureCloud
+      communityCloud
+      lowestPrice(gpuCount: 1, input: { cloudType: ALL }) {
+        minimumBidPrice
+        uninterruptablePrice
+      }
+    }
+  }
+`;
+
+const GQL_CREATE_POD = `
+  mutation CreatePod($input: PodFindAndDeployOnDemandInput!) {
+    podFindAndDeployOnDemand(input: $input) {
+      id
+      name
+      desiredStatus
+      imageName
+      machineId
+      machine {
+        podHostId
+      }
+    }
+  }
+`;
+
+const GQL_STOP_POD = `
+  mutation StopPod($podId: String!) {
+    podStop(input: { podId: $podId }) {
+      id
+      desiredStatus
+    }
+  }
+`;
+
+const GQL_TERMINATE_POD = `
+  mutation TerminatePod($podId: String!) {
+    podTerminate(input: { podId: $podId })
+  }
+`;
+
+const GQL_GET_POD = `
+  query GetPod($podId: String!) {
+    pod(input: { podId: $podId }) {
+      id
+      name
+      desiredStatus
+      runtime {
+        uptimeInSeconds
+        gpus {
+          id
+          gpuUtilPercent
+          memoryUtilPercent
+        }
+        ports {
+          ip
+          isIpPublic
+          privatePort
+          publicPort
+          type
+        }
+      }
+      costPerHr
+      gpuCount
+      vcpuCount
+      memoryInGb
+    }
+  }
+`;
+
+const GQL_LIST_PODS = `
+  query ListPods {
+    myself {
+      pods {
+        id
+        name
+        desiredStatus
+        costPerHr
+        runtime {
+          uptimeInSeconds
+        }
+        gpuCount
+        machine {
+          gpuDisplayName
+        }
+      }
+    }
+  }
+`;
+
+// ─── Provider Class ─────────────────────────────────────────
+
 class RunpodBYOProvider extends EventEmitter {
   /**
    * @param {object} config
-   * @param {string} config.apiKey - Runpod API key (from user)
-   * @param {number} [config.maxBudgetUsd=100] - $ cap per session
-   * @param {number} [config.ttlMinutes=30] - Auto-stop after N minutes
-   * @param {number} [config.idleShutdownMinutes=10] - Stop if idle for N minutes
+   * @param {string} config.apiKey        - RunPod API key
+   * @param {number} [config.maxBudgetUsd=100]
+   * @param {number} [config.ttlMinutes=30]
+   * @param {number} [config.idleShutdownMinutes=10]
    */
   constructor(config = {}) {
     super();
 
     this.apiKey = config.apiKey;
     if (!this.apiKey) {
-      throw new Error("Runpod API key is required");
+      throw new Error("RunPod API key is required");
     }
 
     this.maxBudgetUsd = config.maxBudgetUsd || 100;
@@ -46,65 +142,79 @@ class RunpodBYOProvider extends EventEmitter {
 
     // Session state
     this.podId = null;
-    this.status = "idle"; // idle, provisioning, running, stopping, stopped
+    this.status = "idle"; // idle | provisioning | running | stopping | stopped
     this.createdAt = null;
     this.costAccumulated = 0;
+    this.costPerHour = 0;
     this.lastActivityAt = null;
+
+    // Serverless endpoint tracking
+    this.serverlessEndpointId = null;
 
     // Timers
     this.idleShutdownTimer = null;
     this.ttlTimer = null;
+    this.costTicker = null;
   }
 
+  // ─── GPU Types ──────────────────────────────────────────
+
   /**
-   * List available GPU types with pricing
-   * @returns {Promise<Array>}
+   * List available GPU types with pricing from RunPod
+   * @returns {Promise<Array<{id:string, name:string, vramGb:number, pricePerHr:number}>>}
    */
   async listGpuTypes() {
-    const response = await this._withRetry(() =>
-      this._apiCall("GET", "/gpus", null),
-    );
+    const data = await this._graphql(GQL_GPU_TYPES);
+    const gpus = data.gpuTypes || [];
 
-    // Filter to reasonable options: V100, A100, RTX 4090, L40, etc.
-    const reasonable = response.gpus.filter((gpu) => {
-      const name = gpu.name.toLowerCase();
-      return (
-        name.includes("v100") ||
-        name.includes("a100") ||
-        name.includes("rtx 4090") ||
-        name.includes("l40") ||
-        name.includes("h100")
-      );
-    });
-
-    return reasonable.map((gpu) => ({
-      name: gpu.name,
-      vram: gpu.vram,
-      costPerHour: gpu.costPerHour,
-      availability: gpu.available,
-    }));
+    return gpus
+      .filter((g) => g.lowestPrice && g.lowestPrice.uninterruptablePrice > 0)
+      .map((g) => ({
+        id: g.id,
+        name: g.displayName,
+        vramGb: g.memoryInGb,
+        pricePerHr: g.lowestPrice.uninterruptablePrice,
+        spotPrice: g.lowestPrice.minimumBidPrice,
+        secureCloud: g.secureCloud,
+        communityCloud: g.communityCloud,
+      }))
+      .sort((a, b) => a.pricePerHr - b.pricePerHr);
   }
 
+  // ─── Pod Management (On-Demand) ─────────────────────────
+
   /**
-   * Create a pod (GPU instance)
-   * @param {object} config
-   * @param {string} config.gpuName - GPU type (e.g. "NVIDIA RTX A40")
-   * @param {string} config.containerImage - Docker image URI
-   * @param {string} [config.volume] - Persistent volume mount
-   * @param {number} [config.timeoutMinutes=60] - Job timeout
-   * @returns {Promise<{ podId: string, endpoint: string, costPerHour: number }>}
+   * Create an on-demand GPU pod via RunPod GraphQL
+   * @param {object} opts
+   * @param {string} opts.gpuTypeId       - GPU type ID from listGpuTypes()
+   * @param {string} opts.name            - Pod name
+   * @param {string} opts.imageName       - Docker image
+   * @param {number} [opts.gpuCount=1]
+   * @param {number} [opts.volumeInGb=0]
+   * @param {number} [opts.containerDiskInGb=20]
+   * @param {string} [opts.cloudType="ALL"]  - SECURE | COMMUNITY | ALL
+   * @param {string[]} [opts.ports]          - e.g. ["8888/http", "22/tcp"]
    */
-  async createPod(config) {
+  async createPod(opts) {
     if (this.status !== "idle") {
       throw new Error(
-        `Cannot create pod while ${this.status}. Call stopPod first.`,
+        `Cannot create pod while ${this.status}. Stop existing pod first.`,
       );
     }
 
-    const { gpuName, containerImage, volume, timeoutMinutes } = config;
+    const {
+      gpuTypeId,
+      name,
+      imageName,
+      gpuCount = 1,
+      volumeInGb = 0,
+      containerDiskInGb = 20,
+      cloudType = "ALL",
+      ports,
+    } = opts;
 
-    if (!gpuName || !containerImage) {
-      throw new Error("gpuName and containerImage are required");
+    if (!gpuTypeId || !imageName) {
+      throw new Error("gpuTypeId and imageName are required");
     }
 
     this.status = "provisioning";
@@ -112,36 +222,50 @@ class RunpodBYOProvider extends EventEmitter {
     this.lastActivityAt = Date.now();
 
     try {
-      const response = await this._withRetry(() =>
-        this._apiCall("POST", "/pods", {
-          cloudType: "community",
-          gpuCount: 1,
-          gpuTypeId: gpuName, // Runpod maps by name or ID
-          containerImage,
-          volumeInGb: volume ? 10 : 0,
-          timeout: timeoutMinutes || 60,
-        }),
-      );
+      const input = {
+        name: name || `codein-${Date.now()}`,
+        imageName,
+        gpuTypeId,
+        gpuCount,
+        volumeInGb,
+        containerDiskInGb,
+        cloudType,
+        startJupyter: false,
+        startSsh: true,
+        dockerArgs: "",
+      };
 
-      this.podId = response.id;
+      if (ports) {
+        input.ports = ports.join(",");
+      }
+
+      const data = await this._graphql(GQL_CREATE_POD, { input });
+      const pod = data.podFindAndDeployOnDemand;
+
+      if (!pod || !pod.id) {
+        throw new Error("Pod creation failed — no pod ID returned");
+      }
+
+      this.podId = pod.id;
       this.status = "running";
 
-      // Start TTL shutdown timer
-      this._startTTLTimer();
+      // Fetch cost info
+      const podInfo = await this.getPodInfo();
+      this.costPerHour = podInfo.costPerHr || 0;
 
-      // Start idle shutdown timer
-      this._startIdleShutdownTimer();
+      this._startTimers();
 
       this.emit("pod_created", {
         podId: this.podId,
-        endpoint: response.endpoint,
-        costPerHour: response.costPerHour,
+        name: pod.name,
+        costPerHour: this.costPerHour,
       });
 
       return {
         podId: this.podId,
-        endpoint: response.endpoint,
-        costPerHour: response.costPerHour,
+        name: pod.name,
+        costPerHour: this.costPerHour,
+        desiredStatus: pod.desiredStatus,
       };
     } catch (err) {
       this.status = "idle";
@@ -150,97 +274,24 @@ class RunpodBYOProvider extends EventEmitter {
   }
 
   /**
-   * Submit job to running pod
-   * @param {object} jobConfig
-   * @param {string} jobConfig.input - Input JSON (or serialized data)
-   * @param {string} [jobConfig.jobName] - Optional job name for tracking
-   * @returns {Promise<{ jobId: string, status: string }>}
+   * Get pod details via GraphQL
    */
-  async submitJob(jobConfig) {
-    if (this.status !== "running") {
-      throw new Error(
-        `Cannot submit job while pod is ${this.status}. Create pod first.`,
-      );
-    }
-
-    if (!this.podId) {
-      throw new Error("No active pod");
-    }
-
-    const { input, jobName } = jobConfig;
-
-    // Reset idle timer on activity
-    this._resetIdleTimer();
-
-    try {
-      // Call pod endpoint with input
-      const jobResponse = await this._withRetry(() =>
-        this._callPodEndpoint(this.podId, input),
-      );
-
-      this.lastActivityAt = Date.now();
-
-      this.emit("job_submitted", {
-        podId: this.podId,
-        jobId: jobResponse.jobId,
-        jobName: jobName || "unnamed",
-      });
-
-      return {
-        jobId: jobResponse.jobId,
-        status: "submitted",
-      };
-    } catch (err) {
-      this.emit("job_error", { error: err.message });
-      throw err;
-    }
+  async getPodInfo() {
+    if (!this.podId) throw new Error("No active pod");
+    const data = await this._graphql(GQL_GET_POD, { podId: this.podId });
+    return data.pod;
   }
 
   /**
-   * Poll job status
-   * @param {string} jobId
-   * @returns {Promise<{ status: string, result?: any, logs?: string }>}
+   * List all user's pods
    */
-  async getJobStatus(jobId) {
-    if (!this.podId) {
-      throw new Error("No active pod");
-    }
-
-    try {
-      const response = await this._withRetry(() =>
-        this._apiCall("GET", `/pods/${this.podId}/jobs/${jobId}`, null),
-      );
-
-      return {
-        status: response.status, // submitted, running, completed, failed
-        result: response.result,
-        logs: response.logs,
-        costSoFar: response.estimatedCost || 0,
-      };
-    } catch (err) {
-      this.emit("job_status_error", { jobId, error: err.message });
-      throw err;
-    }
+  async listPods() {
+    const data = await this._graphql(GQL_LIST_PODS);
+    return data.myself?.pods || [];
   }
 
   /**
-   * Get pod logs
-   * @returns {Promise<string>}
-   */
-  async getPodLogs() {
-    if (!this.podId) {
-      throw new Error("No active pod");
-    }
-
-    const response = await this._withRetry(() =>
-      this._apiCall("GET", `/pods/${this.podId}/logs`, null),
-    );
-    return response.logs || "";
-  }
-
-  /**
-   * Stop pod and cleanup
-   * @returns {Promise<{ costFinal: number, logsUrl?: string }>}
+   * Stop pod (keeps volume, can resume)
    */
   async stopPod() {
     if (!this.podId || this.status === "stopped") {
@@ -251,11 +302,8 @@ class RunpodBYOProvider extends EventEmitter {
     this._clearTimers();
 
     try {
-      const response = await this._withRetry(() =>
-        this._apiCall("DELETE", `/pods/${this.podId}`, null),
-      );
-
-      this.costAccumulated = response.totalCost || 0;
+      await this._graphql(GQL_STOP_POD, { podId: this.podId });
+      this._finalizeCost();
       this.status = "stopped";
 
       this.emit("pod_stopped", {
@@ -263,231 +311,267 @@ class RunpodBYOProvider extends EventEmitter {
         costFinal: this.costAccumulated,
       });
 
-      return {
-        costFinal: this.costAccumulated,
-        logsUrl: response.logsDownloadUrl,
-      };
+      return { costFinal: this.costAccumulated };
     } catch (err) {
-      console.error("Error stopping pod", err);
       this.status = "idle";
       throw err;
     }
   }
 
   /**
-   * Check if budget is exceeded
+   * Terminate pod completely (destroys volume)
    */
+  async terminatePod() {
+    if (!this.podId) return { costFinal: this.costAccumulated };
+
+    this._clearTimers();
+
+    try {
+      await this._graphql(GQL_TERMINATE_POD, { podId: this.podId });
+      this._finalizeCost();
+      this.status = "stopped";
+      this.podId = null;
+
+      this.emit("pod_terminated", { costFinal: this.costAccumulated });
+      return { costFinal: this.costAccumulated };
+    } catch (err) {
+      this.status = "idle";
+      throw err;
+    }
+  }
+
+  // ─── Serverless Endpoints ───────────────────────────────
+
+  /**
+   * Submit an async job to a RunPod serverless endpoint
+   * @param {string} endpointId - RunPod serverless endpoint ID
+   * @param {object} input      - Job input payload
+   * @returns {Promise<{id:string, status:string}>}
+   */
+  async runServerless(endpointId, input) {
+    this._resetIdleTimer();
+    this.lastActivityAt = Date.now();
+
+    const result = await this._rest("POST", `/v2/${endpointId}/run`, { input });
+
+    this.emit("job_submitted", {
+      endpointId,
+      jobId: result.id,
+      status: result.status,
+    });
+
+    return { id: result.id, status: result.status };
+  }
+
+  /**
+   * Submit a synchronous job (blocks until complete, 30s timeout on RunPod)
+   */
+  async runServerlessSync(endpointId, input) {
+    this._resetIdleTimer();
+    this.lastActivityAt = Date.now();
+
+    return this._rest("POST", `/v2/${endpointId}/runsync`, { input });
+  }
+
+  /**
+   * Get serverless job status
+   */
+  async getServerlessJobStatus(endpointId, jobId) {
+    return this._rest("POST", `/v2/${endpointId}/status/${jobId}`, null);
+  }
+
+  /**
+   * Cancel a serverless job
+   */
+  async cancelServerlessJob(endpointId, jobId) {
+    return this._rest("POST", `/v2/${endpointId}/cancel/${jobId}`, null);
+  }
+
+  // ─── Budget & Session ───────────────────────────────────
+
   isBudgetExceeded() {
     return this.costAccumulated >= this.maxBudgetUsd;
   }
 
-  /**
-   * Get current session info
-   */
   getSessionInfo() {
     return {
       podId: this.podId,
       status: this.status,
       createdAt: this.createdAt,
       lastActivityAt: this.lastActivityAt,
-      costAccumulated: this.costAccumulated,
-      budgetRemaining: Math.max(0, this.maxBudgetUsd - this.costAccumulated),
+      costAccumulated: Math.round(this.costAccumulated * 100) / 100,
+      costPerHour: this.costPerHour,
+      budgetRemaining: Math.max(
+        0,
+        Math.round((this.maxBudgetUsd - this.costAccumulated) * 100) / 100,
+      ),
       isBudgetExceeded: this.isBudgetExceeded(),
       ttlMinutes: this.ttlMinutes,
       idleShutdownMinutes: this.idleShutdownMinutes,
+      serverlessEndpointId: this.serverlessEndpointId,
     };
   }
 
-  // ─── Private Methods ───────────────────────────────────────
+  // ─── Private: GraphQL ───────────────────────────────────
 
-  /**
-   * Execute API operation with bounded exponential backoff.
-   * Retries network/transient provider failures only.
-   * @private
-   */
-  async _withRetry(operation, options = {}) {
-    const maxRetries = options.maxRetries || 3;
-    const baseDelayMs = options.baseDelayMs || 300;
+  async _graphql(query, variables = {}) {
+    const body = JSON.stringify({ query, variables });
 
+    const result = await this._withRetry(() =>
+      this._httpsRequest({
+        hostname: "api.runpod.io",
+        path: "/graphql",
+        method: "POST",
+        body,
+      }),
+    );
+
+    if (result.errors && result.errors.length > 0) {
+      const msg = result.errors.map((e) => e.message).join("; ");
+      throw new Error(`RunPod GraphQL error: ${msg}`);
+    }
+
+    return result.data;
+  }
+
+  // ─── Private: REST (Serverless) ─────────────────────────
+
+  async _rest(method, path, body) {
+    return this._withRetry(() =>
+      this._httpsRequest({
+        hostname: "api.runpod.io",
+        path,
+        method,
+        body: body ? JSON.stringify(body) : null,
+      }),
+    );
+  }
+
+  // ─── Private: HTTPS ─────────────────────────────────────
+
+  _httpsRequest({ hostname, path, method, body }) {
+    return new Promise((resolve, reject) => {
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+      };
+
+      if (body) {
+        headers["Content-Length"] = Buffer.byteLength(body);
+      }
+
+      const req = https.request(
+        { hostname, port: 443, path, method, headers },
+        (res) => {
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => {
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve(JSON.parse(data));
+              } catch {
+                resolve(data);
+              }
+            } else {
+              reject(
+                new Error(
+                  `RunPod API ${res.statusCode}: ${data.slice(0, 300)}`,
+                ),
+              );
+            }
+          });
+        },
+      );
+
+      req.on("error", reject);
+      req.setTimeout(30000, () => {
+        req.destroy(new Error("RunPod API request timed out (30s)"));
+      });
+
+      if (body) req.write(body);
+      req.end();
+    });
+  }
+
+  // ─── Private: Retry ─────────────────────────────────────
+
+  async _withRetry(operation, maxRetries = 3) {
     let lastError;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await operation();
       } catch (err) {
         lastError = err;
-        const message = String(err && err.message ? err.message : err);
-        const isTransient =
-          /timeout|ECONNRESET|ENOTFOUND|EAI_AGAIN|429|50\d|rate limit/i.test(
-            message,
-          );
-
-        if (!isTransient || attempt === maxRetries) {
-          throw err;
-        }
-
-        const delay = Math.min(baseDelayMs * 2 ** attempt, 5000);
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        const msg = String(err?.message || err);
+        const transient =
+          /timeout|ECONNRESET|ENOTFOUND|EAI_AGAIN|429|50[0-9]/i.test(msg);
+        if (!transient || attempt === maxRetries) throw err;
+        await new Promise((r) =>
+          setTimeout(r, Math.min(300 * 2 ** attempt, 5000)),
+        );
       }
     }
-
     throw lastError;
   }
 
-  /**
-   * Runpod API call helper
-   * @private
-   */
-  async _apiCall(method, endpoint, body) {
-    return new Promise((resolve, reject) => {
-      const options = {
-        hostname: "api.runpod.io",
-        port: 443,
-        path: endpoint,
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-      };
+  // ─── Private: Timers ────────────────────────────────────
 
-      const req = https.request(options, (res) => {
-        let data = "";
-        res.on("data", (chunk) => {
-          data += chunk;
-        });
-        res.on("end", () => {
-          if (res.statusCode >= 200 && res.statusCode < 300) {
-            try {
-              resolve(JSON.parse(data));
-            } catch {
-              resolve(data);
-            }
-          } else {
-            reject(
-              new Error(
-                `Runpod API error ${res.statusCode}: ${data.slice(0, 200)}`,
-              ),
-            );
-          }
-        });
-      });
-
-      req.on("error", reject);
-
-      if (body) {
-        req.write(JSON.stringify(body));
+  _startTimers() {
+    // Cost ticker: accumulate cost every minute
+    this.costTicker = setInterval(() => {
+      if (this.status === "running" && this.costPerHour > 0) {
+        this.costAccumulated += this.costPerHour / 60;
+        if (this.isBudgetExceeded()) {
+          this.emit("budget_exceeded", {
+            spent: this.costAccumulated,
+            budget: this.maxBudgetUsd,
+          });
+          this.stopPod().catch((e) =>
+            console.error("Budget auto-stop error:", e),
+          );
+        }
       }
-      req.end();
-    });
-  }
+    }, 60_000);
 
-  /**
-   * Call pod endpoint with input
-   * @private
-   */
-  async _callPodEndpoint(podId, input) {
-    return new Promise((resolve, reject) => {
-      const options = {
-        hostname: "api.runpod.io",
-        port: 443,
-        path: `/v1/submissions/${podId}`,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.apiKey}`,
-        },
-      };
+    // TTL timer
+    this.ttlTimer = setTimeout(() => {
+      this.emit("ttl_expired", { ttlMinutes: this.ttlMinutes });
+      this.stopPod().catch((e) => console.error("TTL auto-stop error:", e));
+    }, this.ttlMinutes * 60_000);
 
-      const req = https.request(options, (res) => {
-        let data = "";
-        res.on("data", (chunk) => {
-          data += chunk;
-        });
-        res.on("end", () => {
-          if (res.statusCode >= 200 && res.statusCode < 300) {
-            try {
-              resolve(JSON.parse(data));
-            } catch {
-              reject(new Error("Invalid JSON response from pod endpoint"));
-            }
-          } else {
-            reject(new Error(`Pod submission failed: ${data.slice(0, 200)}`));
-          }
-        });
-      });
-
-      req.on("error", reject);
-      req.write(typeof input === "string" ? input : JSON.stringify(input));
-      req.end();
-    });
-  }
-
-  /**
-   * TTL shutdown timer
-   * @private
-   */
-  _startTTLTimer() {
-    if (this.ttlTimer) clearTimeout(this.ttlTimer);
-
-    this.ttlTimer = setTimeout(
-      () => {
-        console.log(`Pod TTL expired (${this.ttlMinutes} min), stopping...`);
-        this.stopPod().catch((err) => console.error("TTL shutdown error", err));
-      },
-      this.ttlMinutes * 60 * 1000,
-    );
-  }
-
-  /**
-   * Idle shutdown timer
-   * @private
-   */
-  _startIdleShutdownTimer() {
     this._resetIdleTimer();
   }
 
-  /**
-   * Reset idle timer on activity
-   * @private
-   */
   _resetIdleTimer() {
     if (this.idleShutdownTimer) clearTimeout(this.idleShutdownTimer);
-
-    this.idleShutdownTimer = setTimeout(
-      () => {
-        console.log(
-          `Pod idle for ${this.idleShutdownMinutes} min, stopping...`,
-        );
-        this.stopPod().catch((err) =>
-          console.error("Idle shutdown error", err),
-        );
-      },
-      this.idleShutdownMinutes * 60 * 1000,
-    );
+    this.idleShutdownTimer = setTimeout(() => {
+      this.emit("idle_shutdown", {
+        idleMinutes: this.idleShutdownMinutes,
+      });
+      this.stopPod().catch((e) => console.error("Idle auto-stop error:", e));
+    }, this.idleShutdownMinutes * 60_000);
   }
 
-  /**
-   * Clear all timers
-   * @private
-   */
+  _finalizeCost() {
+    if (this.createdAt && this.costPerHour > 0) {
+      const hours = (Date.now() - this.createdAt) / 3_600_000;
+      this.costAccumulated = Math.round(hours * this.costPerHour * 100) / 100;
+    }
+  }
+
   _clearTimers() {
-    if (this.ttlTimer) {
-      clearTimeout(this.ttlTimer);
-      this.ttlTimer = null;
-    }
-    if (this.idleShutdownTimer) {
-      clearTimeout(this.idleShutdownTimer);
-      this.idleShutdownTimer = null;
-    }
+    if (this.ttlTimer) clearTimeout(this.ttlTimer);
+    if (this.idleShutdownTimer) clearTimeout(this.idleShutdownTimer);
+    if (this.costTicker) clearInterval(this.costTicker);
+    this.ttlTimer = null;
+    this.idleShutdownTimer = null;
+    this.costTicker = null;
   }
 
-  /**
-   * Cleanup on destruction
-   */
   destroy() {
     this._clearTimers();
     if (this.status === "running") {
-      this.stopPod().catch((err) => console.error("Cleanup error", err));
+      this.stopPod().catch((e) => console.error("Cleanup error:", e));
     }
   }
 }
