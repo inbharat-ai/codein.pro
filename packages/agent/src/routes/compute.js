@@ -386,19 +386,22 @@ function registerComputeRoutes(router, deps) {
         return sendJson(res, 400, { error: parsed.error });
       }
 
-      const { gpuName, containerImage, volume, timeoutMinutes } =
-        parsed.value || {};
+      const body = parsed.value || {};
+      // Accept canonical names (gpuTypeId/imageName) or legacy aliases (gpuName/containerImage)
+      const gpuTypeId = body.gpuTypeId || body.gpuName;
+      const imageName = body.imageName || body.containerImage;
+      const { volume, timeoutMinutes } = body;
 
-      if (!gpuName || !containerImage) {
+      if (!gpuTypeId || !imageName) {
         return sendJson(res, 400, {
-          error: "Fields 'gpuName' and 'containerImage' are required",
+          error: "Fields 'gpuTypeId' and 'imageName' are required",
         });
       }
 
       const userId = req.user?.userId || "local";
       const pod = await orchestrator.createGpuPod(userId, {
-        gpuName,
-        containerImage,
+        gpuTypeId,
+        imageName,
         volume,
         timeoutMinutes,
       });

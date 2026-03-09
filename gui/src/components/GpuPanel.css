@@ -1,0 +1,430 @@
+/* ====================================================================
+   CodeIn GPU Panel Styles
+   Uses .codin-* design system from codin-theme.css
+   ==================================================================== */
+
+.gpu-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--codin-space-4);
+  gap: var(--codin-space-4);
+  font-family: var(--codin-font-sans);
+  overflow-y: auto;
+}
+
+/* ─── Header ──────────────────────────────────────────────── */
+
+.gpu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--codin-space-2);
+  border-bottom: 1px solid var(--codin-border);
+}
+
+.gpu-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--codin-space-2);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--codin-fg-primary);
+}
+
+.gpu-header__icon {
+  width: 20px;
+  height: 20px;
+  color: var(--codin-saffron-500);
+}
+
+.gpu-header__badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: var(--codin-radius-pill);
+  font-weight: 500;
+}
+
+.gpu-header__badge--connected {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.gpu-header__badge--disconnected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* ─── Tabs ────────────────────────────────────────────────── */
+
+.gpu-tabs {
+  display: flex;
+  gap: var(--codin-space-1);
+  border-bottom: 1px solid var(--codin-border);
+  padding-bottom: var(--codin-space-1);
+}
+
+.gpu-tab {
+  padding: var(--codin-space-2) var(--codin-space-3);
+  border: none;
+  background: transparent;
+  color: var(--codin-fg-muted);
+  font-size: var(--codin-font-size-sm);
+  font-family: var(--codin-font-sans);
+  cursor: pointer;
+  border-radius: var(--codin-radius-md) var(--codin-radius-md) 0 0;
+  transition: all 0.15s ease;
+}
+
+.gpu-tab:hover {
+  background: var(--codin-bg-hover);
+  color: var(--codin-fg-primary);
+}
+
+.gpu-tab--active {
+  background: var(--codin-bg-tertiary);
+  color: var(--codin-saffron-500);
+  border-bottom: 2px solid var(--codin-saffron-500);
+}
+
+/* ─── Connect form ────────────────────────────────────────── */
+
+.gpu-connect {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-3);
+  padding: var(--codin-space-4);
+  background: var(--codin-bg-tertiary);
+  border-radius: var(--codin-radius-lg);
+  border: 1px solid var(--codin-border);
+}
+
+.gpu-connect__label {
+  font-size: var(--codin-font-size-sm);
+  font-weight: 500;
+  color: var(--codin-fg-secondary);
+}
+
+.gpu-connect__input {
+  padding: var(--codin-space-2) var(--codin-space-3);
+  border: 1px solid var(--codin-border);
+  border-radius: var(--codin-radius-md);
+  background: var(--codin-bg-surface);
+  color: var(--codin-fg-primary);
+  font-family: var(--codin-font-mono);
+  font-size: var(--codin-font-size-sm);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.gpu-connect__input:focus {
+  border-color: var(--codin-saffron-500);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+}
+
+.gpu-connect__row {
+  display: flex;
+  gap: var(--codin-space-2);
+  align-items: flex-end;
+}
+
+.gpu-connect__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-1);
+  flex: 1;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+
+.gpu-btn {
+  padding: var(--codin-space-2) var(--codin-space-4);
+  border: none;
+  border-radius: var(--codin-radius-md);
+  font-family: var(--codin-font-sans);
+  font-size: var(--codin-font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--codin-space-1);
+}
+
+.gpu-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gpu-btn--primary {
+  background: var(--codin-saffron-500);
+  color: var(--codin-fg-inverse);
+}
+
+.gpu-btn--primary:hover:not(:disabled) {
+  background: var(--codin-saffron-600);
+}
+
+.gpu-btn--danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.gpu-btn--danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.gpu-btn--ghost {
+  background: transparent;
+  color: var(--codin-fg-secondary);
+  border: 1px solid var(--codin-border);
+}
+
+.gpu-btn--ghost:hover:not(:disabled) {
+  background: var(--codin-bg-hover);
+  color: var(--codin-fg-primary);
+}
+
+/* ─── GPU Types Grid ──────────────────────────────────────── */
+
+.gpu-types-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--codin-space-3);
+}
+
+.gpu-type-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-2);
+  padding: var(--codin-space-3);
+  background: var(--codin-bg-tertiary);
+  border: 1px solid var(--codin-border);
+  border-radius: var(--codin-radius-lg);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gpu-type-card:hover {
+  border-color: var(--codin-saffron-500);
+  background: var(--codin-bg-hover);
+}
+
+.gpu-type-card--selected {
+  border-color: var(--codin-saffron-500);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.gpu-type-card__name {
+  font-weight: 600;
+  font-size: var(--codin-font-size-sm);
+  color: var(--codin-fg-primary);
+}
+
+.gpu-type-card__detail {
+  font-size: var(--codin-font-size-xs);
+  color: var(--codin-fg-muted);
+}
+
+.gpu-type-card__price {
+  font-size: var(--codin-font-size-sm);
+  font-weight: 600;
+  color: var(--codin-saffron-500);
+}
+
+/* ─── Pod list ────────────────────────────────────────────── */
+
+.gpu-pod-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-2);
+}
+
+.gpu-pod-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--codin-space-3);
+  background: var(--codin-bg-tertiary);
+  border: 1px solid var(--codin-border);
+  border-radius: var(--codin-radius-lg);
+  transition: background 0.15s ease;
+}
+
+.gpu-pod-card:hover {
+  background: var(--codin-bg-hover);
+}
+
+.gpu-pod-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-1);
+}
+
+.gpu-pod-card__name {
+  font-weight: 600;
+  font-size: var(--codin-font-size-sm);
+  color: var(--codin-fg-primary);
+}
+
+.gpu-pod-card__meta {
+  font-size: var(--codin-font-size-xs);
+  color: var(--codin-fg-muted);
+}
+
+.gpu-pod-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--codin-font-size-xs);
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--codin-radius-pill);
+}
+
+.gpu-pod-card__status--running {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.gpu-pod-card__status--exited {
+  background: rgba(107, 114, 128, 0.15);
+  color: #9ca3af;
+}
+
+.gpu-pod-card__status--creating {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.gpu-pod-card__actions {
+  display: flex;
+  gap: var(--codin-space-1);
+}
+
+/* ─── Create pod form ─────────────────────────────────────── */
+
+.gpu-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--codin-space-3);
+  padding: var(--codin-space-4);
+  background: var(--codin-bg-tertiary);
+  border-radius: var(--codin-radius-lg);
+  border: 1px solid var(--codin-border);
+}
+
+.gpu-create-form__title {
+  font-size: var(--codin-font-size-md);
+  font-weight: 600;
+  color: var(--codin-fg-primary);
+}
+
+/* ─── Budget bar ──────────────────────────────────────────── */
+
+.gpu-budget {
+  padding: var(--codin-space-3);
+  background: var(--codin-bg-tertiary);
+  border: 1px solid var(--codin-border);
+  border-radius: var(--codin-radius-lg);
+}
+
+.gpu-budget__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--codin-space-2);
+}
+
+.gpu-budget__label {
+  font-size: var(--codin-font-size-sm);
+  color: var(--codin-fg-secondary);
+}
+
+.gpu-budget__value {
+  font-size: var(--codin-font-size-sm);
+  font-weight: 600;
+  color: var(--codin-fg-primary);
+}
+
+.gpu-budget__bar {
+  height: 6px;
+  background: var(--codin-bg-surface);
+  border-radius: var(--codin-radius-pill);
+  overflow: hidden;
+}
+
+.gpu-budget__fill {
+  height: 100%;
+  border-radius: var(--codin-radius-pill);
+  transition: width 0.3s ease;
+}
+
+.gpu-budget__fill--ok {
+  background: #22c55e;
+}
+
+.gpu-budget__fill--warn {
+  background: var(--codin-saffron-500);
+}
+
+.gpu-budget__fill--danger {
+  background: #ef4444;
+}
+
+/* ─── Error / Empty ───────────────────────────────────────── */
+
+.gpu-error {
+  padding: var(--codin-space-3);
+  border-radius: var(--codin-radius-md);
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  font-size: var(--codin-font-size-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gpu-error__dismiss {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+}
+
+.gpu-empty {
+  text-align: center;
+  padding: var(--codin-space-8);
+  color: var(--codin-fg-muted);
+  font-size: var(--codin-font-size-sm);
+}
+
+/* ─── Spinner ─────────────────────────────────────────────── */
+
+.gpu-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--codin-border);
+  border-top-color: var(--codin-saffron-500);
+  border-radius: 50%;
+  animation: gpu-spin 0.6s linear infinite;
+}
+
+@keyframes gpu-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gpu-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--codin-space-2);
+  padding: var(--codin-space-6);
+  color: var(--codin-fg-muted);
+  font-size: var(--codin-font-size-sm);
+}

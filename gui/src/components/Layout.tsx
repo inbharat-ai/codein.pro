@@ -276,7 +276,12 @@ const Layout = () => {
 
                 <GridDiv>
                   <PostHogPageView />
-                  <Outlet />
+                  <div
+                    key={location.pathname}
+                    className="codin-page-transition"
+                  >
+                    <Outlet />
+                  </div>
                   {/* The fatal error for chat is shown below input */}
                   {!isHome && <FatalErrorIndicator />}
                 </GridDiv>

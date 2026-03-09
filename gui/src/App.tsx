@@ -1,6 +1,7 @@
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import ComputePanel from "./components/ComputePanel";
 import GitPanel from "./components/GitPanel";
+import GpuPanel from "./components/GpuPanel";
 import Layout from "./components/Layout";
 import { MCPToolsPanel } from "./components/MCPToolsPanel";
 import PermissionsPanel from "./components/PermissionsPanel";
@@ -81,6 +82,10 @@ const router = createMemoryRouter([
       {
         path: ROUTES.GIT,
         element: <GitPanel />,
+      },
+      {
+        path: ROUTES.GPU,
+        element: <GpuPanel />,
       },
     ],
   },

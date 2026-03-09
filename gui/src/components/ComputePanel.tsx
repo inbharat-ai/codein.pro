@@ -177,8 +177,8 @@ const ComputePanel: React.FC = () => {
         );
         setJobs(data.jobs || []);
       }
-    } catch {
-      // Agent may not be running
+    } catch (err) {
+      console.warn("[Compute] Failed to load jobs:", err);
     }
   }, [computeBridge, useIpcCompute]);
 
@@ -469,8 +469,10 @@ const ComputePanel: React.FC = () => {
       if (job.status === "running" || job.status === "planning") {
         subscribeToJob(jobId);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to load job details",
+      );
     }
   };
 
