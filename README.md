@@ -399,12 +399,12 @@ Azure OpenAI · AWS Bedrock · Google VertexAI · SageMaker · WatsonX · Nvidia
 | 🎙️ **Voice Coding**      | STT/TTS infrastructure for 13 languages. Requires external setup: Whisper/Piper/espeak or Azure/Google credentials                               |
 | ⚡ **Vibe Coding**       | Live agent orchestration, session isolation, compute pipeline, pause/resume/cancel                                                               |
 | 🔗 **Live Bridge**       | Client ↔ Agent HTTP + SSE for task streaming, permission loops, real-time feedback                                                              |
-| 🧮 **Compute Routing**   | Local, swarm, GPU (RunPod), and external API escalation with budget guardrails                                                                   |
+| 🧮 **Compute Routing**   | Local, swarm, GPU (RunPod), and external API escalation with budget guardrails. Dedicated GPU panel UI for pod management                        |
 | 🔒 **Session Isolation** | Safe multi-user and parallel workflows, sandboxed workspaces, policy enforcement                                                                 |
 | 🛡️ **Reliability**       | Circuit breaker, retry/backoff, timeout, audit logging                                                                                           |
 | 📊 **Observability**     | Health, compute, sessions, agents, pipeline, metrics, audit logs                                                                                 |
 | 🔍 **Research API**      | Serper-compatible endpoint; DuckDuckGo fallback (no API keys); premium providers optional                                                        |
-| 🔌 **MCP Tools**         | Connect to MCP-compatible servers — GitHub, Slack, Jira, DBs, Docker, Kubernetes, RunPod GPU                                                     |
+| 🔌 **MCP Tools**         | Connect to MCP-compatible servers — GitHub, Slack, Jira, DBs, Docker, Kubernetes, RunPod GPU (10 tools)                                          |
 | 📋 **Compute Pipeline**  | Goal → plan → execute → artifact, sandbox isolation, multilingual I/O                                                                            |
 | 🤖 **Local AI**          | llama.cpp integration (binaries downloaded at build/first launch); local inference, no mandatory cloud                                           |
 | 🔌 **BYO Providers**     | 50+ LLM providers: OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, and more. Bring your own API key                  |
@@ -442,6 +442,16 @@ CodIn: → Checks available GPUs & pricing via RunPod GraphQL API
        → Monitors cost, auto-stops on TTL/idle/budget
        → Tears down when done
 ```
+
+### GPU Management Panel
+
+CodIn includes a dedicated **GPU panel** (`/gpu` route) with:
+
+- **Connect tab** — Enter your RunPod API key, set budget cap and session TTL
+- **GPU Types tab** — Browse all available GPUs with VRAM, pricing, and cloud availability. Click to select.
+- **Pods tab** — View active pods, uptime, and stop/terminate controls
+- **Jobs tab** — Submit serverless inference jobs and check status
+- **Budget bar** — Live spend tracking with color-coded progress (green → amber → red)
 
 ### MCP-Powered — The Agent Helps You
 
@@ -571,6 +581,7 @@ curl http://127.0.0.1:43120/status/compute
 | 🖥️ Desktop       | [`electron-app/README.md`](electron-app/README.md)             |
 | 🧩 IDE Extension | [`packages/extension/README.md`](packages/extension/README.md) |
 | 🎨 GUI Panels    | [`gui/README.md`](gui/README.md)                               |
+| 🎮 GPU Panel     | Navigate to `/gpu` in the GUI for RunPod management            |
 
 <br/>
 
@@ -607,7 +618,7 @@ curl -X POST http://127.0.0.1:43120/api/research/serper \
 | :------------------- | :-------------------------------------- |
 | `packages/agent`     | Core runtime and orchestration server   |
 | `packages/extension` | IDE integration adapter                 |
-| `gui`                | Workflow UI panels and chat surfaces    |
+| `gui`                | Workflow UI panels, chat, and GPU panel |
 | `electron-app`       | Standalone CodIn desktop shell          |
 | `core`               | Shared engine/runtime modules           |
 | `landing`            | Public website and distribution surface |
@@ -684,127 +695,5 @@ Apache 2.0 — see [`LICENSE`](LICENSE)
 [![Documentation](https://img.shields.io/badge/📖_Documentation-10b981?style=for-the-badge&logoColor=white&labelColor=0a0a0f)](./docs/)
 
 <sub>CodIn is open-source software licensed under Apache 2.0. Free forever.</sub>
-
-</div>
-
-Key validation endpoints:
-
-- `GET /api/health`
-- `GET /status`
-- `GET /status/compute`
-- `GET /status/sessions`
-- `GET /status/agents`
-- `GET /metrics`
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js `>=20.19`
-- Python `>=3.8` (for i18n components)
-
-### 1) Run Agent Runtime
-
-```bash
-cd packages/agent
-npm install
-npm start
-```
-
-Expected:
-
-```text
-CodIn Agent listening on http://127.0.0.1:43120
-All subsystems loaded
-```
-
-### 2) Verify Runtime Health
-
-```bash
-curl http://127.0.0.1:43120/api/health
-curl http://127.0.0.1:43120/status
-curl http://127.0.0.1:43120/status/compute
-```
-
-### 3) Run Client Layer
-
-Choose your interface path:
-
-- Desktop path: see `electron-app/README.md`
-- IDE integration path: see `packages/extension/README.md`
-- GUI workflow development: see `gui/README.md`
-
-## Research API (Serper-Compatible)
-
-```bash
-curl -X POST http://127.0.0.1:43120/api/research/serper \
-  -H "Content-Type: application/json" \
-  -d '{"query":"React hooks tutorial","num_results":5}'
-```
-
-Other research routes:
-
-- `POST /api/research/web-search`
-- `POST /api/research/fetch-url`
-- `POST /api/research/code-documentation-search`
-- `POST /api/research/code-example-search`
-- `POST /api/research/bug-solution-search`
-
-## Repository Map
-
-- `packages/agent`: core runtime and orchestration server
-- `packages/extension`: IDE integration adapter
-- `gui`: workflow UI panels and chat surfaces
-- `electron-app`: standalone CodIn desktop shell
-- `core`: shared engine/runtime modules
-- `landing`: public website and distribution surface
-
-## Security and Reliability
-
-- Telemetry-off local-first default
-- Permission-gated destructive operations
-- Structured audit logging
-- Timeout and retry protection in critical agent loops
-- Circuit-breaker backed LLM/tool execution paths
-
-See:
-
-- `SECURITY.md`
-- `SECURITY_AND_INTEGRATION.md`
-- `ARCHITECTURE.md`
-- `BACKEND_API_REFERENCE.md`
-
-## Testing
-
-Run top-level tests:
-
-```bash
-npm test
-```
-
-Agent-only tests:
-
-```bash
-cd packages/agent
-npm test
-```
-
-## Contributing
-
-- Read `CONTRIBUTING.md`
-- Follow `DEVELOPMENT.md`
-- Keep claims in docs aligned with implemented routes and runtime behavior
-
-## License
-
-Apache 2.0 (`LICENSE`)
-
----
-
-<div align="center">
-
-**Made by Bharat for the world**
-
-[Star on GitHub](https://github.com/inbharat-ai/codein.pro) • [Issues](https://github.com/inbharat-ai/codein.pro/issues) • [Docs](./docs/)
 
 </div>

@@ -69,9 +69,9 @@ const I18N = {
     "feat.crossplatform.title": "Cross-Platform",
     "feat.crossplatform.desc":
       "Native builds for Windows, macOS (Intel + Apple Silicon), and Linux. One codebase, consistent experience everywhere.",
-    "feat.gpu.title": "GPU on Demand",
+    "feat.gpu.title": "GPU Panel & RunPod",
     "feat.gpu.desc":
-      "Connect to RunPod via MCP — the AI agent helps you provision A100s, RTX 4090s, and more on demand. Budget caps, auto-stop, real GraphQL API.",
+      "Dedicated GPU management panel — connect RunPod, browse GPU types with live pricing, create pods, submit jobs, and track budget. All via MCP with real GraphQL API.",
 
     // --- Superpowers section ---
     "skills.label": "Superpowers",
@@ -261,9 +261,9 @@ const I18N = {
     "feat.crossplatform.title": "क्रॉस-प्लेटफ़ॉर्म",
     "feat.crossplatform.desc":
       "Windows, macOS (Intel + Apple Silicon) और Linux के लिए नेटिव बिल्ड। हर जगह एक जैसा अनुभव।",
-    "feat.gpu.title": "ऑन-डिमांड GPU",
+    "feat.gpu.title": "GPU पैनल और RunPod",
     "feat.gpu.desc":
-      "RunPod से MCP के ज़रिए कनेक्ट करें — AI एजेंट A100, RTX 4090 जैसे GPU ऑन-डिमांड प्रोविज़न करने में मदद करता है। बजट कैप, ऑटो-स्टॉप।",
+      "समर्पित GPU प्रबंधन पैनल — RunPod से कनेक्ट करें, लाइव प्राइसिंग के साथ GPU ब्राउज़ करें, पॉड बनाएं, जॉब सबमिट करें और बजट ट्रैक करें। असली GraphQL API।",
 
     "skills.label": "सुपरपावर",
     "skills.title": "CodeIn को असाधारण क्या बनाता है",
@@ -450,9 +450,9 @@ const I18N = {
     "feat.crossplatform.title": "பல-தளம்",
     "feat.crossplatform.desc":
       "Windows, macOS (Intel + Apple Silicon) மற்றும் Linux க்கான சொந்த உருவாக்கங்கள்.",
-    "feat.gpu.title": "GPU தேவைக்கேற்ப",
+    "feat.gpu.title": "GPU பேனல் & RunPod",
     "feat.gpu.desc":
-      "RunPod உடன் MCP வழியாக இணையுங்கள் — AI A100, RTX 4090 போன்ற GPU-களை தேவைக்கேற்ப வழங்க உதவுகிறது.",
+      "GPU மேலாண்மை பேனல் — RunPod உடன் இணையுங்கள், நேரடி விலையுடன் GPU வகைகளை உலாவுங்கள், பாட்கள் உருவாக்குங்கள், வேலைகள் சமர்ப்பிக்கவும்.",
 
     "skills.label": "சிறப்பு திறன்கள்",
     "skills.title": "CodeIn-ஐ அசாதாரணமாக்குவது என்ன",
@@ -583,9 +583,9 @@ const I18N = {
     "feat.crossplatform.title": "క్రాస్-ప్లాట్‌ఫారమ్",
     "feat.crossplatform.desc":
       "Windows, macOS మరియు Linux కోసం నేటివ్ బిల్డ్‌లు.",
-    "feat.gpu.title": "ఆన్-డిమాండ్ GPU",
+    "feat.gpu.title": "GPU ప్యానెల్ & RunPod",
     "feat.gpu.desc":
-      "RunPod తో MCP ద్వారా కనెక్ట్ అవ్వండి — AI A100, RTX 4090 వంటి GPU లను ఆన్-డిమాండ్‌గా ప్రొవిజన్ చేయడంలో సహాయపడుతుంది.",
+      "GPU నిర్వహణ ప్యానెల్ — RunPod తో కనెక్ట్ అవ్వండి, లైవ్ ప్రైసింగ్‌తో GPU రకాలను బ్రౌజ్ చేయండి, పాడ్‌లు సృష్టించండి, జాబ్‌లు సబ్మిట్ చేయండి.",
 
     "skills.label": "సూపర్ పవర్స్",
     "skills.title": "CodeIn ని అసాధారణంగా మార్చేది ఏమిటి",
@@ -648,9 +648,9 @@ const I18N = {
       "কোনো টেলিমেট্রি নেই, ট্র্যাকিং নেই, ক্লাউড নির্ভরতা নেই।",
     "feat.crossplatform.title": "ক্রস-প্ল্যাটফর্ম",
     "feat.crossplatform.desc": "Windows, macOS এবং Linux এর জন্য নেটিভ বিল্ড।",
-    "feat.gpu.title": "অন-ডিমান্ড GPU",
+    "feat.gpu.title": "GPU প্যানেল & RunPod",
     "feat.gpu.desc":
-      "RunPod এর সাথে MCP দিয়ে সংযুক্ত হন — AI এজেন্ট A100, RTX 4090 এর মতো GPU অন-ডিমান্ডে প্রোভিশন করতে সাহায্য করে।",
+      "GPU ম্যানেজমেন্ট প্যানেল — RunPod এর সাথে সংযুক্ত হন, লাইভ প্রাইসিং সহ GPU ধরন ব্রাউজ করুন, পড তৈরি করুন, জব সাবমিট করুন।",
 
     "skills.label": "সুপারপাওয়ার",
     "skills.title": "যা CodeIn-কে অসাধারণ করে তোলে",
