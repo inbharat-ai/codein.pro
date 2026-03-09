@@ -19,6 +19,11 @@ export const ROUTES = {
   COMPUTE: "/compute",
   MCP: "/mcp",
   SWARM: "/swarm",
+  PIPELINE: "/pipeline",
+  REPO_INTELLIGENCE: "/repo-intelligence",
+  PERMISSIONS: "/permissions",
+  RESEARCH: "/research",
+  GIT: "/git",
   // EXAMPLE_ROUTE_WITH_PARAMS: (params: ParamsType) => `/route/${params}`,
 };
 

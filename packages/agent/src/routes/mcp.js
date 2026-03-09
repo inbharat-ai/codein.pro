@@ -22,6 +22,18 @@ function registerMcpRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
+        const permission = await requirePermission(
+          "mcpManage",
+          { workspacePath: process.cwd() },
+          permissionManager,
+        );
+        if (!permission.allowed) {
+          jsonResponse(res, 403, {
+            error:
+              "Permission denied: " + (permission.reason || "Unauthorized"),
+          });
+          return;
+        }
         const servers = mcpClientManager?.getAllServers() || [];
         jsonResponse(res, 200, { servers });
       },
@@ -33,7 +45,7 @@ function registerMcpRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const raw = await readBody(req);
+        const raw = await readBody(req, 512 * 1024);
         const parsed = parseJsonBody(raw);
         if (!parsed.ok) {
           jsonResponse(res, 400, { error: parsed.error });
@@ -237,6 +249,18 @@ function registerMcpRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
+        const permission = await requirePermission(
+          "mcpManage",
+          { workspacePath: process.cwd() },
+          permissionManager,
+        );
+        if (!permission.allowed) {
+          jsonResponse(res, 403, {
+            error:
+              "Permission denied: " + (permission.reason || "Unauthorized"),
+          });
+          return;
+        }
         const url = new URL(
           req.url || "/",
           `http://${req.headers.host || "localhost"}`,
@@ -271,7 +295,7 @@ function registerMcpRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const raw = await readBody(req);
+        const raw = await readBody(req, 512 * 1024);
         const parsed = parseJsonBody(raw);
         if (!parsed.ok) {
           jsonResponse(res, 400, { error: parsed.error });
@@ -328,6 +352,18 @@ function registerMcpRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
+        const permission = await requirePermission(
+          "mcpManage",
+          { workspacePath: process.cwd() },
+          permissionManager,
+        );
+        if (!permission.allowed) {
+          jsonResponse(res, 403, {
+            error:
+              "Permission denied: " + (permission.reason || "Unauthorized"),
+          });
+          return;
+        }
         const url = new URL(
           req.url || "/",
           `http://${req.headers.host || "localhost"}`,

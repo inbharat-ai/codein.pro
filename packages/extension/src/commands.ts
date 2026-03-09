@@ -12,9 +12,9 @@ import { NextEditLoggingService } from "core/nextEdit/NextEditLoggingService";
 import { startLocalLemonade } from "core/util/lemonadeHelper";
 import { startLocalOllama } from "core/util/ollamaHelper";
 import {
-    getConfigJsonPath,
-    getConfigYamlPath,
-    setConfigFilePermissions,
+  getConfigJsonPath,
+  getConfigYamlPath,
+  setConfigFilePermissions,
 } from "core/util/paths";
 import { Telemetry } from "core/util/posthog";
 import * as vscode from "vscode";
@@ -23,16 +23,16 @@ import * as YAML from "yaml";
 import { convertJsonToYamlConfig } from "../../../packages/config-yaml/dist";
 
 import {
-    getAutocompleteStatusBarDescription,
-    getAutocompleteStatusBarTitle,
-    getNextEditMenuItems,
-    getStatusBarStatus,
-    getStatusBarStatusFromQuickPickItemLabel,
-    handleNextEditToggle,
-    isNextEditToggleLabel,
-    quickPickStatusText,
-    setupStatusBar,
-    StatusBarStatus,
+  getAutocompleteStatusBarDescription,
+  getAutocompleteStatusBarTitle,
+  getNextEditMenuItems,
+  getStatusBarStatus,
+  getStatusBarStatusFromQuickPickItemLabel,
+  handleNextEditToggle,
+  isNextEditToggleLabel,
+  quickPickStatusText,
+  setupStatusBar,
+  StatusBarStatus,
 } from "./autocomplete/statusBar";
 import { ContinueConsoleWebviewViewProvider } from "./ContinueConsoleWebviewViewProvider";
 import { ContinueGUIWebviewViewProvider } from "./ContinueGUIWebviewViewProvider";
@@ -41,9 +41,9 @@ import { VerticalDiffManager } from "./diff/vertical/manager";
 import EditDecorationManager from "./quickEdit/EditDecorationManager";
 import { QuickEdit, QuickEditShowParams } from "./quickEdit/QuickEditQuickPick";
 import {
-    addCodeToContextFromRange,
-    addEntireFileToContext,
-    addHighlightedCodeToContext,
+  addCodeToContextFromRange,
+  addEntireFileToContext,
+  addHighlightedCodeToContext,
 } from "./util/addCode";
 import { Battery } from "./util/battery";
 import { getMetaKeyLabel } from "./util/util";

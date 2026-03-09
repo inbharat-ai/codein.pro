@@ -13,7 +13,6 @@ import {
   addPromptCompletionPair,
   setActive,
   setInactive,
-  streamUpdate,
   updateHistoryItemAtIndex,
 } from "../slices/sessionSlice";
 import { ThunkApiType } from "../store";
@@ -75,17 +74,38 @@ export const streamSwarmTask = createAsyncThunk<
 
       // Poll for task completion or stream events
       let lastStatus = taskResponse.status;
+      let accumulatedContent = `Task ID: ${taskResponse.taskId}\n\n`;
+
+      // Create assistant message for the response
+      dispatch(
+        updateHistoryItemAtIndex({
+          index: historyIndex,
+          updates: {
+            message: {
+              role: "assistant",
+              content: accumulatedContent,
+              id: uuidv4(),
+            },
+          },
+        }),
+      );
+
       const pollInterval = setInterval(async () => {
         try {
           const status = await communicator.getTaskStatus(taskResponse.taskId);
 
           if (status.status !== lastStatus) {
+            accumulatedContent += `\nTask status: ${status.status}\n`;
             dispatch(
-              streamUpdate({
+              updateHistoryItemAtIndex({
                 index: historyIndex,
-                content: `Task status: ${status.status}`,
-                done:
-                  status.status === "completed" || status.status === "failed",
+                updates: {
+                  message: {
+                    role: "assistant",
+                    content: accumulatedContent,
+                    id: taskResponse.taskId,
+                  },
+                },
               }),
             );
             lastStatus = status.status;
@@ -106,20 +126,30 @@ export const streamSwarmTask = createAsyncThunk<
                 );
 
                 const completionContent = JSON.stringify(results, null, 2);
+                accumulatedContent += `\n\nResults:\n${completionContent}`;
 
                 dispatch(
-                  streamUpdate({
+                  updateHistoryItemAtIndex({
                     index: historyIndex,
-                    content: completionContent,
-                    done: true,
+                    updates: {
+                      message: {
+                        role: "assistant",
+                        content: accumulatedContent,
+                        id: taskResponse.taskId,
+                      },
+                    },
                   }),
                 );
 
                 dispatch(
-                  addPromptCompletionPair({
-                    index: historyIndex,
-                    completion: completionContent,
-                  }),
+                  addPromptCompletionPair([
+                    {
+                      prompt: goal,
+                      completion: accumulatedContent,
+                      modelTitle: "swarm",
+                      modelProvider: "swarm",
+                    },
+                  ]),
                 );
 
                 posthog.capture("swarm_task_completed", {
@@ -128,20 +158,32 @@ export const streamSwarmTask = createAsyncThunk<
                 });
               } catch (err) {
                 console.error("Error fetching task results", err);
+                accumulatedContent += `\n\nTask completed with ID ${taskResponse.taskId}`;
                 dispatch(
-                  streamUpdate({
+                  updateHistoryItemAtIndex({
                     index: historyIndex,
-                    content: `Task completed with ID ${taskResponse.taskId}`,
-                    done: true,
+                    updates: {
+                      message: {
+                        role: "assistant",
+                        content: accumulatedContent,
+                        id: taskResponse.taskId,
+                      },
+                    },
                   }),
                 );
               }
             } else {
+              accumulatedContent += `\n\nTask ${status.status}`;
               dispatch(
-                streamUpdate({
+                updateHistoryItemAtIndex({
                   index: historyIndex,
-                  content: `Task ${status.status}`,
-                  done: true,
+                  updates: {
+                    message: {
+                      role: "assistant",
+                      content: accumulatedContent,
+                      id: taskResponse.taskId,
+                    },
+                  },
                 }),
               );
 
@@ -160,11 +202,17 @@ export const streamSwarmTask = createAsyncThunk<
       // Also listen for real-time events
       communicator.addEventListener((event) => {
         if (event.taskId === taskResponse.taskId) {
+          accumulatedContent += `\n[${event.type}] ${JSON.stringify(event.data)}`;
           dispatch(
-            streamUpdate({
+            updateHistoryItemAtIndex({
               index: historyIndex,
-              content: `[${event.type}] ${JSON.stringify(event.data)}`,
-              done: false,
+              updates: {
+                message: {
+                  role: "assistant",
+                  content: accumulatedContent,
+                  id: taskResponse.taskId,
+                },
+              },
             }),
           );
         }
@@ -173,10 +221,15 @@ export const streamSwarmTask = createAsyncThunk<
       console.error("Swarm task error", error);
 
       dispatch(
-        streamUpdate({
+        updateHistoryItemAtIndex({
           index: historyIndex,
-          content: `Error: ${error.message || "Unknown error"}`,
-          done: true,
+          updates: {
+            message: {
+              role: "assistant",
+              content: `Error: ${error.message || "Unknown error"}`,
+              id: uuidv4(),
+            },
+          },
         }),
       );
 

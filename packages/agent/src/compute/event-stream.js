@@ -28,6 +28,7 @@ class ComputeEventStream extends EventEmitter {
     this.setMaxListeners(100); // many concurrent SSE connections
     /** @type {Map<string, Set<import("http").ServerResponse>>} */
     this._subscribers = new Map(); // jobId → Set<res>
+    this._maxGlobalSubscribers = 5000;
     this._stats = {
       totalEvents: 0,
       activeConnections: 0,
@@ -43,6 +44,13 @@ class ComputeEventStream extends EventEmitter {
    * @param {import("http").IncomingMessage} req - Request object to check origin
    */
   subscribe(jobId, res, req) {
+    // Reject before writing SSE headers when global subscriber cap is reached.
+    if (this._stats.activeConnections >= this._maxGlobalSubscribers) {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Too many event stream connections" }));
+      return;
+    }
+
     // Determine allowed origin (restrict to localhost by default)
     const origin = req.headers.origin || "";
     const isLocalhost =
@@ -163,6 +171,7 @@ class ComputeEventStream extends EventEmitter {
         }
       }
       this._subscribers.delete(jobId);
+      this._stats.eventsPerJob.delete(jobId);
     }
   }
 

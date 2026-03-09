@@ -60,6 +60,28 @@ const STEP_TRANSITIONS = Object.freeze({
 class ComputeStateMachine extends EventEmitter {
   constructor() {
     super();
+    /** @type {Map<string, Promise<void>>} — per-job transition locks */
+    this._locks = new Map();
+  }
+
+  /**
+   * Acquire a per-job lock to serialize transitions.
+   * @param {string} jobId
+   * @returns {Promise<() => void>} release function
+   */
+  async _acquireLock(jobId) {
+    while (this._locks.has(jobId)) {
+      await this._locks.get(jobId);
+    }
+    let release;
+    const lock = new Promise((resolve) => {
+      release = () => {
+        this._locks.delete(jobId);
+        resolve();
+      };
+    });
+    this._locks.set(jobId, lock);
+    return release;
   }
 
   /**
@@ -67,10 +89,22 @@ class ComputeStateMachine extends EventEmitter {
    * @param {object} job - Job object (mutated in-place)
    * @param {string} newStatus - Target status
    * @param {object} [context] - Additional context (error, reason, etc.)
-   * @returns {object} The updated job
+   * @returns {Promise<object>} The updated job
    * @throws {Error} If transition is not allowed
    */
-  transitionJob(job, newStatus, context = {}) {
+  async transitionJob(job, newStatus, context = {}) {
+    const release = await this._acquireLock(job.id);
+    try {
+      return this._transitionJobUnsafe(job, newStatus, context);
+    } finally {
+      release();
+    }
+  }
+
+  /**
+   * Internal non-locked transition (called under lock).
+   */
+  _transitionJobUnsafe(job, newStatus, context = {}) {
     const oldStatus = job.status;
 
     if (oldStatus === newStatus) return job; // no-op

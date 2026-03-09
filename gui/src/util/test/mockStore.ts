@@ -18,6 +18,7 @@ import {
 import sessionReducer, {
   INITIAL_SESSION_STATE,
 } from "../../redux/slices/sessionSlice";
+import swarmReducer from "../../redux/slices/swarmSlice";
 import tabsReducer, { INITIAL_TABS_STATE } from "../../redux/slices/tabsSlice";
 import uiReducer, { DEFAULT_UI_SLICE } from "../../redux/slices/uiSlice";
 import { RootState } from "../../redux/store";
@@ -31,6 +32,18 @@ export const getEmptyRootState: () => RootState = () => {
     indexing: INITIAL_INDEXING_STATE,
     profiles: INITIAL_PROFILES_STATE,
     tabs: INITIAL_TABS_STATE,
+    swarm: {
+      status: null,
+      agents: [],
+      tasks: [],
+      events: [],
+      pendingPermissions: [],
+      memory: null,
+      activeTaskId: null,
+      loading: false,
+      error: null,
+      sseConnected: false,
+    },
   };
   const { streamAborter, ...serializableSession } = INITIAL_SESSION_STATE;
   const sessionCopy = copyOf(serializableSession) as Omit<
@@ -69,6 +82,7 @@ export const createMockStore = (
       indexing: indexingReducer,
       tabs: tabsReducer,
       profiles: profilesReducer,
+      swarm: swarmReducer,
     },
     preloadedState: {
       ...getEmptyRootState(),

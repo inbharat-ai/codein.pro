@@ -1,14 +1,62 @@
 "use strict";
 
+const fs = require("node:fs");
+const path = require("node:path");
 const { RunpodBYOProvider } = require("../gpu-orchestration/runpod-provider");
 const { Keyring } = require("../security/keyring");
+const { getDataDir } = require("../store");
 
 class GpuSessionManager {
   constructor(options = {}) {
     this.keyring = options.keyring || new Keyring();
     this.providerFactory =
       options.providerFactory || ((config) => new RunpodBYOProvider(config));
+    this.stateFile =
+      options.stateFile ||
+      path.join(getDataDir(), "compute", "gpu-sessions.json");
     this.sessions = new Map(); // userId -> { provider, jobs }
+    this._ensureStateDir();
+    this._loadState();
+  }
+
+  _ensureStateDir() {
+    fs.mkdirSync(path.dirname(this.stateFile), { recursive: true });
+  }
+
+  _saveState() {
+    const payload = {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      sessions: Array.from(this.sessions.entries()).map(
+        ([userId, session]) => ({
+          userId,
+          connected: !!session.provider,
+          config: session.config || null,
+          jobs: Array.from(session.jobs.entries()),
+        }),
+      ),
+    };
+    const tmp = `${this.stateFile}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(payload, null, 2), "utf8");
+    fs.renameSync(tmp, this.stateFile);
+  }
+
+  _loadState() {
+    if (!fs.existsSync(this.stateFile)) return;
+    try {
+      const parsed = JSON.parse(fs.readFileSync(this.stateFile, "utf8"));
+      if (!Array.isArray(parsed.sessions)) return;
+      for (const item of parsed.sessions) {
+        if (!item?.userId) continue;
+        this.sessions.set(item.userId, {
+          provider: null,
+          config: item.config || null,
+          jobs: new Map(Array.isArray(item.jobs) ? item.jobs : []),
+        });
+      }
+    } catch {
+      // Ignore corrupted state and continue
+    }
   }
 
   _secretKey(userId) {
@@ -19,8 +67,10 @@ class GpuSessionManager {
     if (!this.sessions.has(userId)) {
       this.sessions.set(userId, {
         provider: null,
+        config: null,
         jobs: new Map(), // jobId -> { submittedAt, payload }
       });
+      this._saveState();
     }
     return this.sessions.get(userId);
   }
@@ -30,6 +80,7 @@ class GpuSessionManager {
       throw new Error("Runpod API key is required");
     }
     this.keyring.set(this._secretKey(userId), apiKey);
+    this._saveState();
     return { saved: true };
   }
 
@@ -65,6 +116,12 @@ class GpuSessionManager {
       ttlMinutes: config.ttlMinutes || 30,
       idleShutdownMinutes: config.idleShutdownMinutes || 10,
     });
+    session.config = {
+      maxBudgetUsd: config.maxBudgetUsd || 100,
+      ttlMinutes: config.ttlMinutes || 30,
+      idleShutdownMinutes: config.idleShutdownMinutes || 10,
+    };
+    this._saveState();
 
     return { connected: true, userId };
   }
@@ -100,6 +157,7 @@ class GpuSessionManager {
         jobName: jobConfig.jobName || null,
       },
     });
+    this._saveState();
 
     return result;
   }
@@ -127,6 +185,7 @@ class GpuSessionManager {
         connected: false,
         status: "idle",
         jobsRunning: 0,
+        reconnectRequired: !!session.config,
       };
     }
 
@@ -157,6 +216,8 @@ class GpuSessionManager {
     session.provider.destroy();
     session.provider = null;
     session.jobs.clear();
+    session.config = null;
+    this._saveState();
 
     return {
       stopped: true,
@@ -173,6 +234,7 @@ class GpuSessionManager {
         // Ignore on shutdown
       }
     }
+    this._saveState();
   }
 }
 

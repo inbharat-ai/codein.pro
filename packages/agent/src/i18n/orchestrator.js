@@ -21,9 +21,11 @@ const { TTSProvider } = require("./tts-provider.js");
 
 // Import cloud voice providers and technical term preservator
 let CloudVoiceManager, TechnicalTermPreservator;
+let MultilingualHardener;
 try {
   ({ CloudVoiceManager } = require("./cloud-voice-providers.js"));
   ({ TechnicalTermPreservator } = require("./technical-term-preservator.js"));
+  ({ MultilingualHardener } = require("./multilingual-hardener.js"));
 } catch (err) {
   console.warn("[I18n] Optional modules not loaded:", err.message);
 }
@@ -64,6 +66,9 @@ class I18nOrchestrator {
     this.cloudVoice = CloudVoiceManager ? new CloudVoiceManager() : null;
     this.termPreservator = TechnicalTermPreservator
       ? new TechnicalTermPreservator()
+      : null;
+    this.multilingualHardener = MultilingualHardener
+      ? new MultilingualHardener()
       : null;
     this.ensureDirectories();
   }
@@ -187,6 +192,131 @@ class I18nOrchestrator {
 
     const translated = await this.translate(text, sourceLang, "en");
     return { text: translated, language: sourceLang, translated: true };
+  }
+
+  /**
+   * Normalize a user coding instruction into a clean English execution brief.
+   * Preserves technical terms and keeps traceability metadata.
+   *
+   * @param {string} text
+   * @param {Object} [opts]
+   * @param {string} [opts.languageHint]
+   * @param {string} [opts.previousLanguage]
+   * @returns {Promise<{
+   *   originalText: string,
+   *   normalizedEnglishTask: string,
+   *   sourceLanguage: string,
+   *   translated: boolean,
+   *   confidence: number,
+   *   mixedLanguage: boolean,
+   *   codeSwitching: Object|null,
+   *   technicalDensity: Object,
+   *   traceId: string
+   * }>}
+   */
+  async normalizeCodingInstruction(text, opts = {}) {
+    const originalText = typeof text === "string" ? text : "";
+    const traceId = `i18n_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    if (!originalText.trim()) {
+      return {
+        originalText,
+        normalizedEnglishTask: "",
+        sourceLanguage: "en",
+        translated: false,
+        confidence: 0,
+        mixedLanguage: false,
+        codeSwitching: null,
+        technicalDensity: this.analyzeTechnicalDensity("") || {
+          density: 0,
+          technicalTokens: 0,
+          totalTokens: 0,
+        },
+        traceId,
+      };
+    }
+
+    let sourceLanguage = this.normalizeLanguage(opts.languageHint);
+    let confidence = 1;
+    let codeSwitching = null;
+
+    if (this.multilingualHardener) {
+      const detected = this.multilingualHardener.detectWithConfidence(
+        originalText,
+        {
+          expectedLanguage: opts.languageHint,
+          previousLanguage: opts.previousLanguage,
+        },
+      );
+      sourceLanguage = opts.languageHint
+        ? this.normalizeLanguage(opts.languageHint)
+        : this.normalizeLanguage(detected.language);
+      confidence = detected.confidence || confidence;
+      codeSwitching = detected.codeSwitching || null;
+    } else if (!opts.languageHint) {
+      sourceLanguage = this.detectLanguage(originalText);
+      confidence = 0.7;
+    }
+
+    let preparedText = originalText;
+    let placeholderMap = null;
+    if (this.termPreservator) {
+      try {
+        const preserved = this.termPreservator.preProcess(
+          originalText,
+          sourceLanguage,
+        );
+        preparedText = preserved.processedText;
+        placeholderMap = preserved.placeholderMap;
+      } catch {
+        preparedText = originalText;
+      }
+    }
+
+    let translated = false;
+    let englishText = preparedText;
+    if (sourceLanguage !== "en") {
+      const translatedResult = await this.translateToEnglishIfNeeded(
+        preparedText,
+        sourceLanguage,
+      );
+      translated = !!translatedResult.translated;
+      englishText = translatedResult.text;
+    }
+
+    if (this.termPreservator && placeholderMap) {
+      try {
+        englishText = this.termPreservator.postProcess(
+          englishText,
+          placeholderMap,
+        );
+      } catch {
+        // Keep translated text when placeholder restoration fails.
+      }
+    }
+
+    const normalizedEnglishTask = this._normalizeTaskPhrasing(englishText);
+
+    return {
+      originalText,
+      normalizedEnglishTask,
+      sourceLanguage,
+      translated,
+      confidence,
+      mixedLanguage: !!codeSwitching,
+      codeSwitching,
+      technicalDensity: this.analyzeTechnicalDensity(originalText),
+      traceId,
+    };
+  }
+
+  _normalizeTaskPhrasing(text) {
+    if (!text || typeof text !== "string") return "";
+    return text
+      .replace(/\s+/g, " ")
+      .replace(/\s*([,.;:!?])\s*/g, "$1 ")
+      .replace(/\s+$/g, "")
+      .trim();
   }
 
   /**
@@ -422,7 +552,9 @@ class LLMTranslationProvider {
 
   async translate(text, sourceLang, targetLang) {
     const endpoint = process.env.CODIN_LLAMA_ENDPOINT || DEFAULT_LLAMA_ENDPOINT;
-    const prompt = `Translate the following ${SUPPORTED_LANGUAGES[sourceLang]?.name || sourceLang} text to ${SUPPORTED_LANGUAGES[targetLang]?.name || targetLang}. Provide ONLY the translation, no explanations.\n\n${text}`;
+    const sourceName = LANGUAGE_CONFIG[sourceLang]?.englishName || sourceLang;
+    const targetName = LANGUAGE_CONFIG[targetLang]?.englishName || targetLang;
+    const prompt = `Translate the following ${sourceName} text to ${targetName}. Provide ONLY the translation, no explanations.\n\n${text}`;
 
     const doFetch = await getFetch();
     const response = await doFetch(`${endpoint}/completion`, {

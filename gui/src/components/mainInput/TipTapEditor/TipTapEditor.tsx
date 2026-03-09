@@ -23,6 +23,7 @@ import "./TipTapEditor.css";
 import { createEditorConfig, getPlaceholderText } from "./utils/editorConfig";
 import { handleImageFile } from "./utils/imageUtils";
 import { useEditorEventHandlers } from "./utils/keyHandlers";
+import { analyzeVibeImage } from "./utils/vibeAnalysis";
 
 export interface TipTapEditorProps {
   availableContextProviders: ContextProviderDescription[];
@@ -205,6 +206,47 @@ function TipTapEditorInner(props: TipTapEditorProps) {
     setShouldHideToolbar(false);
   }, [cancelBlurTimeout]);
 
+  const insertImageAndVibeSpec = useCallback(
+    (file: File) => {
+      void handleImageFile(ideMessenger, file).then(async (result) => {
+        if (!editor || !result) {
+          return;
+        }
+
+        const [, dataUrl] = result;
+        const { schema } = editor.state;
+        const node = schema.nodes.image.create({ src: dataUrl });
+        editor.commands.command(({ tr }) => {
+          tr.insert(0, node);
+          return true;
+        });
+
+        try {
+          const analyzed = await analyzeVibeImage(dataUrl);
+          const componentCount = Array.isArray(analyzed.spec?.components)
+            ? analyzed.spec.components.length
+            : 0;
+          const sectionCount = Array.isArray(analyzed.spec?.layout?.sections)
+            ? analyzed.spec.layout.sections.length
+            : 0;
+          editor.commands.insertContent(
+            `\n\nVibe analysis ready: ${componentCount} components, ${sectionCount} layout sections.\n`,
+          );
+          ideMessenger.post("showToast", [
+            "info",
+            "Vibe image analysis completed and attached to input.",
+          ]);
+        } catch (error: any) {
+          ideMessenger.post("showToast", [
+            "warning",
+            `Image attached, but Vibe analysis failed: ${error?.message || "unknown error"}`,
+          ]);
+        }
+      });
+    },
+    [editor, ideMessenger],
+  );
+
   return (
     <InputBoxDiv
       onFocus={handleFocus}
@@ -248,19 +290,8 @@ function TipTapEditorInner(props: TipTapEditorProps) {
         ) {
           return;
         }
-        let file = event.dataTransfer.files[0];
-        void handleImageFile(ideMessenger, file).then((result) => {
-          if (!editor) {
-            return;
-          }
-          if (result) {
-            const [_, dataUrl] = result;
-            const { schema } = editor.state;
-            const node = schema.nodes.image.create({ src: dataUrl });
-            const tr = editor.state.tr.insert(0, node);
-            editor.view.dispatch(tr);
-          }
-        });
+        const file = event.dataTransfer.files[0];
+        insertImageAndVibeSpec(file);
         event.preventDefault();
       }}
     >
@@ -281,20 +312,7 @@ function TipTapEditorInner(props: TipTapEditorProps) {
           onAddContextItem={() => insertCharacterWithWhitespace("@")}
           onEnter={onEnter}
           onImageFileSelected={(file) => {
-            void handleImageFile(ideMessenger, file).then((result) => {
-              if (!editor) {
-                return;
-              }
-              if (result) {
-                const [_, dataUrl] = result;
-                const { schema } = editor.state;
-                const node = schema.nodes.image.create({ src: dataUrl });
-                editor.commands.command(({ tr }) => {
-                  tr.insert(0, node);
-                  return true;
-                });
-              }
-            });
+            insertImageAndVibeSpec(file);
           }}
           disabled={isStreaming}
         />

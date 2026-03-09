@@ -25,7 +25,11 @@
       "core/*": ["../../core/dist/*"],
       "core": ["../../core/dist/index.js"]
     },
-    "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "../../node_modules/@types",
+      "./node_modules"
+    ]
   },
   "include": ["src/**/*", "vitest.setup.ts"]
 }

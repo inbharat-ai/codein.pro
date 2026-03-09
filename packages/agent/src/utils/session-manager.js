@@ -13,8 +13,10 @@
 
 const crypto = require("crypto");
 const fs = require("fs").promises;
+const fsSync = require("fs");
 const path = require("path");
 const { EventEmitter } = require("events");
+const { getDataDir } = require("../store");
 
 /**
  * Session Manager
@@ -38,12 +40,77 @@ class SessionManager extends EventEmitter {
     this.sessionTTL = options.sessionTTL || 3600000; // 1 hour
     this.cleanupInterval = options.cleanupInterval || 300000; // 5 min
     this.onSessionExpired = options.onSessionExpired || null;
+    this.stateFile =
+      options.stateFile ||
+      path.join(getDataDir(), "sessions", "sessions-state.json");
 
     // Session storage: sessionId → Session object
     this.sessions = new Map();
 
+    this._ensureStateDir();
+    this._loadPersistedSessions();
+
     // Start cleanup timer
     this._startCleanupTimer();
+  }
+
+  _ensureStateDir() {
+    fsSync.mkdirSync(path.dirname(this.stateFile), { recursive: true });
+  }
+
+  _serializeSession(session) {
+    return {
+      ...session,
+      tasks: Array.from(session.tasks.entries()),
+    };
+  }
+
+  _persistState() {
+    const payload = {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      sessions: Array.from(this.sessions.values()).map((s) =>
+        this._serializeSession(s),
+      ),
+    };
+    const tempPath = `${this.stateFile}.tmp`;
+    fsSync.writeFileSync(tempPath, JSON.stringify(payload, null, 2), "utf8");
+    fsSync.renameSync(tempPath, this.stateFile);
+  }
+
+  _loadPersistedSessions() {
+    if (!fsSync.existsSync(this.stateFile)) return;
+    try {
+      const raw = fsSync.readFileSync(this.stateFile, "utf8");
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed.sessions)) return;
+      const now = Date.now();
+      for (const item of parsed.sessions) {
+        if (!item?.sessionId || now > (item.expiresAt || 0)) {
+          continue;
+        }
+        this.sessions.set(item.sessionId, {
+          sessionId: item.sessionId,
+          userId: item.userId || null,
+          workspaceDir: item.workspaceDir,
+          workspacePath: item.workspaceDir,
+          createdAt: item.createdAt || now,
+          lastAccessedAt: item.lastAccessedAt || now,
+          expiresAt: item.expiresAt || now + this.sessionTTL,
+          metadata: item.metadata || {},
+          tasks: new Map(Array.isArray(item.tasks) ? item.tasks : []),
+          resources: item.resources || {
+            memoryBytes: 0,
+            diskBytes: 0,
+            cpuSeconds: 0,
+            costUSD: 0,
+          },
+          state: item.state || "active",
+        });
+      }
+    } catch {
+      // Ignore corrupted state file and continue with empty sessions
+    }
   }
 
   /**
@@ -71,6 +138,7 @@ class SessionManager extends EventEmitter {
       sessionId,
       userId: options.userId || null,
       workspaceDir,
+      workspacePath: workspaceDir,
       createdAt: Date.now(),
       lastAccessedAt: Date.now(),
       expiresAt: Date.now() + this.sessionTTL,
@@ -86,6 +154,7 @@ class SessionManager extends EventEmitter {
     };
 
     this.sessions.set(sessionId, session);
+    this._persistState();
     this.emit("session-created", { sessionId, userId: session.userId });
 
     return session;
@@ -102,12 +171,15 @@ class SessionManager extends EventEmitter {
 
     // Update last accessed time
     session.lastAccessedAt = Date.now();
+    session.state = "active";
 
     // Check if expired
     if (Date.now() > session.expiresAt) {
       this._expireSession(sessionId);
       return null;
     }
+
+    this._persistState();
 
     return session;
   }
@@ -125,9 +197,40 @@ class SessionManager extends EventEmitter {
     // Merge updates
     Object.assign(session, updates);
     session.lastAccessedAt = Date.now();
+    session.state = "active";
 
+    this._persistState();
     this.emit("session-updated", { sessionId, updates });
     return true;
+  }
+
+  updateActivity(sessionId, activity = {}) {
+    const session = this.sessions.get(sessionId);
+    if (!session) return false;
+    session.lastAccessedAt = Date.now();
+    session.state = "active";
+    session.metadata = {
+      ...session.metadata,
+      ...(activity && typeof activity === "object" ? activity : {}),
+    };
+    this._persistState();
+    this.emit("session-activity", { sessionId, activity });
+    return true;
+  }
+
+  listSessions(filters = {}) {
+    const { userId, status } = filters;
+    let sessions = Array.from(this.sessions.values());
+    if (userId) {
+      sessions = sessions.filter((s) => s.userId === userId);
+    }
+    if (status) {
+      sessions = sessions.filter((s) => s.state === status);
+    }
+    return sessions.map((s) => ({
+      ...s,
+      tasks: Array.from(s.tasks.values()),
+    }));
   }
 
   /**
@@ -144,6 +247,7 @@ class SessionManager extends EventEmitter {
     if (usage.cpuSeconds) session.resources.cpuSeconds += usage.cpuSeconds;
     if (usage.costUSD) session.resources.costUSD += usage.costUSD;
 
+    this._persistState();
     this.emit("resource-tracked", { sessionId, usage });
   }
 
@@ -162,6 +266,8 @@ class SessionManager extends EventEmitter {
       createdAt: Date.now(),
       sessionId,
     });
+
+    this._persistState();
 
     return true;
   }
@@ -191,6 +297,7 @@ class SessionManager extends EventEmitter {
     const extension = additionalMs || this.sessionTTL;
     session.expiresAt = Math.max(session.expiresAt, Date.now()) + extension;
 
+    this._persistState();
     this.emit("session-extended", { sessionId, expiresAt: session.expiresAt });
     return true;
   }
@@ -206,6 +313,7 @@ class SessionManager extends EventEmitter {
 
     await this._cleanupSession(sessionId);
     this.sessions.delete(sessionId);
+    this._persistState();
 
     this.emit("session-terminated", { sessionId, userId: session.userId });
     return true;
@@ -267,6 +375,7 @@ class SessionManager extends EventEmitter {
 
     await this._cleanupSession(sessionId);
     this.sessions.delete(sessionId);
+    this._persistState();
   }
 
   /**
@@ -320,6 +429,7 @@ class SessionManager extends EventEmitter {
     if (expiredSessions.length > 0) {
       this.emit("cleanup-complete", { expired: expiredSessions.length });
     }
+    this._persistState();
   }
 
   /**

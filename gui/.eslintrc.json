@@ -19,9 +19,26 @@
   "overrides": [
     {
       "files": ["src/**/*.{js,ts,jsx,tsx}"]
+    },
+    {
+      "files": ["**/index.ts", "**/index.tsx"],
+      "rules": {
+        "no-barrel-files/no-barrel-files": "off"
+      }
+    },
+    {
+      "files": [
+        "**/ui/Combobox.tsx",
+        "**/ui/Listbox.tsx",
+        "**/ui/Popover.tsx",
+        "**/*.d.ts"
+      ],
+      "rules": {
+        "no-barrel-files/no-barrel-files": "off"
+      }
     }
   ],
-  "ignorePatterns": ["dist/**/*"],
+  "ignorePatterns": ["dist/**/*", "**/_dead/**"],
   "env": {
     "browser": true,
     "node": true,

@@ -34,7 +34,10 @@ const {
 
 const { PolicyEnforcer } = require("../src/compute/policy");
 
-const { ComputeEventStream, EVENT_TYPES } = require("../src/compute/event-stream");
+const {
+  ComputeEventStream,
+  EVENT_TYPES,
+} = require("../src/compute/event-stream");
 
 const { WORKFLOWS } = require("../src/compute/workflows");
 
@@ -134,61 +137,69 @@ test("validatePolicy — catches bad types", () => {
 // 2. STATE MACHINE
 // ═══════════════════════════════════════════════════════════════
 
-test("state machine — valid job transitions", () => {
+test("state machine — valid job transitions", async () => {
   const sm = new ComputeStateMachine();
   const job = createJob({ goal: "Test" });
 
   assert.equal(job.status, JOB_STATUSES.QUEUED);
 
-  sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  await sm.transitionJob(job, JOB_STATUSES.PLANNING);
   assert.equal(job.status, JOB_STATUSES.PLANNING);
 
-  sm.transitionJob(job, JOB_STATUSES.RUNNING);
+  await sm.transitionJob(job, JOB_STATUSES.RUNNING);
   assert.equal(job.status, JOB_STATUSES.RUNNING);
   assert.ok(job.metadata.startedAt, "startedAt should be set");
 
-  sm.transitionJob(job, JOB_STATUSES.COMPLETED);
+  await sm.transitionJob(job, JOB_STATUSES.COMPLETED);
   assert.equal(job.status, JOB_STATUSES.COMPLETED);
   assert.ok(job.metadata.completedAt, "completedAt should be set");
 });
 
-test("state machine — rejects invalid transition", () => {
+test("state machine — rejects invalid transition", async () => {
   const sm = new ComputeStateMachine();
   const job = createJob({ goal: "Test" });
 
   // QUEUED → COMPLETED is not allowed (must go through PLANNING → RUNNING)
-  assert.throws(
+  await assert.rejects(
     () => sm.transitionJob(job, JOB_STATUSES.COMPLETED),
-    /Invalid job transition/
+    /Invalid job transition/,
   );
 });
 
-test("state machine — terminal states are terminal", () => {
+test("state machine — terminal states are terminal", async () => {
   const sm = new ComputeStateMachine();
-  for (const terminal of [JOB_STATUSES.COMPLETED, JOB_STATUSES.FAILED, JOB_STATUSES.CANCELLED]) {
+  for (const terminal of [
+    JOB_STATUSES.COMPLETED,
+    JOB_STATUSES.FAILED,
+    JOB_STATUSES.CANCELLED,
+  ]) {
     const job = createJob({ goal: "T" });
-    sm.transitionJob(job, JOB_STATUSES.PLANNING);
-    sm.transitionJob(job, JOB_STATUSES.RUNNING);
+    await sm.transitionJob(job, JOB_STATUSES.PLANNING);
+    await sm.transitionJob(job, JOB_STATUSES.RUNNING);
 
     // Get to terminal
-    sm.transitionJob(job, terminal, terminal === JOB_STATUSES.FAILED ? { error: "err" } : {});
+    await sm.transitionJob(
+      job,
+      terminal,
+      terminal === JOB_STATUSES.FAILED ? { error: "err" } : {},
+    );
 
     // Nothing should be possible now
-    assert.throws(
+    await assert.rejects(
       () => sm.transitionJob(job, JOB_STATUSES.RUNNING),
-      /Invalid job transition/
+      /Invalid job transition/,
     );
   }
 });
 
-test("state machine — emits transition events", () => {
+test("state machine — emits transition events", async () => {
   const sm = new ComputeStateMachine();
   const job = createJob({ goal: "T" });
   const events = [];
   sm.on("job:transition", (e) => events.push(e));
 
-  sm.transitionJob(job, JOB_STATUSES.PLANNING);
-  sm.transitionJob(job, JOB_STATUSES.RUNNING);
+  await sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  await sm.transitionJob(job, JOB_STATUSES.RUNNING);
 
   assert.equal(events.length, 2);
   assert.equal(events[0].from, JOB_STATUSES.QUEUED);
@@ -205,7 +216,10 @@ test("state machine — step transitions", () => {
   assert.equal(step.status, STEP_STATUSES.RUNNING);
   assert.ok(step.startedAt);
 
-  sm.transitionStep(job, step, STEP_STATUSES.COMPLETED, { output: "done", confidence: 0.85 });
+  sm.transitionStep(job, step, STEP_STATUSES.COMPLETED, {
+    output: "done",
+    confidence: 0.85,
+  });
   assert.equal(step.status, STEP_STATUSES.COMPLETED);
   assert.equal(step.output, "done");
   assert.equal(step.confidence, 0.85);
@@ -243,27 +257,27 @@ test("state machine — canTransitionJob helper", () => {
   assert.equal(sm.canTransitionJob(job, JOB_STATUSES.COMPLETED), false);
 });
 
-test("state machine — isTerminal", () => {
+test("state machine — isTerminal", async () => {
   const sm = new ComputeStateMachine();
   const job = createJob({ goal: "T" });
   assert.equal(sm.isTerminal(job), false);
-  sm.transitionJob(job, JOB_STATUSES.CANCELLED);
+  await sm.transitionJob(job, JOB_STATUSES.CANCELLED);
   assert.equal(sm.isTerminal(job), true);
 });
 
-test("state machine — pause and resume cycle", () => {
+test("state machine — pause and resume cycle", async () => {
   const sm = new ComputeStateMachine();
   const job = createJob({ goal: "T" });
 
-  sm.transitionJob(job, JOB_STATUSES.PLANNING);
-  sm.transitionJob(job, JOB_STATUSES.RUNNING);
-  sm.transitionJob(job, JOB_STATUSES.PAUSED);
+  await sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  await sm.transitionJob(job, JOB_STATUSES.RUNNING);
+  await sm.transitionJob(job, JOB_STATUSES.PAUSED);
   assert.equal(job.status, JOB_STATUSES.PAUSED);
 
-  sm.transitionJob(job, JOB_STATUSES.RUNNING);
+  await sm.transitionJob(job, JOB_STATUSES.RUNNING);
   assert.equal(job.status, JOB_STATUSES.RUNNING);
 
-  sm.transitionJob(job, JOB_STATUSES.COMPLETED);
+  await sm.transitionJob(job, JOB_STATUSES.COMPLETED);
   assert.equal(job.status, JOB_STATUSES.COMPLETED);
 });
 
@@ -321,7 +335,10 @@ test("policy — merge ignores wrong types", () => {
 
 test("policy — tool permission: blocked tool overrides allow", () => {
   const pe = new PolicyEnforcer();
-  const policy = { ...createDefaultPolicy(), blockedTools: ["runTerminalCommand"] };
+  const policy = {
+    ...createDefaultPolicy(),
+    blockedTools: ["runTerminalCommand"],
+  };
   const result = pe.checkToolPermission(policy, "runTerminalCommand");
   assert.equal(result.allowed, false);
   assert.match(result.reason, /blocked/i);
@@ -379,7 +396,11 @@ test("policy — escalation allowed when enabled", () => {
 
 test("policy — escalation denied when budget exceeded", () => {
   const pe = new PolicyEnforcer();
-  const policy = { ...createDefaultPolicy(), allowEscalation: true, maxCostUSD: 1.0 };
+  const policy = {
+    ...createDefaultPolicy(),
+    allowEscalation: true,
+    maxCostUSD: 1.0,
+  };
   const result = pe.checkEscalation(policy, 1.5);
   assert.equal(result.allowed, false);
   assert.match(result.reason, /budget/i);
@@ -397,7 +418,11 @@ test("policy — file access: within workspace allowed", () => {
   const pe = new PolicyEnforcer();
   const policy = createDefaultPolicy();
   const workspace = "/tmp/job123";
-  const result = pe.checkFileAccess("/tmp/job123/output.txt", workspace, policy);
+  const result = pe.checkFileAccess(
+    "/tmp/job123/output.txt",
+    workspace,
+    policy,
+  );
   assert.equal(result.allowed, true);
 });
 
@@ -405,7 +430,12 @@ test("policy — file access: write denied when FS write OFF", () => {
   const pe = new PolicyEnforcer();
   const policy = { ...createDefaultPolicy(), allowFSWrite: false };
   const workspace = "/tmp/job123";
-  const result = pe.checkFileAccess("/tmp/job123/out.txt", workspace, policy, "write");
+  const result = pe.checkFileAccess(
+    "/tmp/job123/out.txt",
+    workspace,
+    policy,
+    "write",
+  );
   assert.equal(result.allowed, false);
 });
 
@@ -459,7 +489,10 @@ test("policy — audit log is maintained", () => {
   const pe = new PolicyEnforcer();
   const policy = createDefaultPolicy();
   pe.checkToolPermission(policy, "readFile");
-  pe.checkToolPermission({ ...policy, blockedTools: ["writeFile"] }, "writeFile");
+  pe.checkToolPermission(
+    { ...policy, blockedTools: ["writeFile"] },
+    "writeFile",
+  );
 
   const log = pe.getAuditLog();
   assert.ok(log.length >= 2);
@@ -511,7 +544,10 @@ test("sandbox — write and read file within workspace", () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "compute-test-"));
   try {
     const { ComputeSandbox } = require("../src/compute/sandbox");
-    const sandbox = new ComputeSandbox({ workspaceDir: tmpDir, policy: createDefaultPolicy() });
+    const sandbox = new ComputeSandbox({
+      workspaceDir: tmpDir,
+      policy: createDefaultPolicy(),
+    });
 
     sandbox.writeFile("test.txt", "Hello Compute!");
     const content = sandbox.readFile("test.txt");
@@ -525,11 +561,14 @@ test("sandbox — blocks path traversal", () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "compute-test-"));
   try {
     const { ComputeSandbox } = require("../src/compute/sandbox");
-    const sandbox = new ComputeSandbox({ workspaceDir: tmpDir, policy: createDefaultPolicy() });
+    const sandbox = new ComputeSandbox({
+      workspaceDir: tmpDir,
+      policy: createDefaultPolicy(),
+    });
 
     assert.throws(
       () => sandbox.readFile("../../etc/passwd"),
-      /outside.*workspace|permission denied|path traversal/i
+      /outside.*workspace|permission denied|path traversal/i,
     );
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -545,7 +584,7 @@ test("sandbox — blocks writing when FS write OFF", () => {
 
     assert.throws(
       () => sandbox.writeFile("output.txt", "hacked"),
-      /permission denied|write access.*disabled/i
+      /permission denied|write access.*disabled/i,
     );
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -556,10 +595,16 @@ test("sandbox — seal prevents further operations", () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "compute-test-"));
   try {
     const { ComputeSandbox } = require("../src/compute/sandbox");
-    const sandbox = new ComputeSandbox({ workspaceDir: tmpDir, policy: createDefaultPolicy() });
+    const sandbox = new ComputeSandbox({
+      workspaceDir: tmpDir,
+      policy: createDefaultPolicy(),
+    });
 
     sandbox.seal();
-    assert.throws(() => sandbox.writeFile("test.txt", "data"), /sealed|inactive/i);
+    assert.throws(
+      () => sandbox.writeFile("test.txt", "data"),
+      /sealed|inactive/i,
+    );
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -569,7 +614,10 @@ test("sandbox — listDir within workspace", () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "compute-test-"));
   try {
     const { ComputeSandbox } = require("../src/compute/sandbox");
-    const sandbox = new ComputeSandbox({ workspaceDir: tmpDir, policy: createDefaultPolicy() });
+    const sandbox = new ComputeSandbox({
+      workspaceDir: tmpDir,
+      policy: createDefaultPolicy(),
+    });
 
     sandbox.writeFile("a.txt", "a");
     sandbox.writeFile("b.txt", "b");
@@ -657,7 +705,7 @@ test("workflow — policies pass validation", () => {
 // 7. INTEGRATION — FULL JOB LIFECYCLE (unit-level)
 // ═══════════════════════════════════════════════════════════════
 
-test("integration — full job lifecycle: create → plan → run → complete", () => {
+test("integration — full job lifecycle: create → plan → run → complete", async () => {
   const sm = new ComputeStateMachine();
 
   // Create
@@ -665,25 +713,39 @@ test("integration — full job lifecycle: create → plan → run → complete",
   assert.equal(job.status, JOB_STATUSES.QUEUED);
 
   // Planning
-  sm.transitionJob(job, JOB_STATUSES.PLANNING);
-  const step1 = createStep({ description: "Read files", agentName: "file-reader" });
-  const step2 = createStep({ description: "Write refactored code", agentName: "code-writer" });
+  await sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  const step1 = createStep({
+    description: "Read files",
+    agentName: "file-reader",
+  });
+  const step2 = createStep({
+    description: "Write refactored code",
+    agentName: "code-writer",
+  });
   job.steps.push(step1, step2);
   job.plan = "Simple 2-step refactor";
 
   // Running
-  sm.transitionJob(job, JOB_STATUSES.RUNNING);
+  await sm.transitionJob(job, JOB_STATUSES.RUNNING);
 
   // Step 1
   sm.transitionStep(job, step1, STEP_STATUSES.RUNNING);
-  sm.transitionStep(job, step1, STEP_STATUSES.COMPLETED, { output: "files read", confidence: 0.9, model: "codestral" });
+  sm.transitionStep(job, step1, STEP_STATUSES.COMPLETED, {
+    output: "files read",
+    confidence: 0.9,
+    model: "codestral",
+  });
 
   // Step 2
   sm.transitionStep(job, step2, STEP_STATUSES.RUNNING);
-  sm.transitionStep(job, step2, STEP_STATUSES.COMPLETED, { output: "refactored", confidence: 0.85, model: "codestral" });
+  sm.transitionStep(job, step2, STEP_STATUSES.COMPLETED, {
+    output: "refactored",
+    confidence: 0.85,
+    model: "codestral",
+  });
 
   // Complete
-  sm.transitionJob(job, JOB_STATUSES.COMPLETED);
+  await sm.transitionJob(job, JOB_STATUSES.COMPLETED);
   assert.equal(job.status, JOB_STATUSES.COMPLETED);
   assert.ok(sm.isTerminal(job));
 
@@ -697,46 +759,48 @@ test("integration — full job lifecycle: create → plan → run → complete",
   assert.ok(job.logs.length >= 4); // at least 4 transitions logged
 });
 
-test("integration — job failure after step failure", () => {
+test("integration — job failure after step failure", async () => {
   const sm = new ComputeStateMachine();
   const job = createJob({ goal: "Fail test" });
 
-  sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  await sm.transitionJob(job, JOB_STATUSES.PLANNING);
   const step = createStep({ description: "Destined to fail" });
   job.steps.push(step);
 
-  sm.transitionJob(job, JOB_STATUSES.RUNNING);
+  await sm.transitionJob(job, JOB_STATUSES.RUNNING);
   sm.transitionStep(job, step, STEP_STATUSES.RUNNING);
   sm.transitionStep(job, step, STEP_STATUSES.FAILED, { error: "LLM timeout" });
 
   // Job itself fails
-  sm.transitionJob(job, JOB_STATUSES.FAILED, { error: "Step failed: LLM timeout" });
+  await sm.transitionJob(job, JOB_STATUSES.FAILED, {
+    error: "Step failed: LLM timeout",
+  });
 
   assert.equal(job.status, JOB_STATUSES.FAILED);
   assert.equal(job.error, "Step failed: LLM timeout");
   assert.equal(step.error, "LLM timeout");
 });
 
-test("integration — cancellation from running", () => {
+test("integration — cancellation from running", async () => {
   const sm = new ComputeStateMachine();
   const job = createJob({ goal: "Will be cancelled" });
 
-  sm.transitionJob(job, JOB_STATUSES.PLANNING);
-  sm.transitionJob(job, JOB_STATUSES.RUNNING);
-  sm.transitionJob(job, JOB_STATUSES.CANCELLED);
+  await sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  await sm.transitionJob(job, JOB_STATUSES.RUNNING);
+  await sm.transitionJob(job, JOB_STATUSES.CANCELLED);
 
   assert.equal(job.status, JOB_STATUSES.CANCELLED);
   assert.ok(sm.isTerminal(job));
 });
 
-test("integration — cancellation from paused", () => {
+test("integration — cancellation from paused", async () => {
   const sm = new ComputeStateMachine();
   const job = createJob({ goal: "Paused then cancelled" });
 
-  sm.transitionJob(job, JOB_STATUSES.PLANNING);
-  sm.transitionJob(job, JOB_STATUSES.RUNNING);
-  sm.transitionJob(job, JOB_STATUSES.PAUSED);
-  sm.transitionJob(job, JOB_STATUSES.CANCELLED);
+  await sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  await sm.transitionJob(job, JOB_STATUSES.RUNNING);
+  await sm.transitionJob(job, JOB_STATUSES.PAUSED);
+  await sm.transitionJob(job, JOB_STATUSES.CANCELLED);
 
   assert.equal(job.status, JOB_STATUSES.CANCELLED);
 });

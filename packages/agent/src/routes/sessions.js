@@ -24,6 +24,15 @@ function sendJson(res, status, body) {
   jsonResponse(res, status, body);
 }
 
+function getRequesterUserId(req) {
+  return req.user?.userId || "anonymous";
+}
+
+function canAccessSession(req, session) {
+  const requester = getRequesterUserId(req);
+  return requester === "anonymous" || session.userId === requester;
+}
+
 function registerSessionRoutes(router, deps) {
   // Initialize session manager (singleton)
   if (!deps.sessionManager) {
@@ -44,7 +53,7 @@ function registerSessionRoutes(router, deps) {
       const sessionData = parsed.ok ? parsed.value : {};
 
       const session = await sessionManager.createSession({
-        userId: sessionData.userId || req.user?.userId || "anonymous",
+        userId: getRequesterUserId(req),
         metadata: sessionData.metadata || {},
       });
 
@@ -60,6 +69,11 @@ function registerSessionRoutes(router, deps) {
       const session = sessionManager.getSession(ctx.sessionId);
       if (!session) {
         return sendJson(res, 404, { error: "Session not found" });
+      }
+      if (!canAccessSession(req, session)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: session ownership mismatch",
+        });
       }
       sendJson(res, 200, { session });
     } catch (err) {
@@ -78,13 +92,22 @@ function registerSessionRoutes(router, deps) {
 
       const { activity, metadata } = parsed.value;
 
+      const session = sessionManager.getSession(ctx.sessionId);
+      if (!session) {
+        return sendJson(res, 404, { error: "Session not found" });
+      }
+      if (!canAccessSession(req, session)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: session ownership mismatch",
+        });
+      }
+
       sessionManager.updateActivity(ctx.sessionId, activity);
 
       if (metadata) {
-        const session = sessionManager.getSession(ctx.sessionId);
-        if (session) {
-          session.metadata = { ...session.metadata, ...metadata };
-        }
+        sessionManager.updateSession(ctx.sessionId, {
+          metadata: { ...session.metadata, ...metadata },
+        });
       }
 
       const updatedSession = sessionManager.getSession(ctx.sessionId);
@@ -95,8 +118,17 @@ function registerSessionRoutes(router, deps) {
   });
 
   // ─── DELETE /sessions/:sessionId ───────────────────────────
-  router.delete("/sessions/:sessionId", async (req, res, ctx) => {
+  router.del("/sessions/:sessionId", async (req, res, ctx) => {
     try {
+      const session = sessionManager.getSession(ctx.sessionId);
+      if (!session) {
+        return sendJson(res, 404, { error: "Session not found" });
+      }
+      if (!canAccessSession(req, session)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: session ownership mismatch",
+        });
+      }
       await sessionManager.terminateSession(ctx.sessionId);
       sendJson(res, 200, { message: "Session terminated" });
     } catch (err) {
@@ -108,7 +140,7 @@ function registerSessionRoutes(router, deps) {
   router.get("/sessions", (req, res) => {
     try {
       const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
-      const userId = url.searchParams.get("userId");
+      const userId = url.searchParams.get("userId") || getRequesterUserId(req);
       const status = url.searchParams.get("status");
 
       const sessions = sessionManager.listSessions({ userId, status });
@@ -124,6 +156,11 @@ function registerSessionRoutes(router, deps) {
       const session = sessionManager.getSession(ctx.sessionId);
       if (!session) {
         return sendJson(res, 404, { error: "Session not found" });
+      }
+      if (!canAccessSession(req, session)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: session ownership mismatch",
+        });
       }
       sendJson(res, 200, { workspacePath: session.workspacePath });
     } catch (err) {

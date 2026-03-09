@@ -1,5 +1,58 @@
 # FINAL STATUS
 
+## Closure Pass Delta (March 8, 2026, later)
+
+### Implemented in this pass
+
+1. Added provider resilience with circuit breaker, health tracking, suppression, half-open recovery, timeout classification, and bounded retry in `packages/agent/src/model-runtime/external-providers.js`.
+2. Added durable session persistence + restart reload + missing route-dependent APIs in `packages/agent/src/utils/session-manager.js`.
+3. Enforced session ownership + fixed DELETE route registration bug in `packages/agent/src/routes/sessions.js`.
+4. Enforced compute job ownership boundaries across read/mutate/artifact/SSE routes in `packages/agent/src/routes/compute.js`.
+5. Added GPU session metadata persistence + restart reconnect signals in `packages/agent/src/compute/gpu-session-manager.js`.
+6. Added restart reconciliation for interrupted non-terminal compute jobs in `packages/agent/src/compute/orchestrator.js`.
+7. Fixed vibe provider response parsing robustness in `packages/agent/src/routes/vibe.js`.
+8. Closed GUI parity gap by wiring image attach flow to `/vibe/analyze` and surfacing analysis summary in `gui/src/components/mainInput/TipTapEditor/TipTapEditor.tsx` and `gui/src/components/mainInput/TipTapEditor/utils/vibeAnalysis.ts`.
+9. Hardened sandbox execution policy by rejecting unsafe code by default + context-size bounds in `packages/agent/src/security/sandbox.js`.
+
+### Verification in this pass
+
+1. New tests:
+   - `packages/agent/test/external-providers-resilience.test.cjs`
+   - `packages/agent/test/compute-routes-integration.test.cjs`
+   - `packages/agent/test/sessions-routes.test.cjs`
+   - `packages/agent/test/session-manager-persistence.test.cjs`
+   - `packages/agent/test/vibe-routes-integration.test.cjs`
+2. Regression tests passed:
+   - `packages/agent/test/gpu-session-manager.test.cjs`
+   - `packages/agent/test/vibe-routes-policy.test.cjs`
+   - `packages/agent/test/run-process-manager.test.cjs`
+
+### Updated Decision
+
+- Decision: **ADVANCED-BETA (NO public production ship yet)**
+- Revised score after this pass: **8.6/10**
+- Remaining blockers are now concentrated in infrastructure-grade persistence breadth and broader end-to-end coverage, not in placeholder architecture paths.
+
+## Closure Pass Delta (March 8, 2026, final wave)
+
+### Additional implemented changes
+
+1. Added run lifecycle durability with persisted run metadata and restart recovery in `packages/agent/src/run/process-manager.js`.
+2. Hardened MCP read endpoints with permission enforcement and request-size bounds in `packages/agent/src/routes/mcp.js`.
+3. Added provider health observability endpoint and stricter input bounds/CORS tightening in `packages/agent/src/routes/external-providers.js`.
+
+### Additional tests added and passing
+
+1. `packages/agent/test/run-process-manager-persistence.test.cjs`
+2. `packages/agent/test/mcp-routes-security.test.cjs`
+3. `packages/agent/test/external-providers-routes.integration.test.cjs`
+4. `packages/agent/test/vibe-apply-integration.test.cjs`
+
+### Validation snapshot
+
+- Newly added tests: **pass**
+- Regression sweep across modified modules (`mcp`, `external-providers`, `compute`, `sessions`, `run`, `vibe`, `gpu`) : **72/72 passing**
+
 **Date:** March 8, 2026  
 **Decision:** **NO-SHIP**  
 **Current Score:** **8.3/10**

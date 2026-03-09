@@ -72,6 +72,30 @@ class SwarmManager extends EventEmitter {
 
     // SSE subscribers
     this._subscribers = new Set();
+
+    // Periodic task pruning — remove completed/partial/cancelled tasks older than 1 hour
+    this._taskPruneInterval = setInterval(
+      () => this._pruneCompletedTasks(),
+      5 * 60 * 1000,
+    );
+    this._taskPruneInterval.unref();
+  }
+
+  /**
+   * Remove completed tasks older than maxAgeMs from _tasks Map to prevent unbounded memory growth.
+   * @param {number} [maxAgeMs=3600000] — default 1 hour
+   * @returns {number} count of pruned tasks
+   */
+  _pruneCompletedTasks(maxAgeMs = 60 * 60 * 1000) {
+    const cutoff = Date.now() - maxAgeMs;
+    let pruned = 0;
+    for (const [taskId, task] of this._tasks) {
+      if (task.completedAt && new Date(task.completedAt).getTime() < cutoff) {
+        this._tasks.delete(taskId);
+        pruned++;
+      }
+    }
+    return pruned;
   }
 
   // ════════════════════════════════════════════════════════════
@@ -192,6 +216,7 @@ class SwarmManager extends EventEmitter {
     strategy: _strategy,
     acceptanceCriteria,
     context = {},
+    onTaskCreated,
   }) {
     this._requireActive();
 
@@ -241,6 +266,13 @@ class SwarmManager extends EventEmitter {
       // Register the task
       this._tasks.set(taskGraph.id, taskGraph);
       this._memory.onTaskStart(taskGraph);
+      if (typeof onTaskCreated === "function") {
+        try {
+          onTaskCreated(taskGraph.id, taskGraph);
+        } catch {
+          // Non-fatal callback error.
+        }
+      }
 
       this._broadcast(
         createSwarmEvent({
@@ -378,6 +410,7 @@ class SwarmManager extends EventEmitter {
     }
 
     // Shutdown subsystems
+    if (this._taskPruneInterval) clearInterval(this._taskPruneInterval);
     if (this._permissionGate) this._permissionGate.destroy();
     if (this._agentRouter) this._agentRouter.shutdown();
     if (this._memory) this._memory.destroy();
@@ -451,7 +484,16 @@ class SwarmManager extends EventEmitter {
     taskGraph.startedAt = new Date().toISOString();
     const concurrency = this._config?.concurrency || 4;
 
+    const NODE_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes per node
+
     const executeNode = async (node) => {
+      if (
+        taskGraph.status === "cancelled" ||
+        node.status === NODE_STATUS.CANCELLED
+      ) {
+        return;
+      }
+
       node.status = NODE_STATUS.RUNNING;
       node.startedAt = new Date().toISOString();
       this._memory.onNodeStart(node);
@@ -474,7 +516,22 @@ class SwarmManager extends EventEmitter {
           blackboard: this._memory.blackboard,
         };
 
-        const result = await agent.execute(node, nodeContext);
+        const nodePromise = agent.execute(node, nodeContext);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Node execution timeout (3 min)")),
+            NODE_TIMEOUT_MS,
+          ),
+        );
+        const result = await Promise.race([nodePromise, timeoutPromise]);
+        if (
+          taskGraph.status === "cancelled" ||
+          node.status === NODE_STATUS.CANCELLED
+        ) {
+          node.status = NODE_STATUS.CANCELLED;
+          node.completedAt = new Date().toISOString();
+          return;
+        }
         node.result = result;
         node.status = NODE_STATUS.SUCCEEDED;
         node.completedAt = new Date().toISOString();
@@ -488,6 +545,15 @@ class SwarmManager extends EventEmitter {
           }),
         );
       } catch (err) {
+        if (
+          taskGraph.status === "cancelled" ||
+          node.status === NODE_STATUS.CANCELLED
+        ) {
+          node.status = NODE_STATUS.CANCELLED;
+          node.error = node.error || "Cancelled";
+          node.completedAt = new Date().toISOString();
+          return;
+        }
         // Retry logic
         if (node.retryCount < node.maxRetries) {
           node.retryCount++;
@@ -519,7 +585,33 @@ class SwarmManager extends EventEmitter {
 
     // Main execution loop: keep getting next nodes from scheduler until all done
     let maxRounds = 100; // safety valve
+    const TASK_TIMEOUT_MS = 10 * 60 * 1000; // 10 minute hard limit per task
+    const taskStart = Date.now();
     while (maxRounds-- > 0) {
+      if (taskGraph.status === "cancelled") {
+        break;
+      }
+
+      if (Date.now() - taskStart > TASK_TIMEOUT_MS) {
+        // Forcibly cancel remaining nodes
+        for (const node of taskGraph.nodes) {
+          if (
+            [
+              NODE_STATUS.QUEUED,
+              NODE_STATUS.RUNNING,
+              NODE_STATUS.BLOCKED,
+              NODE_STATUS.RETRYING,
+            ].includes(node.status)
+          ) {
+            node.status = NODE_STATUS.CANCELLED;
+            node.error = "Task execution timeout exceeded (10 min)";
+            node.completedAt = new Date().toISOString();
+            taskGraph.metadata.nodesFailed++;
+          }
+        }
+        break;
+      }
+
       const readyNodes = scheduler.getNextNodes(taskGraph);
       if (readyNodes.length === 0) {
         // Check if there are still queued/running/blocked nodes
@@ -576,25 +668,30 @@ class SwarmManager extends EventEmitter {
     }
 
     // Determine final status
-    const allSucceeded = taskGraph.nodes.every(
-      (n) => n.status === NODE_STATUS.SUCCEEDED,
-    );
-    const anyFailed = taskGraph.nodes.some(
-      (n) =>
-        n.status === NODE_STATUS.FAILED || n.status === NODE_STATUS.CANCELLED,
-    );
+    if (taskGraph.status !== "cancelled") {
+      const allSucceeded = taskGraph.nodes.every(
+        (n) => n.status === NODE_STATUS.SUCCEEDED,
+      );
+      const anyFailed = taskGraph.nodes.some(
+        (n) =>
+          n.status === NODE_STATUS.FAILED || n.status === NODE_STATUS.CANCELLED,
+      );
 
-    taskGraph.status = allSucceeded
-      ? "completed"
-      : anyFailed
-        ? "partial"
-        : "completed";
+      taskGraph.status = allSucceeded
+        ? "completed"
+        : anyFailed
+          ? "partial"
+          : "completed";
+    }
     taskGraph.completedAt = new Date().toISOString();
 
     this._memory.onTaskComplete(taskGraph);
     this._broadcast(
       createSwarmEvent({
-        type: EVENT_TYPE.TASK_COMPLETED,
+        type:
+          taskGraph.status === "cancelled"
+            ? EVENT_TYPE.TASK_CANCELLED
+            : EVENT_TYPE.TASK_COMPLETED,
         data: {
           taskId: taskGraph.id,
           status: taskGraph.status,

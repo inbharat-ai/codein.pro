@@ -84,7 +84,12 @@ parentPort.on('message', async (message) => {
       throw new Error("Code must be a string");
     }
 
-    const { timeout = this.timeout, context = {}, abort = false } = options;
+    const {
+      timeout = this.timeout,
+      context = {},
+      abort = false,
+      allowUnsafe = false,
+    } = options;
 
     const execId = ++this.execCounter;
 
@@ -92,8 +97,20 @@ parentPort.on('message', async (message) => {
       throw new Error("Code exceeds maximum size (1MB)");
     }
 
+    if (!allowUnsafe) {
+      const validation = this.validateCode(code);
+      if (!validation.safe) {
+        throw new Error(
+          `Sandbox rejected unsafe code: ${validation.errors.slice(0, 3).join("; ")}`,
+        );
+      }
+    }
+
     try {
-      JSON.stringify(context);
+      const serialized = JSON.stringify(context);
+      if (serialized.length > 512 * 1024) {
+        throw new Error("Context exceeds maximum size (512KB)");
+      }
     } catch (error) {
       throw new Error("Context must be JSON serializable");
     }

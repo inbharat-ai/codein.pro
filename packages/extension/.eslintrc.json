@@ -8,5 +8,6 @@
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-floating-promises": "warn",
     "@typescript-eslint/no-misused-promises": "warn"
-  }
+  },
+  "ignorePatterns": ["e2e/**", "vitest.config.ts"]
 }

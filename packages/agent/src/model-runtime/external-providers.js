@@ -79,7 +79,9 @@ const PROVIDER_CONFIGS = {
       try {
         const json = JSON.parse(chunk);
         const delta = json.choices?.[0]?.delta?.content ?? "";
-        const done = json.choices?.[0]?.finish_reason != null;
+        const done =
+          json.choices?.[0]?.finish_reason !== null &&
+          json.choices?.[0]?.finish_reason !== undefined;
         return { content: delta, done };
       } catch {
         return { content: "", done: false };
@@ -243,6 +245,143 @@ class ExternalProviderManager extends EventEmitter {
     super();
     /** @type {Map<string, { apiKey: string, model?: string, baseUrl?: string }>} */
     this.configured = new Map();
+    /** @type {Map<string, {state:string, failures:number, successes:number, openedAt:number|null, nextProbeAt:number, halfOpenInFlight:boolean, lastError:string|null, lastStatus:string|null, lastLatencyMs:number|null}>} */
+    this.providerHealth = new Map();
+
+    this.resilienceConfig = {
+      failureThreshold: 3,
+      cooldownMs: 30_000,
+      probeAfterMs: 10_000,
+      requestTimeoutMs: 25_000,
+      retryCount: 1,
+      retryBackoffMs: 400,
+    };
+  }
+
+  _ensureHealth(providerId) {
+    if (!this.providerHealth.has(providerId)) {
+      this.providerHealth.set(providerId, {
+        state: "closed",
+        failures: 0,
+        successes: 0,
+        openedAt: null,
+        nextProbeAt: 0,
+        halfOpenInFlight: false,
+        lastError: null,
+        lastStatus: null,
+        lastLatencyMs: null,
+      });
+    }
+    return this.providerHealth.get(providerId);
+  }
+
+  _classifyError(error) {
+    const msg = String(error?.message || "").toLowerCase();
+    if (msg.includes("timeout")) return "timeout";
+    if (msg.includes("429") || msg.includes("rate")) return "rate_limit";
+    if (msg.includes("5") && msg.includes("returned")) return "upstream_5xx";
+    if (msg.includes("4") && msg.includes("returned")) return "upstream_4xx";
+    if (
+      msg.includes("econn") ||
+      msg.includes("socket") ||
+      msg.includes("network")
+    )
+      return "network";
+    return "unknown";
+  }
+
+  _isRetryableClassification(classification) {
+    return ["timeout", "rate_limit", "upstream_5xx", "network"].includes(
+      classification,
+    );
+  }
+
+  _markSuccess(providerId, latencyMs = null) {
+    const health = this._ensureHealth(providerId);
+    health.successes += 1;
+    health.failures = 0;
+    health.lastError = null;
+    health.lastStatus = "ok";
+    health.lastLatencyMs = latencyMs;
+    if (health.state !== "closed") {
+      health.state = "closed";
+      health.openedAt = null;
+      health.nextProbeAt = 0;
+      health.halfOpenInFlight = false;
+      this.emit("provider-recovered", { providerId, latencyMs });
+    }
+  }
+
+  _markFailure(providerId, error, classification) {
+    const health = this._ensureHealth(providerId);
+    health.failures += 1;
+    health.lastError = String(
+      error?.message || error || "Unknown provider failure",
+    );
+    health.lastStatus = classification;
+    health.halfOpenInFlight = false;
+
+    if (health.failures >= this.resilienceConfig.failureThreshold) {
+      health.state = "open";
+      health.openedAt = Date.now();
+      health.nextProbeAt = Date.now() + this.resilienceConfig.cooldownMs;
+      this.emit("provider-circuit-open", {
+        providerId,
+        failures: health.failures,
+        reason: classification,
+      });
+    }
+  }
+
+  _isProviderCallable(providerId) {
+    const health = this._ensureHealth(providerId);
+    if (health.state === "closed") {
+      return { callable: true, mode: "closed" };
+    }
+    if (health.state === "open") {
+      if (Date.now() >= health.nextProbeAt) {
+        health.state = "half_open";
+        health.halfOpenInFlight = false;
+      } else {
+        return { callable: false, mode: "open", until: health.nextProbeAt };
+      }
+    }
+
+    if (health.state === "half_open") {
+      if (health.halfOpenInFlight) {
+        // Safety: if halfOpen probe has been in-flight too long, reset it
+        if (
+          health._halfOpenStartedAt &&
+          Date.now() - health._halfOpenStartedAt >
+            this.resilienceConfig.requestTimeoutMs + 5000
+        ) {
+          health.halfOpenInFlight = false;
+          health._halfOpenStartedAt = null;
+        } else {
+          return {
+            callable: false,
+            mode: "half_open_busy",
+            until: health.nextProbeAt,
+          };
+        }
+      }
+      health.halfOpenInFlight = true;
+      health._halfOpenStartedAt = Date.now();
+      return { callable: true, mode: "half_open" };
+    }
+
+    return { callable: true, mode: health.state };
+  }
+
+  getProviderHealth(providerId) {
+    if (providerId) {
+      return { providerId, ...this._ensureHealth(providerId) };
+    }
+    const snapshot = {};
+    for (const id of Object.keys(PROVIDER_CONFIGS)) {
+      snapshot[id] = { ...this._ensureHealth(id) };
+    }
+    return snapshot;
   }
 
   // ── Configuration ────────────────────────────────────────────────────────
@@ -258,6 +397,7 @@ class ExternalProviderManager extends EventEmitter {
       throw new Error(`apiKey is required for ${providerId}`);
     }
     this.configured.set(providerId, { apiKey, model, baseUrl });
+    this._ensureHealth(providerId);
     this.emit("provider-configured", { providerId });
   }
 
@@ -361,18 +501,38 @@ class ExternalProviderManager extends EventEmitter {
       ...providerCfg.authHeader(userCfg.apiKey),
     };
 
-    const startTime = Date.now();
+    const callable = this._isProviderCallable(providerId);
+    if (!callable.callable) {
+      throw new Error(
+        `Provider ${providerId} temporarily suppressed (${callable.mode})`,
+      );
+    }
 
-    const data = await this._request(baseUrl + endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    });
+    const startTime = Date.now();
+    let data;
+    try {
+      data = await this._requestWithRetry(
+        providerId,
+        baseUrl + endpoint,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+          timeoutMs:
+            options.timeoutMs || this.resilienceConfig.requestTimeoutMs,
+        },
+        options,
+      );
+    } catch (error) {
+      this._markFailure(providerId, error, this._classifyError(error));
+      throw error;
+    }
 
     const latencyMs = Date.now() - startTime;
     const parsed = providerCfg.parseResponse(data);
     parsed.latencyMs = latencyMs;
     parsed.provider = providerId;
+    this._markSuccess(providerId, latencyMs);
 
     this.emit("completion", {
       providerId,
@@ -394,6 +554,13 @@ class ExternalProviderManager extends EventEmitter {
    * @yields {{ content: string, done: boolean }}
    */
   async *streamComplete(providerId, messages, options = {}) {
+    const callable = this._isProviderCallable(providerId);
+    if (!callable.callable) {
+      throw new Error(
+        `Provider ${providerId} temporarily suppressed (${callable.mode})`,
+      );
+    }
+
     const providerCfg = PROVIDER_CONFIGS[providerId];
     const userCfg = this.configured.get(providerId);
     if (!providerCfg || !userCfg) {
@@ -440,6 +607,12 @@ class ExternalProviderManager extends EventEmitter {
 
     const response = await new Promise((resolve, reject) => {
       const req = client.request(requestOptions, resolve);
+      req.setTimeout(
+        options.timeoutMs || this.resilienceConfig.requestTimeoutMs,
+        () => {
+          req.destroy(new Error("Provider stream request timeout"));
+        },
+      );
       req.on("error", reject);
       req.write(JSON.stringify(body));
       req.end();
@@ -449,9 +622,11 @@ class ExternalProviderManager extends EventEmitter {
       const chunks = [];
       for await (const chunk of response) chunks.push(chunk);
       const errorBody = Buffer.concat(chunks).toString();
-      throw new Error(
+      const error = new Error(
         `${providerId} stream error ${response.statusCode}: ${errorBody.slice(0, 500)}`,
       );
+      this._markFailure(providerId, error, this._classifyError(error));
+      throw error;
     }
 
     let buffer = "";
@@ -469,12 +644,14 @@ class ExternalProviderManager extends EventEmitter {
           payload = payload.slice(6).trim();
         }
         if (payload === "[DONE]") {
+          this._markSuccess(providerId);
           yield { content: "", done: true };
           return;
         }
 
         const parsed = providerCfg.parseStreamChunk(payload);
         if (parsed.done) {
+          this._markSuccess(providerId);
           yield { content: parsed.content || "", done: true };
           return;
         }
@@ -497,6 +674,24 @@ class ExternalProviderManager extends EventEmitter {
    * @returns {Promise<Object>}
    */
   async completeWithFallback(messages, options = {}, providerOrder = null) {
+    // Backward-compatible overloaded signature:
+    // completeWithFallback({ messages, providerOrder, ...options })
+    if (
+      messages &&
+      typeof messages === "object" &&
+      !Array.isArray(messages) &&
+      Array.isArray(messages.messages)
+    ) {
+      const payload = messages;
+      providerOrder = payload.providerOrder || providerOrder;
+      options = {
+        ...payload,
+      };
+      delete options.messages;
+      delete options.providerOrder;
+      messages = payload.messages;
+    }
+
     const order = providerOrder || ["openai", "anthropic", "gemini"];
     const configuredOrder = order.filter((p) => this.configured.has(p));
 
@@ -508,12 +703,26 @@ class ExternalProviderManager extends EventEmitter {
 
     const errors = [];
     for (const providerId of configuredOrder) {
+      const callable = this._isProviderCallable(providerId);
+      if (!callable.callable) {
+        errors.push({
+          provider: providerId,
+          error: `suppressed (${callable.mode})`,
+        });
+        continue;
+      }
       try {
         const result = await this.complete(providerId, messages, options);
         result.fallbackChain = errors.map((e) => e.provider);
         return result;
       } catch (err) {
-        errors.push({ provider: providerId, error: err.message });
+        const classification = this._classifyError(err);
+        this._markFailure(providerId, err, classification);
+        errors.push({
+          provider: providerId,
+          error: err.message,
+          classification,
+        });
         this.emit("fallback", { from: providerId, error: err.message });
       }
     }
@@ -562,10 +771,52 @@ class ExternalProviderManager extends EventEmitter {
         });
       });
 
+      req.setTimeout(
+        options.timeoutMs || this.resilienceConfig.requestTimeoutMs,
+        () => {
+          req.destroy(new Error("Provider request timeout"));
+        },
+      );
       req.on("error", reject);
       if (options.body) req.write(options.body);
       req.end();
     });
+  }
+
+  async _requestWithRetry(providerId, url, requestOptions, options = {}) {
+    const retries = Math.max(
+      0,
+      Number.isInteger(options.retryCount)
+        ? options.retryCount
+        : this.resilienceConfig.retryCount,
+    );
+
+    let lastError = null;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await this._request(url, requestOptions);
+      } catch (error) {
+        lastError = error;
+        const classification = this._classifyError(error);
+        const canRetry =
+          attempt < retries && this._isRetryableClassification(classification);
+        if (!canRetry) {
+          throw error;
+        }
+        const delay = Math.min(
+          (this.resilienceConfig.retryBackoffMs || 300) * 2 ** attempt,
+          3000,
+        );
+        this.emit("provider-retry", {
+          providerId,
+          attempt: attempt + 1,
+          delay,
+          classification,
+        });
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+    throw lastError || new Error("Provider request failed");
   }
 }
 

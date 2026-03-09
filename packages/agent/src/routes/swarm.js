@@ -33,7 +33,47 @@ function sendJson(res, status, body) {
   jsonResponse(res, status, body);
 }
 
+async function ensureSwarmPermission(req, res, deps, operation, context = {}) {
+  if (typeof deps.requirePermission !== "function") {
+    return true;
+  }
+  const decision = await deps.requirePermission(
+    "swarmOperation",
+    {
+      user: req.user,
+      operation,
+      ...context,
+    },
+    deps.permissionManager,
+  );
+  if (!decision?.allowed) {
+    sendJson(res, 403, {
+      error: `Permission denied for ${operation}`,
+      reason: decision?.reason || "Unauthorized",
+    });
+    return false;
+  }
+  return true;
+}
+
+function ensureTaskOwnership(req, res, taskOwnerById, taskId) {
+  const requester = req.user?.userId;
+  if (!requester) {
+    sendJson(res, 401, { error: "Authentication required" });
+    return false;
+  }
+  const owner = taskOwnerById.get(taskId);
+  if (owner && owner !== requester) {
+    sendJson(res, 403, { error: "Forbidden: task access denied" });
+    return false;
+  }
+  return true;
+}
+
 function registerSwarmRoutes(router, deps) {
+  const { logger } = deps;
+  const taskOwnerById = new Map();
+
   // Initialize SwarmManager once, store in deps for MCP tools
   const swarmManager = new SwarmManager({
     runLLM: deps.runLLM || (async () => "{}"),
@@ -59,7 +99,8 @@ function registerSwarmRoutes(router, deps) {
   // ─── POST /swarm/init ──────────────────────────────────────
   router.post("/swarm/init", async (req, res) => {
     try {
-      const raw = await readBody(req);
+      if (!(await ensureSwarmPermission(req, res, deps, "init"))) return;
+      const raw = await readBody(req, 256 * 1024);
       const parsed = parseJsonBody(raw);
       const config = parsed.ok ? parsed.value : {};
       const result = swarmManager.swarmInit(config);
@@ -73,6 +114,7 @@ function registerSwarmRoutes(router, deps) {
   router.post("/swarm/shutdown", (_req, res) => {
     try {
       const result = swarmManager.swarmShutdown();
+      taskOwnerById.clear();
       sendJson(res, 200, result);
     } catch (err) {
       sendJson(res, 500, { error: err.message });
@@ -92,12 +134,18 @@ function registerSwarmRoutes(router, deps) {
   // ─── POST /swarm/agents ────────────────────────────────────
   router.post("/swarm/agents", async (req, res) => {
     try {
-      const raw = await readBody(req);
+      if (!(await ensureSwarmPermission(req, res, deps, "agent-spawn"))) {
+        return;
+      }
+      const raw = await readBody(req, 128 * 1024);
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
 
       const { type } = parsed.value;
-      if (!type) return sendJson(res, 400, { error: "'type' is required" });
+      if (!type || typeof type !== "string" || type.length > 50)
+        return sendJson(res, 400, {
+          error: "'type' is required and must be a string (max 50 chars)",
+        });
 
       const descriptor = swarmManager.agentSpawn(type);
       sendJson(res, 201, descriptor);
@@ -139,15 +187,18 @@ function registerSwarmRoutes(router, deps) {
   // ─── POST /swarm/tasks ─────────────────────────────────────
   router.post("/swarm/tasks", async (req, res) => {
     try {
-      const raw = await readBody(req);
+      if (!(await ensureSwarmPermission(req, res, deps, "task-orchestrate"))) {
+        return;
+      }
+      const raw = await readBody(req, 1024 * 1024);
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
 
       const { goal, mode, topology, strategy, acceptanceCriteria, context } =
         parsed.value;
-      if (!goal || typeof goal !== "string") {
+      if (!goal || typeof goal !== "string" || goal.length > 50000) {
         return sendJson(res, 400, {
-          error: "'goal' is required and must be a string",
+          error: "'goal' is required and must be a string (max 50000 chars)",
         });
       }
 
@@ -160,6 +211,10 @@ function registerSwarmRoutes(router, deps) {
         context: context || {},
       });
 
+      if (result?.taskId && req.user?.userId) {
+        taskOwnerById.set(result.taskId, req.user.userId);
+      }
+
       sendJson(res, 201, result);
     } catch (err) {
       sendJson(res, 500, { error: err.message });
@@ -169,6 +224,7 @@ function registerSwarmRoutes(router, deps) {
   // ─── GET /swarm/tasks/:taskId ──────────────────────────────
   router.get("/swarm/tasks/:taskId", (req, res, ctx) => {
     try {
+      if (!ensureTaskOwnership(req, res, taskOwnerById, ctx.taskId)) return;
       const status = swarmManager.taskStatus(ctx.taskId);
       if (!status) return sendJson(res, 404, { error: "Task not found" });
       sendJson(res, 200, status);
@@ -180,6 +236,7 @@ function registerSwarmRoutes(router, deps) {
   // ─── GET /swarm/tasks/:taskId/results ──────────────────────
   router.get("/swarm/tasks/:taskId/results", (req, res, ctx) => {
     try {
+      if (!ensureTaskOwnership(req, res, taskOwnerById, ctx.taskId)) return;
       const results = swarmManager.taskResults(ctx.taskId);
       if (!results) return sendJson(res, 404, { error: "Task not found" });
       sendJson(res, 200, results);
@@ -191,6 +248,7 @@ function registerSwarmRoutes(router, deps) {
   // ─── POST /swarm/tasks/:taskId/cancel ──────────────────────
   router.post("/swarm/tasks/:taskId/cancel", (req, res, ctx) => {
     try {
+      if (!ensureTaskOwnership(req, res, taskOwnerById, ctx.taskId)) return;
       const result = swarmManager.taskCancel(ctx.taskId);
       sendJson(res, result.success ? 200 : 404, result);
     } catch (err) {
@@ -221,7 +279,14 @@ function registerSwarmRoutes(router, deps) {
   // ─── POST /swarm/permissions/:requestId ────────────────────
   router.post("/swarm/permissions/:requestId", async (req, res, ctx) => {
     try {
-      const raw = await readBody(req);
+      if (
+        !(await ensureSwarmPermission(req, res, deps, "permission-respond", {
+          requestId: ctx.requestId,
+        }))
+      ) {
+        return;
+      }
+      const raw = await readBody(req, 64 * 1024);
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
 

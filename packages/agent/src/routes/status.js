@@ -241,6 +241,71 @@ function registerStatusRoutes(router, deps) {
         metrics.push(`sessions_active ${sessions.length}`);
       }
 
+      // External provider health
+      if (deps.externalProviders) {
+        const health = deps.externalProviders.getProviderHealth();
+        metrics.push(
+          `# HELP provider_circuit_state Provider circuit breaker state (0=closed, 1=open, 2=half_open)`,
+        );
+        metrics.push(`# TYPE provider_circuit_state gauge`);
+        for (const [id, h] of Object.entries(health)) {
+          const stateNum =
+            h.state === "closed" ? 0 : h.state === "open" ? 1 : 2;
+          metrics.push(`provider_circuit_state{provider="${id}"} ${stateNum}`);
+        }
+
+        metrics.push(`# HELP provider_failures_total Provider failure count`);
+        metrics.push(`# TYPE provider_failures_total counter`);
+        for (const [id, h] of Object.entries(health)) {
+          metrics.push(
+            `provider_failures_total{provider="${id}"} ${h.failures || 0}`,
+          );
+        }
+
+        metrics.push(`# HELP provider_successes_total Provider success count`);
+        metrics.push(`# TYPE provider_successes_total counter`);
+        for (const [id, h] of Object.entries(health)) {
+          metrics.push(
+            `provider_successes_total{provider="${id}"} ${h.successes || 0}`,
+          );
+        }
+      }
+
+      // Swarm metrics
+      if (deps.swarmManager) {
+        try {
+          const swarmStatus = deps.swarmManager.swarmStatus();
+          metrics.push(`# HELP swarm_active_tasks Active swarm tasks`);
+          metrics.push(`# TYPE swarm_active_tasks gauge`);
+          metrics.push(`swarm_active_tasks ${swarmStatus.activeTasks || 0}`);
+        } catch {
+          // swarm not initialized — skip
+        }
+      }
+
+      // Concurrency limiter metrics
+      if (deps.concurrencyLimiter) {
+        metrics.push(`# HELP concurrency_active_requests In-flight requests`);
+        metrics.push(`# TYPE concurrency_active_requests gauge`);
+        metrics.push(
+          `concurrency_active_requests ${deps.concurrencyLimiter.activeCount}`,
+        );
+        metrics.push(
+          `# HELP concurrency_queued_requests Queued requests waiting`,
+        );
+        metrics.push(`# TYPE concurrency_queued_requests gauge`);
+        metrics.push(
+          `concurrency_queued_requests ${deps.concurrencyLimiter.queueLength}`,
+        );
+      }
+
+      // Rate limiter metrics
+      if (deps.rateLimiter) {
+        metrics.push(`# HELP rate_limiter_buckets Active rate limiter buckets`);
+        metrics.push(`# TYPE rate_limiter_buckets gauge`);
+        metrics.push(`rate_limiter_buckets ${deps.rateLimiter.buckets.size}`);
+      }
+
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end(metrics.join("\n"));
     } catch (err) {

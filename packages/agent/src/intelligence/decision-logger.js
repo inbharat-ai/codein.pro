@@ -227,7 +227,8 @@ class IntelligenceLogger {
       if (d.finalModel) {
         stats.byModel[d.finalModel] = (stats.byModel[d.finalModel] || 0) + 1;
       }
-      if (d.confidence?.score != null) confSum += d.confidence.score;
+      if (d.confidence?.score !== null && d.confidence?.score !== undefined)
+        confSum += d.confidence.score;
       if (d.timing?.totalMs) timeSum += d.timing.totalMs;
       if (d.verification) {
         verifyCount++;

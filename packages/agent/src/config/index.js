@@ -64,6 +64,7 @@ function loadConfig(options = {}) {
       100000,
       "RATE_LIMIT_PER_HOUR",
     ),
+    trustProxy: parseBoolean(process.env.TRUST_PROXY, false),
 
     // Security headers
     corsOrigin: process.env.CORS_ORIGIN || "http://localhost:*",

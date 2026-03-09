@@ -35,7 +35,7 @@ function formatTime(ts: string | number): string {
   });
 }
 
-export function SwarmTimeline() {
+export function SwarmTimeline(): JSX.Element {
   const events = useAppSelector(selectSwarmEvents);
 
   if (events.length === 0) {
@@ -72,7 +72,10 @@ export function SwarmTimeline() {
               <span className="text-vsc-foreground/40 truncate">
                 {typeof ev.data === "string"
                   ? ev.data
-                  : ev.data.agentType || ev.data.taskId || ev.data.nodeId || ""}
+                  : ((ev.data.agentType ||
+                      ev.data.taskId ||
+                      ev.data.nodeId ||
+                      "") as string)}
               </span>
             )}
           </div>

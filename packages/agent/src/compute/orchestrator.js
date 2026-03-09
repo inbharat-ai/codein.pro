@@ -73,6 +73,55 @@ class ComputeOrchestrator extends EventEmitter {
     this.stateMachine.on("step:transition", (data) =>
       this.emit("step:transition", data),
     );
+
+    this._recoverInterruptedJobs();
+
+    // Periodic cleanup of terminal jobs older than 7 days — every 6 hours
+    this._cleanupInterval = setInterval(
+      () => {
+        try {
+          this.cleanup();
+        } catch {
+          /* ignore cleanup errors */
+        }
+      },
+      6 * 60 * 60 * 1000,
+    );
+    this._cleanupInterval.unref();
+  }
+
+  _recoverInterruptedJobs() {
+    const snapshot = this.jobStore.list({ limit: 5000, offset: 0 }).jobs || [];
+    const terminal = new Set([
+      JOB_STATUSES.COMPLETED,
+      JOB_STATUSES.FAILED,
+      JOB_STATUSES.CANCELLED,
+    ]);
+
+    for (const item of snapshot) {
+      if (!item?.id || terminal.has(item.status)) {
+        continue;
+      }
+
+      const job = this.jobStore.load(item.id);
+      if (!job || terminal.has(job.status)) {
+        continue;
+      }
+
+      try {
+        this.stateMachine.transitionJob(job, JOB_STATUSES.FAILED, {
+          error: new Error("Recovered after process restart before completion"),
+        });
+      } catch {
+        job.status = JOB_STATUSES.FAILED;
+        job.error = "Recovered after process restart before completion";
+      }
+      this.jobStore.save(job);
+      this.eventStream.emitError(job.id, {
+        error: "Job recovered as failed after process restart",
+        recoverable: true,
+      });
+    }
   }
 
   /**
@@ -372,6 +421,7 @@ class ComputeOrchestrator extends EventEmitter {
    * Shutdown: disconnect all SSE clients.
    */
   shutdown() {
+    if (this._cleanupInterval) clearInterval(this._cleanupInterval);
     this.gpuSessionManager.shutdownAll().catch(() => {
       // Ignore cleanup errors during shutdown
     });

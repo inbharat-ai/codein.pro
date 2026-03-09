@@ -17,6 +17,22 @@ const { JsonPatchEngine } = require("../mas/json-patch");
 const path = require("path");
 const fs = require("fs").promises;
 
+function extractModelText(response) {
+  if (!response) return "";
+  if (typeof response.content === "string") {
+    return response.content;
+  }
+  if (Array.isArray(response.content) && response.content.length > 0) {
+    const first = response.content[0];
+    if (typeof first === "string") return first;
+    if (first && typeof first.text === "string") return first.text;
+  }
+  if (typeof response.text === "string") {
+    return response.text;
+  }
+  return "";
+}
+
 /**
  * Register vibe coding routes
  */
@@ -88,7 +104,7 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
     await handleRoute(
       res,
       async () => {
-        const raw = await readBody(req);
+        const raw = await readBody(req, 2 * 1024 * 1024);
         const parsed = parseJsonBody(raw);
         if (!parsed.ok) {
           return jsonResponse(res, 400, { error: parsed.error });
@@ -136,7 +152,7 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
     await handleRoute(
       res,
       async () => {
-        const raw = await readBody(req);
+        const raw = await readBody(req, 5 * 1024 * 1024);
         const parsed = parseJsonBody(raw);
         if (!parsed.ok) {
           return jsonResponse(res, 400, { error: parsed.error });
@@ -144,9 +160,21 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
 
         const { files, patches, workspaceRoot } = parsed.value || {};
 
-        if (!workspaceRoot) {
+        if (!workspaceRoot || typeof workspaceRoot !== "string") {
           return jsonResponse(res, 400, {
             error: "Workspace root path is required",
+          });
+        }
+
+        // Validate workspace root is a real absolute path and not a traversal
+        const resolvedRoot = path.resolve(workspaceRoot);
+        if (
+          workspaceRoot.includes("..") ||
+          resolvedRoot.includes("node_modules") ||
+          resolvedRoot.includes(".git")
+        ) {
+          return jsonResponse(res, 400, {
+            error: "Invalid workspace root: traversal or protected path",
           });
         }
 
@@ -193,13 +221,25 @@ function registerVibeRoutes(router, { externalProviders, logger }) {
         const url = new URL(req.url, `http://${req.headers.host}`);
         const workspaceRoot = url.searchParams.get("workspace");
 
-        if (!workspaceRoot) {
+        if (!workspaceRoot || typeof workspaceRoot !== "string") {
           return jsonResponse(res, 400, {
             error: "Workspace path is required",
           });
         }
 
-        const previewInfo = await startDevServer(workspaceRoot, logger);
+        // Validate workspace path is not a traversal attack
+        const resolvedWs = path.resolve(workspaceRoot);
+        if (
+          workspaceRoot.includes("..") ||
+          resolvedWs.includes("node_modules") ||
+          resolvedWs.includes(".git")
+        ) {
+          return jsonResponse(res, 400, {
+            error: "Invalid workspace path",
+          });
+        }
+
+        const previewInfo = await startDevServer(resolvedWs, logger);
 
         jsonResponse(res, 200, {
           success: true,
@@ -277,7 +317,10 @@ Return a JSON object with this structure:
       max_tokens: 4000,
     });
 
-    const content = response.content[0].text;
+    const content = extractModelText(response);
+    if (!content) {
+      throw new Error("Vision provider returned empty content");
+    }
 
     // Extract JSON from response (handle markdown code blocks)
     const jsonMatch =
@@ -499,7 +542,7 @@ Return only the TSX code, no explanations.`;
       max_tokens: 2000,
     });
 
-    let code = response.content[0].text;
+    let code = extractModelText(response);
 
     // Clean up code blocks
     code = code
@@ -562,7 +605,7 @@ Return only the TSX code.`;
       max_tokens: 1500,
     });
 
-    let code = response.content[0].text;
+    let code = extractModelText(response);
     code = code
       .replace(/```typescript\n|```tsx\n|```\n/g, "")
       .replace(/```$/g, "");

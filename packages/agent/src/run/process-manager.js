@@ -8,6 +8,7 @@ const { EventEmitter } = require("node:events");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { getDataDir } = require("../store");
 
 const CODIN_DIR = path.join(os.homedir(), ".codin");
 const RUN_PROFILES_DIR = path.join(CODIN_DIR, "run_profiles");
@@ -44,9 +45,84 @@ class ProcessManager extends EventEmitter {
       staleRemoved: 0,
       lastSweepAt: null,
     };
+    this.stateFile = path.join(getDataDir(), "run", "processes.json");
     this._supervisionTimer = null;
     this.ensureDirectories();
+    this._loadPersistedState();
     this._startSupervision();
+  }
+
+  _serializeRunInfo(runInfo) {
+    return {
+      runId: runInfo.runId,
+      ownerUserId: runInfo.ownerUserId || "local",
+      profile: runInfo.profile,
+      status: runInfo.status,
+      url: runInfo.url || null,
+      startedAt: runInfo.startedAt,
+      endedAt: runInfo.endedAt || null,
+      timeout: runInfo.timeout,
+      timedOut: !!runInfo.timedOut,
+      exitCode: runInfo.exitCode,
+      error: runInfo.error || null,
+      recoveredAfterRestart: !!runInfo.recoveredAfterRestart,
+      logs: Array.isArray(runInfo.logs) ? runInfo.logs.slice(-200) : [],
+    };
+  }
+
+  _persistState() {
+    const payload = {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: Array.from(this.processes.values()).map((r) =>
+        this._serializeRunInfo(r),
+      ),
+    };
+
+    const dir = path.dirname(this.stateFile);
+    fs.mkdirSync(dir, { recursive: true });
+    const tempPath = `${this.stateFile}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify(payload, null, 2), "utf8");
+    fs.renameSync(tempPath, this.stateFile);
+  }
+
+  _loadPersistedState() {
+    if (!fs.existsSync(this.stateFile)) return;
+    try {
+      const raw = fs.readFileSync(this.stateFile, "utf8");
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed.runs)) return;
+
+      for (const item of parsed.runs) {
+        if (!item?.runId) continue;
+        const recoveredStatus =
+          item.status === "running" ? "failed" : item.status || "failed";
+        const recovered = {
+          runId: item.runId,
+          ownerUserId: item.ownerUserId || "local",
+          profile: item.profile || {},
+          process: null,
+          logs: Array.isArray(item.logs) ? item.logs : [],
+          status: recoveredStatus,
+          url: item.url || null,
+          startedAt: item.startedAt || new Date().toISOString(),
+          timeout: item.timeout || this.timeout,
+          timedOut: !!item.timedOut,
+          exitCode: item.exitCode,
+          error:
+            item.status === "running"
+              ? "Recovered after process restart while still marked running"
+              : item.error || null,
+          endedAt: item.endedAt || Date.now(),
+          recoveredAfterRestart: true,
+        };
+        this.processes.set(item.runId, recovered);
+      }
+
+      this._persistState();
+    } catch {
+      // Ignore corrupted persistence state.
+    }
   }
 
   _startSupervision() {
@@ -76,6 +152,7 @@ class ProcessManager extends EventEmitter {
     if (!fs.existsSync(RUN_PROFILES_DIR)) {
       fs.mkdirSync(RUN_PROFILES_DIR, { recursive: true });
     }
+    fs.mkdirSync(path.dirname(this.stateFile), { recursive: true });
   }
 
   /**
@@ -153,6 +230,7 @@ class ProcessManager extends EventEmitter {
 
     const runInfo = {
       runId,
+      ownerUserId: profile?.ownerUserId || options.userId || "local",
       process: child,
       profile,
       logs: [],
@@ -164,6 +242,7 @@ class ProcessManager extends EventEmitter {
     };
 
     this.processes.set(runId, runInfo);
+    this._persistState();
 
     // Set timeout - Kill process if it takes too long
     timeoutHandle = setTimeout(() => {
@@ -222,10 +301,12 @@ class ProcessManager extends EventEmitter {
       runInfo.exitCode = code;
       this.emit("exited", { runId, code, timedOut: runInfo.timedOut });
       runInfo.endedAt = Date.now();
+      this._persistState();
 
       // Clean up process reference
       setTimeout(() => {
         this.processes.delete(runId);
+        this._persistState();
       }, this.completedRetentionMs); // Keep logs briefly after process ends
     });
 
@@ -240,6 +321,7 @@ class ProcessManager extends EventEmitter {
       runInfo.status = "failed";
       runInfo.error = err.message;
       runInfo.endedAt = Date.now();
+      this._persistState();
     });
 
     return {
@@ -324,6 +406,7 @@ class ProcessManager extends EventEmitter {
 
     runInfo.status = "stopped";
     runInfo.endedAt = Date.now();
+    this._persistState();
 
     return { success: true };
   }
@@ -364,6 +447,7 @@ class ProcessManager extends EventEmitter {
             timestamp: now,
           });
           this.supervisionStats.staleMarked += 1;
+          this._persistState();
         }
       }
 
@@ -372,6 +456,7 @@ class ProcessManager extends EventEmitter {
       if (isTerminal && endedAt && now - endedAt > this.completedRetentionMs) {
         this.processes.delete(runId);
         this.supervisionStats.staleRemoved += 1;
+        this._persistState();
       }
     }
 
@@ -449,6 +534,7 @@ class ProcessManager extends EventEmitter {
 
     return {
       runId: runInfo.runId,
+      ownerUserId: runInfo.ownerUserId || "local",
       status: runInfo.status,
       url: runInfo.url,
       startedAt: runInfo.startedAt,
@@ -466,6 +552,7 @@ class ProcessManager extends EventEmitter {
     for (const [runId, runInfo] of this.processes.entries()) {
       processes.push({
         runId,
+        ownerUserId: runInfo.ownerUserId || "local",
         status: runInfo.status,
         url: runInfo.url,
         startedAt: runInfo.startedAt,
@@ -474,6 +561,12 @@ class ProcessManager extends EventEmitter {
     }
 
     return processes;
+  }
+
+  isOwnedBy(runId, userId) {
+    const runInfo = this.processes.get(runId);
+    if (!runInfo) return null;
+    return (runInfo.ownerUserId || "local") === (userId || "local");
   }
 
   /**
@@ -511,6 +604,7 @@ class ProcessManager extends EventEmitter {
       }
     }
     this.processes.clear();
+    this._persistState();
   }
 }
 

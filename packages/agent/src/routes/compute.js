@@ -33,6 +33,35 @@ const { ComputeOrchestrator } = require("../compute/orchestrator");
 const { WORKFLOWS } = require("../compute/workflows");
 const { readBody, parseJsonBody } = require("../utils/http-helpers");
 
+async function ensureComputePermission(
+  req,
+  res,
+  deps,
+  operation,
+  context = {},
+) {
+  if (typeof deps.requirePermission !== "function") {
+    return true;
+  }
+  const decision = await deps.requirePermission(
+    "computeOperation",
+    {
+      user: req.user,
+      operation,
+      ...context,
+    },
+    deps.permissionManager,
+  );
+  if (!decision?.allowed) {
+    sendJson(res, 403, {
+      error: `Permission denied for ${operation}`,
+      reason: decision?.reason || "Unauthorized",
+    });
+    return false;
+  }
+  return true;
+}
+
 function registerComputeRoutes(router, deps) {
   // Initialize orchestrator with injected dependencies
   const orchestrator = new ComputeOrchestrator({
@@ -51,7 +80,10 @@ function registerComputeRoutes(router, deps) {
   // ─── Submit a new job ──────────────────────────────────────
   router.post("/compute/jobs", async (req, res) => {
     try {
-      const raw = await readBody(req);
+      if (!(await ensureComputePermission(req, res, deps, "submit-job"))) {
+        return;
+      }
+      const raw = await readBody(req, 1024 * 1024);
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) {
         return sendJson(res, 400, { error: parsed.error });
@@ -107,6 +139,11 @@ function registerComputeRoutes(router, deps) {
       if (!job) {
         return sendJson(res, 404, { error: "Job not found" });
       }
+      if (!isJobOwnedByRequester(req, job)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: job ownership mismatch",
+        });
+      }
       sendJson(res, 200, { job });
     } catch (err) {
       sendJson(res, 500, { error: err.message });
@@ -114,8 +151,24 @@ function registerComputeRoutes(router, deps) {
   });
 
   // ─── Delete a job ──────────────────────────────────────────
-  router.del("/compute/jobs/:jobId", (req, res, ctx) => {
+  router.del("/compute/jobs/:jobId", async (req, res, ctx) => {
     try {
+      if (
+        !(await ensureComputePermission(req, res, deps, "delete-job", {
+          jobId: ctx.jobId,
+        }))
+      ) {
+        return;
+      }
+      const existing = orchestrator.getJob(ctx.jobId);
+      if (!existing) {
+        return sendJson(res, 404, { error: "Job not found" });
+      }
+      if (!isJobOwnedByRequester(req, existing)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: job ownership mismatch",
+        });
+      }
       const deleted = orchestrator.deleteJob(ctx.jobId);
       sendJson(res, deleted ? 200 : 404, { deleted });
     } catch (err) {
@@ -124,8 +177,24 @@ function registerComputeRoutes(router, deps) {
   });
 
   // ─── Cancel a job ──────────────────────────────────────────
-  router.post("/compute/jobs/:jobId/cancel", (req, res, ctx) => {
+  router.post("/compute/jobs/:jobId/cancel", async (req, res, ctx) => {
     try {
+      if (
+        !(await ensureComputePermission(req, res, deps, "cancel-job", {
+          jobId: ctx.jobId,
+        }))
+      ) {
+        return;
+      }
+      const existing = orchestrator.getJob(ctx.jobId);
+      if (!existing) {
+        return sendJson(res, 404, { error: "Job not found" });
+      }
+      if (!isJobOwnedByRequester(req, existing)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: job ownership mismatch",
+        });
+      }
       const job = orchestrator.cancelJob(ctx.jobId);
       sendJson(res, 200, { job });
     } catch (err) {
@@ -136,8 +205,24 @@ function registerComputeRoutes(router, deps) {
   });
 
   // ─── Pause a job ───────────────────────────────────────────
-  router.post("/compute/jobs/:jobId/pause", (req, res, ctx) => {
+  router.post("/compute/jobs/:jobId/pause", async (req, res, ctx) => {
     try {
+      if (
+        !(await ensureComputePermission(req, res, deps, "pause-job", {
+          jobId: ctx.jobId,
+        }))
+      ) {
+        return;
+      }
+      const existing = orchestrator.getJob(ctx.jobId);
+      if (!existing) {
+        return sendJson(res, 404, { error: "Job not found" });
+      }
+      if (!isJobOwnedByRequester(req, existing)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: job ownership mismatch",
+        });
+      }
       const paused = orchestrator.pauseJob(ctx.jobId);
       sendJson(res, 200, { paused });
     } catch (err) {
@@ -146,8 +231,24 @@ function registerComputeRoutes(router, deps) {
   });
 
   // ─── Resume a job ──────────────────────────────────────────
-  router.post("/compute/jobs/:jobId/resume", (req, res, ctx) => {
+  router.post("/compute/jobs/:jobId/resume", async (req, res, ctx) => {
     try {
+      if (
+        !(await ensureComputePermission(req, res, deps, "resume-job", {
+          jobId: ctx.jobId,
+        }))
+      ) {
+        return;
+      }
+      const existing = orchestrator.getJob(ctx.jobId);
+      if (!existing) {
+        return sendJson(res, 404, { error: "Job not found" });
+      }
+      if (!isJobOwnedByRequester(req, existing)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: job ownership mismatch",
+        });
+      }
       const resumed = orchestrator.resumeJob(ctx.jobId);
       sendJson(res, 200, { resumed });
     } catch (err) {
@@ -161,6 +262,11 @@ function registerComputeRoutes(router, deps) {
       const job = orchestrator.getJob(ctx.jobId);
       if (!job) {
         return sendJson(res, 404, { error: "Job not found" });
+      }
+      if (!isJobOwnedByRequester(req, job)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: job ownership mismatch",
+        });
       }
       orchestrator.subscribeToEvents(ctx.jobId, res, req);
       // Don't send JSON — SSE headers are set by subscribeToEvents
@@ -176,6 +282,11 @@ function registerComputeRoutes(router, deps) {
       if (!job) {
         return sendJson(res, 404, { error: "Job not found" });
       }
+      if (!isJobOwnedByRequester(req, job)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: job ownership mismatch",
+        });
+      }
       const artifacts = orchestrator.getJobArtifacts(ctx.jobId);
       sendJson(res, 200, { artifacts });
     } catch (err) {
@@ -186,6 +297,15 @@ function registerComputeRoutes(router, deps) {
   // ─── Read a specific artifact ──────────────────────────────
   router.get("/compute/jobs/:jobId/artifacts/:artifactId", (req, res, ctx) => {
     try {
+      const job = orchestrator.getJob(ctx.jobId);
+      if (!job) {
+        return sendJson(res, 404, { error: "Job not found" });
+      }
+      if (!isJobOwnedByRequester(req, job)) {
+        return sendJson(res, 403, {
+          error: "Forbidden: job ownership mismatch",
+        });
+      }
       const result = orchestrator.readArtifact(ctx.jobId, ctx.artifactId);
       if (!result) {
         return sendJson(res, 404, { error: "Artifact not found" });
@@ -216,7 +336,10 @@ function registerComputeRoutes(router, deps) {
   // ─── GPU: connect session ─────────────────────────────────
   router.post("/compute/gpu/connect", async (req, res) => {
     try {
-      const raw = await readBody(req);
+      if (!(await ensureComputePermission(req, res, deps, "gpu-connect"))) {
+        return;
+      }
+      const raw = await readBody(req, 256 * 1024);
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) {
         return sendJson(res, 400, { error: parsed.error });
@@ -235,7 +358,8 @@ function registerComputeRoutes(router, deps) {
 
       sendJson(res, 200, result);
     } catch (err) {
-      sendJson(res, 500, { error: err.message });
+      const status = /required|configured/i.test(err.message) ? 400 : 500;
+      sendJson(res, status, { error: err.message });
     }
   });
 
@@ -253,7 +377,10 @@ function registerComputeRoutes(router, deps) {
   // ─── GPU: create pod ──────────────────────────────────────
   router.post("/compute/gpu/pod", async (req, res) => {
     try {
-      const raw = await readBody(req);
+      if (!(await ensureComputePermission(req, res, deps, "gpu-create-pod"))) {
+        return;
+      }
+      const raw = await readBody(req, 256 * 1024);
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) {
         return sendJson(res, 400, { error: parsed.error });
@@ -278,14 +405,18 @@ function registerComputeRoutes(router, deps) {
 
       sendJson(res, 201, { pod });
     } catch (err) {
-      sendJson(res, 500, { error: err.message });
+      const status = /required|connected/i.test(err.message) ? 400 : 500;
+      sendJson(res, status, { error: err.message });
     }
   });
 
   // ─── GPU: submit job ──────────────────────────────────────
   router.post("/compute/gpu/jobs", async (req, res) => {
     try {
-      const raw = await readBody(req);
+      if (!(await ensureComputePermission(req, res, deps, "gpu-submit-job"))) {
+        return;
+      }
+      const raw = await readBody(req, 512 * 1024);
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) {
         return sendJson(res, 400, { error: parsed.error });
@@ -300,7 +431,8 @@ function registerComputeRoutes(router, deps) {
       const job = await orchestrator.submitGpuJob(userId, { input, jobName });
       sendJson(res, 201, { job });
     } catch (err) {
-      sendJson(res, 500, { error: err.message });
+      const status = /required|connected/i.test(err.message) ? 400 : 500;
+      sendJson(res, status, { error: err.message });
     }
   });
 
@@ -311,7 +443,8 @@ function registerComputeRoutes(router, deps) {
       const status = await orchestrator.getGpuJobStatus(userId, ctx.jobId);
       sendJson(res, 200, { status });
     } catch (err) {
-      sendJson(res, 500, { error: err.message });
+      const status = /connected|not found/i.test(err.message) ? 404 : 500;
+      sendJson(res, status, { error: err.message });
     }
   });
 
@@ -322,7 +455,8 @@ function registerComputeRoutes(router, deps) {
       const logs = await orchestrator.getGpuLogs(userId);
       sendJson(res, 200, { logs });
     } catch (err) {
-      sendJson(res, 500, { error: err.message });
+      const status = /connected/i.test(err.message) ? 404 : 500;
+      sendJson(res, status, { error: err.message });
     }
   });
 
@@ -340,6 +474,9 @@ function registerComputeRoutes(router, deps) {
   // ─── GPU: stop session ────────────────────────────────────
   router.post("/compute/gpu/stop", async (req, res) => {
     try {
+      if (!(await ensureComputePermission(req, res, deps, "gpu-stop"))) {
+        return;
+      }
       const userId = req.user?.userId || "local";
       const result = await orchestrator.stopGpu(userId);
       sendJson(res, 200, result);
@@ -351,6 +488,13 @@ function registerComputeRoutes(router, deps) {
   // ─── Demo workflows ───────────────────────────────────────
   router.post("/compute/workflows/:name", async (req, res, ctx) => {
     try {
+      if (
+        !(await ensureComputePermission(req, res, deps, "workflow-run", {
+          workflow: ctx.name,
+        }))
+      ) {
+        return;
+      }
       const name = ctx.name;
       const workflow = WORKFLOWS[name];
       if (!workflow) {
@@ -402,6 +546,11 @@ function sendJson(res, status, body) {
   } catch {
     /* response already sent */
   }
+}
+
+function isJobOwnedByRequester(req, job) {
+  const requester = req.user?.userId || "local";
+  return !job?.userId || job.userId === requester;
 }
 
 module.exports = {

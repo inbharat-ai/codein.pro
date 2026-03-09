@@ -1,7 +1,12 @@
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import ComputePanel from "./components/ComputePanel";
+import GitPanel from "./components/GitPanel";
 import Layout from "./components/Layout";
 import { MCPToolsPanel } from "./components/MCPToolsPanel";
+import PermissionsPanel from "./components/PermissionsPanel";
+import PipelinePanel from "./components/PipelinePanel";
+import RepoIntelligencePanel from "./components/RepoIntelligencePanel";
+import ResearchPanel from "./components/ResearchPanel";
 import { SwarmPanel } from "./components/SwarmPanel/SwarmPanel";
 import { MainEditorProvider } from "./components/mainInput/TipTapEditor";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
@@ -56,6 +61,26 @@ const router = createMemoryRouter([
       {
         path: ROUTES.SWARM,
         element: <SwarmPanel />,
+      },
+      {
+        path: ROUTES.PIPELINE,
+        element: <PipelinePanel />,
+      },
+      {
+        path: ROUTES.REPO_INTELLIGENCE,
+        element: <RepoIntelligencePanel />,
+      },
+      {
+        path: ROUTES.PERMISSIONS,
+        element: <PermissionsPanel />,
+      },
+      {
+        path: ROUTES.RESEARCH,
+        element: <ResearchPanel />,
+      },
+      {
+        path: ROUTES.GIT,
+        element: <GitPanel />,
       },
     ],
   },

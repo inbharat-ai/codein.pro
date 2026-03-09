@@ -32,3 +32,4 @@ coverage
 # e2e
 packages/continue-sdk
 .conductor
+THOROUGH_CODE_INSPECTION_AUDIT.json

@@ -59,10 +59,9 @@ export async function activateExtension(context: vscode.ExtensionContext) {
   agentClient.onConnectionStatusChange((status) => {
     logger.info(`Agent server connection: ${status}`);
     if (status === "connected") {
-      vscode.window.showInformationMessage(
-        "CodIn Agent Server connected",
-        { modal: false },
-      );
+      vscode.window.showInformationMessage("CodIn Agent Server connected", {
+        modal: false,
+      });
     }
   });
 

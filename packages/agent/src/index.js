@@ -1,4 +1,4 @@
-﻿const http = require("node:http");
+const http = require("node:http");
 const https = require("node:https");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -326,29 +326,27 @@ function openSystemTarget(target) {
     throw new Error("Target is required");
   }
 
-  // SECURITY: Only allow http/https URLs and absolute file paths
+  // SECURITY: Only allow http/https URLs — no arbitrary file paths via shell
   let sanitized;
   try {
     const parsed = new URL(target);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
       throw new Error(`Disallowed protocol: ${parsed.protocol}`);
     }
+    // Prevent URL-encoded shell metacharacters
     sanitized = parsed.href;
   } catch (urlErr) {
-    // Not a URL — treat as a file path
-    const path = require("path");
-    const resolved = path.resolve(target);
-    // Block path traversal and shell metacharacters
-    if (target.includes("..") || /[;&|`$<>(){}!]/.test(target)) {
-      throw new Error("Invalid target path: contains disallowed characters");
-    }
-    sanitized = resolved;
+    // Not a valid URL — reject. Only URLs are allowed for safety.
+    throw new Error(
+      "Invalid target: only http/https URLs are allowed for system-open",
+    );
   }
 
   if (process.platform === "win32") {
     spawn("cmd", ["/c", "start", "", sanitized], {
       detached: true,
       stdio: "ignore",
+      windowsHide: true,
     }).unref();
     return;
   }
@@ -731,6 +729,59 @@ function buildRouter() {
   });
 }
 
+const { IdempotencyCache, ConcurrencyLimiter } = require("./utils/concurrency");
+const idempotencyCache = new IdempotencyCache({
+  maxEntries: 5000,
+  ttlMs: 5 * 60 * 1000,
+});
+const concurrencyLimiter = new ConcurrencyLimiter(200); // max 200 in-flight requests
+
+function shouldCaptureIdempotency(statusCode, body) {
+  if (!Number.isInteger(statusCode) || statusCode >= 500 || statusCode < 200) {
+    return false;
+  }
+  return typeof body === "string" && body.length > 0;
+}
+
+function attachResponseCapture(res, maxBytes = 1024 * 1024) {
+  const chunks = [];
+  let totalBytes = 0;
+  let truncated = false;
+
+  const originalWrite = res.write.bind(res);
+  const originalEnd = res.end.bind(res);
+
+  function captureChunk(chunk, encoding) {
+    if (chunk === null || chunk === undefined || truncated) return;
+    const buf = Buffer.isBuffer(chunk)
+      ? chunk
+      : Buffer.from(String(chunk), encoding || "utf8");
+    totalBytes += buf.length;
+    if (totalBytes > maxBytes) {
+      truncated = true;
+      return;
+    }
+    chunks.push(buf);
+  }
+
+  res.write = function patchedWrite(chunk, encoding, cb) {
+    captureChunk(chunk, encoding);
+    return originalWrite(chunk, encoding, cb);
+  };
+
+  res.end = function patchedEnd(chunk, encoding, cb) {
+    captureChunk(chunk, encoding);
+    return originalEnd(chunk, encoding, cb);
+  };
+
+  return {
+    getBody() {
+      if (truncated) return null;
+      return Buffer.concat(chunks).toString("utf8");
+    },
+  };
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const requestId =
@@ -738,7 +789,21 @@ const server = http.createServer(async (req, res) => {
         ? req.headers["x-request-id"]
         : crypto.randomUUID();
     res.setHeader("x-request-id", requestId);
+    req.requestId = requestId;
     const requestLogger = createRequestLogger(requestId);
+    const startTime = process.hrtime.bigint();
+    res.on("finish", () => {
+      const durationMs = Number(process.hrtime.bigint() - startTime) / 1e6;
+      requestLogger.info(
+        {
+          method: req.method,
+          path: (req._parsedUrl || {}).pathname,
+          statusCode: res.statusCode,
+          durationMs: Math.round(durationMs * 100) / 100,
+        },
+        "request.end",
+      );
+    });
     const url = new URL(
       req.url || "/",
       `http://${req.headers.host || "localhost"}`,
@@ -747,6 +812,23 @@ const server = http.createServer(async (req, res) => {
       { method: req.method, path: url.pathname },
       "request.start",
     );
+    const isMutatingRequest =
+      req.method === "POST" || req.method === "PUT" || req.method === "DELETE";
+    const idempotencyKey =
+      typeof req.headers["idempotency-key"] === "string"
+        ? req.headers["idempotency-key"].trim()
+        : "";
+
+    // Idempotency check for mutating requests
+    if (idempotencyKey && isMutatingRequest) {
+      const cached = idempotencyCache.get(idempotencyKey);
+      if (cached.hit) {
+        requestLogger.info({ idempotencyKey }, "Idempotent replay");
+        res.writeHead(cached.status, { "Content-Type": "application/json" });
+        res.end(cached.body);
+        return;
+      }
+    }
 
     // Health check â€” always available
     if (req.method === "GET" && url.pathname === "/health") {
@@ -837,87 +919,104 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      jsonResponse(res, 200, {
-        success: true,
-        accessToken: refreshed.accessToken,
-        refreshToken: refreshed.refreshToken,
-        expiresIn: refreshed.expiresIn,
-      });
+      jsonResponse(res, 200, { success: true, ...refreshed });
       return;
     }
 
-    if (!isPublicRoute(req.method, url.pathname)) {
-      const payload = authenticateJWTRequest(req, res, requestLogger);
-      if (!payload) {
+    // ─── JWT VERIFICATION FOR ALL PROTECTED ROUTES ─────────────────────────────────
+    // Any non-public route requires a valid bearer token
+    const authPayload = authenticateJWTRequest(req, res, requestLogger);
+    if (!authPayload && !isPublicRoute(req.method, url.pathname)) {
+      // authenticateJWTRequest already sent 401 response
+      return;
+    }
+
+    // Attach auth context to request for downstream route handlers
+    if (authPayload) {
+      req.user = authPayload;
+    }
+
+    // ─── PROTECTED ROUTE HANDLING ───────────────────────────────────────────────────
+    const idempotencyCapture =
+      idempotencyKey && isMutatingRequest ? attachResponseCapture(res) : null;
+
+    await concurrencyLimiter.run(async () => {
+      const match = appRouter.match(req.method, url.pathname);
+      if (match) {
+        await match.handler(req, res, match.params);
         return;
       }
-      req.user = payload;
-    }
 
-    // â”€â”€ Delegate to modular router â”€â”€
-    if (!appRouter) {
-      jsonResponse(res, 503, {
-        error: "Server initializing â€” try again shortly",
-      });
-      return;
-    }
-
-    const match = appRouter.match(req.method, url.pathname);
-    if (match) {
-      await match.handler(req, res, match.params);
-      return;
-    }
-
-    // Legacy /router endpoint (kept inline â€” thin shim)
-    if (req.method === "POST" && url.pathname === "/router") {
-      await handleRoute(res, async () => {
-        const raw = await readBody(req);
-        const parsed = parseJsonBody(raw);
-        if (!parsed.ok) {
-          jsonResponse(res, 400, { error: parsed.error });
-          return;
-        }
-        const validation = validateAndSanitizeInput(parsed.value, {
-          prompt: {
-            required: false,
-            type: "string",
-            maxLength: 100000,
-            sanitize: true,
-          },
-          contextChars: {
-            required: false,
-            type: "number",
-            min: 0,
-            max: 1000000,
-          },
-          deepPlanning: { required: false, type: "boolean" },
-          preferAccuracy: { required: false, type: "boolean" },
+      // Legacy /router endpoint (kept inline — thin shim)
+      if (req.method === "POST" && url.pathname === "/router") {
+        await handleRoute(res, async () => {
+          const raw = await readBody(req);
+          const parsed = parseJsonBody(raw);
+          if (!parsed.ok) {
+            jsonResponse(res, 400, { error: parsed.error });
+            return;
+          }
+          const validation = validateAndSanitizeInput(parsed.value, {
+            prompt: {
+              required: false,
+              type: "string",
+              maxLength: 100000,
+              sanitize: true,
+            },
+            contextChars: {
+              required: false,
+              type: "number",
+              min: 0,
+              max: 1000000,
+            },
+            deepPlanning: { required: false, type: "boolean" },
+            preferAccuracy: { required: false, type: "boolean" },
+          });
+          if (!validation.valid) {
+            jsonResponse(res, 400, { error: validation.errors.join(", ") });
+            return;
+          }
+          const store = loadStore();
+          const hasLocalModel = !!store.active.coder || !!store.active.reasoner;
+          const decision = getRouterDecision({
+            prompt: validation.data.prompt || "",
+            contextChars: validation.data.contextChars || 0,
+            deepPlanning: validation.data.deepPlanning || false,
+            preferAccuracy: validation.data.preferAccuracy || false,
+            hasLocalModel,
+          });
+          jsonResponse(res, 200, { decision });
         });
-        if (!validation.valid) {
-          jsonResponse(res, 400, { error: validation.errors.join(", ") });
-          return;
-        }
-        const store = loadStore();
-        const hasLocalModel = !!store.active.coder || !!store.active.reasoner;
-        const decision = getRouterDecision({
-          prompt: validation.data.prompt || "",
-          contextChars: validation.data.contextChars || 0,
-          deepPlanning: validation.data.deepPlanning || false,
-          preferAccuracy: validation.data.preferAccuracy || false,
-          hasLocalModel,
-        });
-        jsonResponse(res, 200, { decision });
-      });
-      return;
-    }
+        return;
+      }
 
-    jsonResponse(res, 404, { error: "Not found" });
+      jsonResponse(res, 404, { error: "Not found" });
+    });
+
+    if (idempotencyCapture) {
+      const body = idempotencyCapture.getBody();
+      if (shouldCaptureIdempotency(res.statusCode, body)) {
+        idempotencyCache.set(idempotencyKey, res.statusCode, body);
+      }
+    }
   } catch (error) {
+    const errorClass = error.statusCode
+      ? "client"
+      : error.code === "ECONNRESET"
+        ? "network"
+        : "server";
     logger.error(
-      { error: error.message, stack: error.stack },
+      {
+        error: error.message,
+        stack: error.stack,
+        errorClass,
+        method: req.method,
+        url: req.url,
+      },
       "Unhandled request error",
     );
-    jsonResponse(res, 500, {
+    const status = error.statusCode || 500;
+    jsonResponse(res, status, {
       error: error instanceof Error ? error.message : "Unexpected error",
     });
   }
@@ -929,7 +1028,15 @@ const rateLimiter = new RateLimiter({
   requestsPerHour: config.rateLimitPerHour,
 });
 
-const rateLimiterMiddleware = createRateLimiterMiddleware(rateLimiter);
+// Late-bind observability deps into the router
+if (appRouter && appRouter._deps) {
+  appRouter._deps.concurrencyLimiter = concurrencyLimiter;
+  appRouter._deps.rateLimiter = rateLimiter;
+}
+
+const rateLimiterMiddleware = createRateLimiterMiddleware(rateLimiter, {
+  trustProxy: config.trustProxy,
+});
 const securityHeadersMiddleware = createSecurityHeadersMiddleware({
   corsOrigin: config.corsOrigin,
   corsCredentials: config.corsCredentials,
@@ -958,3 +1065,72 @@ server.listen(DEFAULT_PORT, "127.0.0.1", () => {
     `CodIn Agent listening on http://127.0.0.1:${DEFAULT_PORT}`,
   );
 });
+
+// ─── Graceful Shutdown ─────────────────────────────────────────
+let _shutdownStarted = false;
+async function gracefulShutdown(signal) {
+  if (_shutdownStarted) return;
+  _shutdownStarted = true;
+  logger.info({ signal }, "Graceful shutdown initiated");
+
+  // 1. Stop accepting new connections
+  server.close(() => {
+    logger.info("HTTP server closed");
+  });
+
+  // 2. Force-close after 30 seconds
+  const forceTimer = setTimeout(() => {
+    logger.warn("Forced exit after 30s shutdown timeout");
+    process.exit(1);
+  }, 30_000);
+  forceTimer.unref();
+
+  // 3. Shutdown subsystems with individual timeouts
+  const withTimeout = (promise, ms, name) =>
+    Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`${name} shutdown timeout`)), ms),
+      ),
+    ]).catch((err) =>
+      logger.warn({ error: err.message }, `${name} shutdown failed`),
+    );
+
+  const shutdownTasks = [];
+
+  if (typeof swarmManager?.swarmShutdown === "function") {
+    shutdownTasks.push(
+      withTimeout(
+        Promise.resolve(swarmManager.swarmShutdown()),
+        10_000,
+        "SwarmManager",
+      ),
+    );
+  }
+  if (typeof processManager?.destroy === "function") {
+    shutdownTasks.push(
+      withTimeout(
+        Promise.resolve(processManager.destroy()),
+        5_000,
+        "ProcessManager",
+      ),
+    );
+  }
+  if (typeof rateLimiter?.destroy === "function") {
+    rateLimiter.destroy();
+  }
+  if (typeof sandbox?.terminateAll === "function") {
+    shutdownTasks.push(
+      withTimeout(Promise.resolve(sandbox.terminateAll()), 5_000, "Sandbox"),
+    );
+  }
+
+  await Promise.allSettled(shutdownTasks);
+
+  clearTimeout(forceTimer);
+  logger.info("Shutdown complete");
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));

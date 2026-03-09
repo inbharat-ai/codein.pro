@@ -1,4 +1,7 @@
-export function applyUnifiedDiff(originalText: string, diffText: string): string {
+export function applyUnifiedDiff(
+  originalText: string,
+  diffText: string,
+): string {
   const originalLines = originalText.split("\n");
   const diffLines = diffText.split("\n");
 

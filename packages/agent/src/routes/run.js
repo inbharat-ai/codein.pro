@@ -59,6 +59,7 @@ function registerRunRoutes(router, deps) {
         }
 
         const { profile, options } = parsed.value;
+        const requesterUserId = req.user?.userId || "local";
 
         // Validate command if present
         if (profile && profile.runCmd) {
@@ -99,7 +100,17 @@ function registerRunRoutes(router, deps) {
             command: profile?.runCmd,
             cwd: profile?.cwd,
           },
-          async () => processManager.start(profile, options),
+          async () =>
+            processManager.start(
+              {
+                ...(profile || {}),
+                ownerUserId: requesterUserId,
+              },
+              {
+                ...(options || {}),
+                userId: requesterUserId,
+              },
+            ),
         );
 
         jsonResponse(res, 200, result);
@@ -129,6 +140,21 @@ function registerRunRoutes(router, deps) {
           return;
         }
 
+        const owned = processManager.isOwnedBy(
+          validation.data.runId,
+          req.user?.userId || "local",
+        );
+        if (owned === null) {
+          jsonResponse(res, 404, { error: "Process not found" });
+          return;
+        }
+        if (!owned) {
+          jsonResponse(res, 403, {
+            error: "Forbidden: process ownership mismatch",
+          });
+          return;
+        }
+
         const result = await processManager.stop(validation.data.runId);
         jsonResponse(res, 200, result);
       },
@@ -154,6 +180,21 @@ function registerRunRoutes(router, deps) {
         );
         if (!validation.valid) {
           jsonResponse(res, 400, { error: validation.errors.join(", ") });
+          return;
+        }
+
+        const owned = processManager.isOwnedBy(
+          validation.data.runId,
+          req.user?.userId || "local",
+        );
+        if (owned === null) {
+          jsonResponse(res, 404, { error: "Process not found" });
+          return;
+        }
+        if (!owned) {
+          jsonResponse(res, 403, {
+            error: "Forbidden: process ownership mismatch",
+          });
           return;
         }
 
@@ -192,6 +233,21 @@ function registerRunRoutes(router, deps) {
           return;
         }
 
+        const owned = processManager.isOwnedBy(
+          validation.data.runId,
+          req.user?.userId || "local",
+        );
+        if (owned === null) {
+          jsonResponse(res, 404, { error: "Process not found" });
+          return;
+        }
+        if (!owned) {
+          jsonResponse(res, 403, {
+            error: "Forbidden: process ownership mismatch",
+          });
+          return;
+        }
+
         const result = processManager.getLogs(validation.data.runId, {
           tail: validation.data.tail,
         });
@@ -222,6 +278,21 @@ function registerRunRoutes(router, deps) {
           return;
         }
 
+        const owned = processManager.isOwnedBy(
+          validation.data.runId,
+          req.user?.userId || "local",
+        );
+        if (owned === null) {
+          jsonResponse(res, 404, { error: "Process not found" });
+          return;
+        }
+        if (!owned) {
+          jsonResponse(res, 403, {
+            error: "Forbidden: process ownership mismatch",
+          });
+          return;
+        }
+
         const status = processManager.getStatus(validation.data.runId);
         jsonResponse(res, 200, { status });
       },
@@ -233,7 +304,10 @@ function registerRunRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const processes = processManager?.getAllProcesses() || [];
+        const requesterUserId = req.user?.userId || "local";
+        const processes = (processManager?.getAllProcesses() || []).filter(
+          (p) => (p.ownerUserId || "local") === requesterUserId,
+        );
         jsonResponse(res, 200, { processes });
       },
       logger,

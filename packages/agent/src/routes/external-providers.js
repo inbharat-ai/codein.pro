@@ -35,12 +35,38 @@ function registerExternalProviderRoutes(router, deps) {
     );
   });
 
+  router.get("/external-providers/health", async (req, res) => {
+    await handleRoute(
+      res,
+      async () => {
+        const permission = await requirePermission(
+          "configureExternalProvider",
+          { workspacePath: process.cwd(), action: "read-health" },
+          permissionManager,
+        );
+        if (!permission.allowed) {
+          jsonResponse(res, 403, {
+            error:
+              "Permission denied: " + (permission.reason || "Unauthorized"),
+          });
+          return;
+        }
+
+        const health = externalProviders?.getProviderHealth
+          ? externalProviders.getProviderHealth()
+          : {};
+        jsonResponse(res, 200, { health });
+      },
+      logger,
+    );
+  });
+
   // ── Configure a provider with API key ───────────────────────────────────
   router.post("/external-providers/configure", async (req, res) => {
     await handleRoute(
       res,
       async () => {
-        const raw = await readBody(req);
+        const raw = await readBody(req, 512 * 1024);
         const parsed = parseJsonBody(raw);
         if (!parsed.ok) {
           jsonResponse(res, 400, { error: parsed.error });
@@ -137,7 +163,7 @@ function registerExternalProviderRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const raw = await readBody(req);
+        const raw = await readBody(req, 256 * 1024);
         const parsed = parseJsonBody(raw);
         if (!parsed.ok) {
           jsonResponse(res, 400, { error: parsed.error });
@@ -182,7 +208,7 @@ function registerExternalProviderRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const raw = await readBody(req);
+        const raw = await readBody(req, 512 * 1024);
         const parsed = parseJsonBody(raw);
         if (!parsed.ok) {
           jsonResponse(res, 400, { error: parsed.error });
@@ -257,7 +283,7 @@ function registerExternalProviderRoutes(router, deps) {
     await handleRoute(
       res,
       async () => {
-        const raw = await readBody(req);
+        const raw = await readBody(req, 1024 * 1024);
         const parsed = parseJsonBody(raw);
         if (!parsed.ok) {
           jsonResponse(res, 400, { error: parsed.error });
@@ -301,7 +327,7 @@ function registerExternalProviderRoutes(router, deps) {
 
   // ── Streaming completion via external provider (SSE) ────────────────────
   router.post("/external-providers/stream", async (req, res) => {
-    const raw = await readBody(req);
+    const raw = await readBody(req, 1024 * 1024);
     const parsed = parseJsonBody(raw);
     if (!parsed.ok) {
       jsonResponse(res, 400, { error: parsed.error });
@@ -329,7 +355,7 @@ function registerExternalProviderRoutes(router, deps) {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": "http://127.0.0.1:43120",
     });
 
     try {
@@ -373,7 +399,7 @@ function registerExternalProviderRoutes(router, deps) {
       await handleRoute(
         res,
         async () => {
-          const raw = await readBody(req);
+          const raw = await readBody(req, 1024 * 1024);
           const parsed = parseJsonBody(raw);
           if (!parsed.ok) {
             jsonResponse(res, 400, { error: parsed.error });

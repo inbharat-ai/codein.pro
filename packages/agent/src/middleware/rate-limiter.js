@@ -7,11 +7,15 @@ class RateLimiter {
   constructor(options = {}) {
     this.requestsPerMinute = options.requestsPerMinute || 60;
     this.requestsPerHour = options.requestsPerHour || 1000;
+    this.maxBuckets = options.maxBuckets || 10000; // LRU cap
     this.buckets = new Map();
     this.userBuckets = new Map();
 
     // Cleanup old buckets every minute
     this.cleanupInterval = setInterval(() => this.cleanup(), 60000);
+    if (typeof this.cleanupInterval.unref === "function") {
+      this.cleanupInterval.unref();
+    }
   }
 
   /**
@@ -19,11 +23,21 @@ class RateLimiter {
    */
   getBucket(key) {
     if (!this.buckets.has(key)) {
+      // LRU eviction: if at capacity, remove oldest entry
+      if (this.buckets.size >= this.maxBuckets) {
+        const oldest = this.buckets.keys().next().value;
+        this.buckets.delete(oldest);
+      }
       this.buckets.set(key, {
         minute: { tokens: this.requestsPerMinute, resetAt: Date.now() + 60000 },
         hour: { tokens: this.requestsPerHour, resetAt: Date.now() + 3600000 },
         lastSeen: Date.now(),
       });
+    } else {
+      // Move to end for LRU ordering (Map preserves insertion order)
+      const bucket = this.buckets.get(key);
+      this.buckets.delete(key);
+      this.buckets.set(key, bucket);
     }
     return this.buckets.get(key);
   }
@@ -100,13 +114,27 @@ class RateLimiter {
 /**
  * Create rate limiter middleware
  */
-function createRateLimiterMiddleware(limiter) {
+function createRateLimiterMiddleware(limiter, opts = {}) {
+  const trustProxy = opts.trustProxy === true;
+
+  function getClientIp(req) {
+    if (trustProxy) {
+      const forwarded = req.headers["x-forwarded-for"];
+      if (typeof forwarded === "string" && forwarded.trim()) {
+        return forwarded.split(",")[0].trim();
+      }
+    }
+    return (
+      req.socket?.remoteAddress ||
+      req.connection?.remoteAddress ||
+      req.ip ||
+      "0.0.0.0"
+    );
+  }
+
   return (req, res, next) => {
-    // Extract client IP (handle X-Forwarded-For for proxies)
-    const ip =
-      req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
-      req.connection.remoteAddress ||
-      "0.0.0.0";
+    // Extract client IP; only trust forwarded headers when explicitly enabled.
+    const ip = getClientIp(req);
 
     // Extract user ID from JWT if available
     const userId = req.user?.userId || null;

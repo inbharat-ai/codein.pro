@@ -21,7 +21,9 @@ const { registerVibeRoutes } = require("./vibe");
 const { registerRoutingRoutes } = require("./routing");
 const { registerSessionRoutes } = require("./sessions");
 const { registerStatusRoutes } = require("./status");
+const { registerGitRoutes } = require("./git");
 const { registerPipelineRoutes } = require("./pipeline");
+const { registerRepoIntelligenceRoutes } = require("./repo-intelligence");
 
 /**
  * Creates and configures the full application router.
@@ -86,8 +88,18 @@ function createAppRouter(deps) {
   // System Status & Observability — Health checks and metrics
   registerStatusRoutes(router, deps);
 
+  // Git Repository Operations — clone/pull/branch/diff/commit
+  registerGitRoutes(router, deps);
+
+  // Repo Intelligence — Code analysis, search, refactoring, validation
+  // Must be initialized BEFORE pipeline so pipeline receives live deps.
+  registerRepoIntelligenceRoutes(router, deps);
+
   // Autonomous Coding Pipeline — Multi-phase software creation
   registerPipelineRoutes(router, deps);
+
+  // Expose deps object for late binding of observability references
+  router._deps = deps;
 
   return router;
 }

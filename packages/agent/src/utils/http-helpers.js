@@ -142,16 +142,20 @@ function safeFilename(name) {
 }
 
 async function handleRoute(res, handler, logger) {
+  const requestId = res.getHeader?.("x-request-id") || "unknown";
   try {
     await handler();
   } catch (error) {
     if (logger) {
       logger.error(
-        { error: error.message, stack: error.stack },
+        { error: error.message, stack: error.stack, requestId },
         "Route handling failed",
       );
     }
-    jsonResponse(res, 500, { error: error.message || "Internal server error" });
+    jsonResponse(res, 500, {
+      error: error.message || "Internal server error",
+      requestId,
+    });
   }
 }
 

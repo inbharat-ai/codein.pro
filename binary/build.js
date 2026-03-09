@@ -149,7 +149,7 @@ async function buildWithEsbuild() {
   fs.mkdirSync(treeSitterDir);
   await new Promise((resolve, reject) => {
     ncp(
-      path.join(__dirname, "..", "extensions", "vscode", "tree-sitter"),
+      path.join(__dirname, "..", "packages", "extension", "tree-sitter"),
       treeSitterDir,
       { dereference: true },
       (error) => {
