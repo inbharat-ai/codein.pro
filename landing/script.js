@@ -198,7 +198,7 @@ function updateReleaseMeta(release) {
 function generateFallbackManifest() {
   return {
     version: "v1.0.0",
-    releaseDate: "July 2025",
+    releaseDate: "March 2026",
     assets: {
       win_x64: {
         name: "CodIn-1.0.0-x64.exe",

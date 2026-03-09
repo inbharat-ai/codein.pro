@@ -1,1 +1,12 @@
-* @continuedev/continue-code-reviewers
+# CODEOWNERS — All changes require review from inbharat-ai org admin
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: org-level ownership — only org admins can approve
+* @inbharat-ai
+
+# Critical files require explicit owner approval
+/.github/ @inbharat-ai
+SECURITY.md @inbharat-ai
+LICENSE @inbharat-ai
+package.json @inbharat-ai
+README.md @inbharat-ai
