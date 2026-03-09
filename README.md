@@ -19,7 +19,7 @@
 
 **CodIn is a world-class AI coding platform built to combine Cursor/Copilot-class workflows with multilingual intelligence, local-first control, and practical low-cost AI execution.**
 
-_Vibe coding · Autonomous task flows · Repo-aware development · Natural-language commands in Hindi, Hinglish, and 20+ languages — normalized into English internally for accurate AI execution._
+_Vibe coding · Autonomous task flows · Repo-aware development · Natural-language commands in Hindi, Hinglish, and 19 Indian languages — normalized into English internally for accurate AI execution._
 
 **By Bharat, for the world.** 🇮🇳
 
@@ -107,12 +107,13 @@ The vision: **make AI coding usable for people who do not naturally think only i
 
 <br/>
 
-## 🧠 Multilingual Intelligence — Live Demo
+## 🧠 Multilingual Intelligence
 
 <div align="center">
 
-> CodIn detects your language, preserves technical terms, normalizes colloquial phrasing,
-> and converts instructions into execution-ready English internally.
+> CodIn detects your language via Unicode script analysis, preserves technical terms using pattern matching,
+> and normalizes multilingual input into structured English for AI execution.
+> Translation quality depends on the configured backend (AI4Bharat, cloud, or LLM fallback).
 
 </div>
 
@@ -176,10 +177,17 @@ _"Clean up and improve the dashboard UI"_
 **How it works:**
 
 ```
-User input (any language) → Detect language → Preserve technical terms → Normalize phrasing → English task → AI execution
+User input (any language) → Detect script (Unicode) → Preserve technical terms (regex patterns)
+  → Translate via provider (AI4Bharat / Cloud / LLM fallback) → English task → AI execution
 ```
 
-**Supported:** Hindi · Tamil · Bengali · Telugu · Marathi · Gujarati · Kannada · Malayalam · Punjabi · Assamese · Odia · Urdu · Sanskrit — plus mixed-language patterns (Hinglish, Benglish, etc.)
+> **Setup note:** Language detection works out of the box. For translation, you need at least one backend configured:
+> AI4Bharat IndicTrans2 server (best quality, ~3GB model download), cloud provider credentials (Azure/Google),
+> or a local LLM via llama.cpp.
+
+**Language detection:** Hindi · Tamil · Bengali · Telugu · Marathi · Gujarati · Kannada · Malayalam · Punjabi · Assamese · Odia · Urdu · Sindhi · Konkani · Manipuri · Dogri · Bodo · Santali — plus mixed-language patterns (Hinglish, Benglish, Tanglish, etc.)
+
+> **Note:** 10 languages have full technical term preservation (Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Punjabi, Urdu). Others have script-level detection. Translation quality depends on available backend: AI4Bharat (best), cloud providers (good), or LLM fallback (acceptable). Sanskrit is not yet configured.
 
 <br/>
 
@@ -289,21 +297,25 @@ User input (any language) → Detect language → Preserve technical terms → N
 
 <div align="center">
 
-| Feature                             |   **CodIn**    | Cursor ($20/mo) | Copilot ($10/mo) | Windsurf ($15/mo) |
-| :---------------------------------- | :------------: | :-------------: | :--------------: | :---------------: |
-| AI Code Completion                  |       ✅       |       ✅        |        ✅        |        ✅         |
-| AI Chat & Agent Mode                |       ✅       |       ✅        |        ✅        |        ✅         |
-| **100% Free & Open Source**         |     **✅**     |       ❌        |        ❌        |        ❌         |
-| **Runs Fully Offline (Local AI)**   |     **✅**     |       ❌        |        ❌        |        ❌         |
-| **20+ Indian Language Support**     |     **✅**     |       ❌        |        ❌        |        ❌         |
-| **Voice Coding (Indian Languages)** |     **✅**     |       ❌        |        ❌        |        ❌         |
-| **Sovereign / Air-Gapped Mode**     |     **✅**     |       ❌        |        ❌        |        ❌         |
-| MCP Tool Protocol                   |       ✅       |       ✅        |        ~         |        ✅         |
-| Built-in Web Research               |       ✅       |        ~        |        ❌        |        ✅         |
-| **Zero Telemetry / No Tracking**    |     **✅**     |       ❌        |        ❌        |        ❌         |
-| Local Compute Engine                |       ✅       |       ❌        |        ❌        |        ❌         |
-| Local Media Generation              |       ✅       |       ❌        |        ❌        |        ❌         |
-| **Price**                           | **$0 forever** |     $20/mo      |      $10/mo      |      $15/mo       |
+| Feature                           |   **CodIn**    | Cursor ($20/mo) | Copilot ($10/mo) | Windsurf ($15/mo) |
+| :-------------------------------- | :------------: | :-------------: | :--------------: | :---------------: |
+| AI Code Completion                |       ✅       |       ✅        |        ✅        |        ✅         |
+| AI Chat & Agent Mode              |       ✅       |       ✅        |        ✅        |        ✅         |
+| **100% Free & Open Source**       |     **✅**     |       ❌        |        ❌        |        ❌         |
+| **Local AI via llama.cpp** ¹      |     **✅**     |       ❌        |        ❌        |        ❌         |
+| **BYO: 50+ AI Providers** ⁴       |     **✅**     |        ~        |        ❌        |         ~         |
+| **19 Indian Language Detection**  |     **✅**     |       ❌        |        ❌        |        ❌         |
+| **Voice Coding Infrastructure** ² |     **✅**     |       ❌        |        ❌        |        ❌         |
+| MCP Tool Protocol                 |       ✅       |       ✅        |        ~         |        ✅         |
+| Built-in Web Research ³           |       ✅       |        ~        |        ❌        |        ✅         |
+| **Zero Telemetry / No Tracking**  |     **✅**     |       ❌        |        ❌        |        ❌         |
+| Local Compute Engine              |       ✅       |       ❌        |        ❌        |        ❌         |
+| **Price**                         | **$0 forever** |     $20/mo      |      $10/mo      |      $15/mo       |
+
+> ¹ llama.cpp binaries are downloaded at build time or on first launch (~100 MB), not pre-bundled in the repo.<br/>
+> ² Voice coding (STT/TTS) requires external setup: Whisper, Piper, or cloud credentials (Azure/Google).<br/>
+> ³ Free search uses DuckDuckGo instant answers; premium providers (Tavily, Brave, SerpAPI) need API keys.<br/>
+> ⁴ Bring your own API key for OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, Together, Fireworks, Replicate, OpenRouter, and 40+ more.
 
 </div>
 
@@ -311,27 +323,64 @@ User input (any language) → Detect language → Preserve technical terms → N
 <tr>
 <td align="center" width="33%">
 
-**💰 Save $120–$480/year**
+**💰 Free Forever**
 
-Cursor costs $240/yr, Copilot $120/yr. CodIn is free forever — no usage limits, no premium tiers, no locked features.
+No subscription, no usage limits, no premium tiers. CodIn is open-source under Apache 2.0.
 
 </td>
 <td align="center" width="33%">
 
 **🔐 Your Code Stays Yours**
 
-Paid tools send code to their servers. CodIn's local AI means proprietary code, API keys, and secrets never leave your machine.
+With local AI inference via llama.cpp, your code and prompts stay on your machine. No mandatory cloud dependency.
 
 </td>
 <td align="center" width="33%">
 
 **🇮🇳 Built for Bharat**
 
-No other AI code editor supports 20+ Indian languages for voice, chat, and comments. CodIn thinks in your mother tongue.
+Language detection for 19 Indian languages with technical term preservation. Multilingual coding commands normalized into English for AI execution.
 
 </td>
 </tr>
 </table>
+
+<br/>
+
+### 🔌 Bring Your Own AI
+
+CodIn supports **50+ LLM providers** out of the box. Plug in your own API key and use the model you prefer:
+
+<table>
+<tr>
+<td align="center">
+
+**Cloud AI**<br/>
+OpenAI · Anthropic · Gemini · Groq · Mistral · Deepseek · Cohere · xAI
+
+</td>
+<td align="center">
+
+**Hosted Inference**<br/>
+Together · Fireworks · Replicate · SambaNova · Cerebras · DeepInfra · OpenRouter
+
+</td>
+<td align="center">
+
+**Local / Self-Hosted**<br/>
+Ollama · LM Studio · llama.cpp · Llamafile · vLLM · Text Generation WebUI
+
+</td>
+<td align="center">
+
+**Enterprise**<br/>
+Azure OpenAI · AWS Bedrock · Google VertexAI · SageMaker · WatsonX · Nvidia NIM
+
+</td>
+</tr>
+</table>
+
+> Configure via `POST /external-providers/configure` with your API key, or set the provider in your CodIn config file. SSE streaming supported for all providers.
 
 <br/>
 
@@ -344,33 +393,34 @@ No other AI code editor supports 20+ Indian languages for voice, chat, and comme
 <table>
 <tr><td>
 
-| Category                 | Capability                                                                                                   |
-| :----------------------- | :----------------------------------------------------------------------------------------------------------- |
-| 🌍 **Multilingual**      | Code, chat, voice in Hindi, Tamil, Bengali, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, and more |
-| 🎙️ **Voice Coding**      | Real-time STT/TTS, browser and backend, 14+ languages                                                        |
-| ⚡ **Vibe Coding**       | Live agent orchestration, session isolation, compute pipeline, pause/resume/cancel                           |
-| 🔗 **Live Bridge**       | Client ↔ Agent HTTP + SSE for task streaming, permission loops, real-time feedback                          |
-| 🧮 **Compute Routing**   | Local, swarm, GPU, and external API escalation with budget guardrails                                        |
-| 🔒 **Session Isolation** | Safe multi-user and parallel workflows, sandboxed workspaces, policy enforcement                             |
-| 🛡️ **Reliability**       | Circuit breaker, retry/backoff, timeout, infinite-loop detection, audit logging                              |
-| 📊 **Observability**     | Health, compute, sessions, agents, pipeline, metrics, audit logs                                             |
-| 🔍 **Research API**      | Serper-compatible, no API keys, web/code/docs/bug search                                                     |
-| 🔌 **MCP Tools**         | Connect to GitHub, Slack, Jira, DBs, Docker, Kubernetes — autonomous tool use                                |
-| 📋 **Compute Pipeline**  | Goal → plan → execute → artifact, sandbox isolation, multilingual I/O                                        |
-| 🤖 **Offline AI**        | Bundled llama.cpp, no API keys, no cloud bills, code never leaves your machine                               |
-| ✨ **Autocomplete**      | Context-aware ghost-text, project-aware, lightning fast                                                      |
-| 💬 **AI Chat & Edit**    | Conversational, @-mentions for files and symbols, test generation                                            |
-| 🕵️ **100% Private**      | No telemetry, no tracking, no cloud dependency                                                               |
-| 💻 **Cross-Platform**    | Windows, macOS (Intel + Apple Silicon), Linux                                                                |
+| Category                 | Capability                                                                                                                                       |
+| :----------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🌍 **Multilingual**      | Language detection for 19 Indian languages (10 with full technical term preservation). Normalizes multilingual input to English for AI execution |
+| 🎙️ **Voice Coding**      | STT/TTS infrastructure for 13 languages. Requires external setup: Whisper/Piper/espeak or Azure/Google credentials                               |
+| ⚡ **Vibe Coding**       | Live agent orchestration, session isolation, compute pipeline, pause/resume/cancel                                                               |
+| 🔗 **Live Bridge**       | Client ↔ Agent HTTP + SSE for task streaming, permission loops, real-time feedback                                                              |
+| 🧮 **Compute Routing**   | Local, swarm, GPU, and external API escalation with budget guardrails                                                                            |
+| 🔒 **Session Isolation** | Safe multi-user and parallel workflows, sandboxed workspaces, policy enforcement                                                                 |
+| 🛡️ **Reliability**       | Circuit breaker, retry/backoff, timeout, audit logging                                                                                           |
+| 📊 **Observability**     | Health, compute, sessions, agents, pipeline, metrics, audit logs                                                                                 |
+| 🔍 **Research API**      | Serper-compatible endpoint; DuckDuckGo fallback (no API keys); premium providers optional                                                        |
+| 🔌 **MCP Tools**         | Connect to MCP-compatible servers — GitHub, Slack, Jira, DBs, Docker, Kubernetes                                                                 |
+| 📋 **Compute Pipeline**  | Goal → plan → execute → artifact, sandbox isolation, multilingual I/O                                                                            |
+| 🤖 **Local AI**          | llama.cpp integration (binaries downloaded at build/first launch); local inference, no mandatory cloud                                           |
+| 🔌 **BYO Providers**     | 50+ LLM providers: OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, and more. Bring your own API key                  |
+| ✨ **Autocomplete**      | Context-aware ghost-text, project-aware, LRU-cached, works with local and cloud models                                                           |
+| 💬 **AI Chat & Edit**    | Conversational interface, @-mentions for files and symbols, inline code editing                                                                  |
+| 🕵️ **100% Private**      | No telemetry, no tracking. Local-first by default                                                                                                |
+| 💻 **Cross-Platform**    | Windows (primary). macOS and Linux builds in progress                                                                                            |
 
 </td></tr>
 </table>
 
 **Unified capabilities:**
 
-- No-key research endpoint: `POST /api/research/serper`
+- Research endpoint: `POST /api/research/serper` (DuckDuckGo fallback; API keys optional for premium providers)
 - Unified local/swarm/GPU routing
-- API-driven autonomous coding pipeline: idea → spec → code → test → review → delivery
+- Autonomous coding pipeline infrastructure: idea → spec → code → test → review → delivery
 - Tool-execution safety built into agent behavior
 
 <br/>
