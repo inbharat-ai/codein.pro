@@ -23,7 +23,7 @@ export type EditContractValidation = {
   repaired?: boolean;
 };
 
-export { applyUnifiedDiff } from "./diff";
+export { applyUnifiedDiff } from "./diff.ts";
 
 function parseJsonStrict(raw: string): {
   ok: boolean;

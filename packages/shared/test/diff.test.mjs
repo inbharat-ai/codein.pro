@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { applyUnifiedDiff } from "../src/diff.mts";
+import { applyUnifiedDiff } from "../src/diff.ts";
 
 test("applyUnifiedDiff applies a simple hunk", () => {
   const original = "line1\nline2\n";
