@@ -31,7 +31,9 @@ on:
         required: true
         default: "b3906"
   push:
-    tags: ["v*"]
+    tags:
+      - "v*-electron"
+      - "v*-beta"
 
 permissions:
   contents: write
