@@ -48,11 +48,19 @@ test("TOPOLOGY enum is frozen with 4 values", () => {
   assert.equal(TOPOLOGY.STAR, "star");
 });
 
-test("AGENT_TYPE enum is frozen with 10 values", () => {
+test("AGENT_TYPE enum is frozen with 15 values", () => {
   assert.ok(Object.isFrozen(AGENT_TYPE));
-  assert.equal(Object.keys(AGENT_TYPE).length, 10);
+  assert.equal(Object.keys(AGENT_TYPE).length, 15);
   assert.equal(AGENT_TYPE.PLANNER, "planner");
   assert.equal(AGENT_TYPE.CODER, "coder");
+  assert.equal(AGENT_TYPE.DEBUGGER, "debugger");
+  assert.equal(AGENT_TYPE.TESTER, "tester");
+  assert.equal(AGENT_TYPE.REFACTORER, "refactorer");
+  assert.equal(AGENT_TYPE.ARCHITECT, "architect");
+  assert.equal(AGENT_TYPE.DEVOPS, "devops");
+  assert.equal(AGENT_TYPE.I18N, "i18n");
+  assert.equal(AGENT_TYPE.VIBE_BUILDER, "vibe_builder");
+  // Legacy aliases
   assert.equal(AGENT_TYPE.TEST, "test");
   assert.equal(AGENT_TYPE.DEBUG, "debug");
 });
@@ -72,9 +80,9 @@ test("NODE_STATUS enum is frozen", () => {
   assert.ok(NODE_STATUS.FAILED);
 });
 
-test("EVENT_TYPE has 26 events", () => {
+test("EVENT_TYPE has all required events", () => {
   assert.ok(Object.isFrozen(EVENT_TYPE));
-  assert.ok(Object.keys(EVENT_TYPE).length >= 20);
+  assert.ok(Object.keys(EVENT_TYPE).length >= 38);
 });
 
 test("PERMISSION_TYPE enum contains expected types", () => {

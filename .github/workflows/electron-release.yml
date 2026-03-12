@@ -20,7 +20,8 @@ on:
         default: "v1.0.0-beta"
   push:
     tags:
-      - "v*"
+      - "v*-electron"
+      - "v*-beta"
 
 permissions:
   contents: write

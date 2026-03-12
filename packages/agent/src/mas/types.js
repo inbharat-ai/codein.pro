@@ -34,14 +34,20 @@ const EXECUTION_STRATEGY = Object.freeze({
 const AGENT_TYPE = Object.freeze({
   PLANNER: "planner",
   CODER: "coder",
-  TEST: "test",
-  DEBUG: "debug",
-  I18N: "i18n",
-  VIBE_BUILDER: "vibe_builder",
-  INFRA: "infra",
+  DEBUGGER: "debugger",
+  TESTER: "tester",
+  REFACTORER: "refactorer",
+  ARCHITECT: "architect",
+  DEVOPS: "devops",
   SECURITY: "security",
   DOCS: "docs",
   REVIEWER: "reviewer",
+  I18N: "i18n",
+  VIBE_BUILDER: "vibe_builder",
+  // Legacy aliases (keep for backward compat)
+  TEST: "test",
+  DEBUG: "debug",
+  INFRA: "infra",
 });
 
 const AGENT_STATUS = Object.freeze({
@@ -73,7 +79,15 @@ const EVENT_TYPE = Object.freeze({
   NODE_BLOCKED: "node_blocked",
   NODE_RETRY: "node_retry",
   NODE_CANCEL: "node_cancel",
+  // Aliases used by swarm-manager
+  NODE_STARTED: "node_started",
+  NODE_COMPLETED: "node_completed",
+  NODE_FAILED: "node_failed",
+  NODE_RETRIED: "node_retried",
+  TASK_SUBMITTED: "task_submitted",
+  TASK_DECOMPOSED: "task_decomposed",
   PERMISSION_REQUEST: "permission_request",
+  PERMISSION_REQUESTED: "permission_requested",
   PERMISSION_GRANTED: "permission_granted",
   PERMISSION_DENIED: "permission_denied",
   PATCH_APPLIED: "patch_applied",
@@ -83,10 +97,26 @@ const EVENT_TYPE = Object.freeze({
   MEMORY_PRUNED: "memory_pruned",
   TASK_CREATED: "task_created",
   TASK_COMPLETE: "task_complete",
+  TASK_COMPLETED: "task_completed",
   TASK_FAILED: "task_failed",
   TASK_CANCELLED: "task_cancelled",
   BATCH_PLANNED: "batch_planned",
   BATCH_EXECUTED: "batch_executed",
+  // GPU pod lifecycle
+  GPU_POD_CREATED: "gpu_pod_created",
+  GPU_POD_STOPPED: "gpu_pod_stopped",
+  GPU_JOB_ERROR: "gpu_job_error",
+  // Batch aliases
+  BATCH_START: "batch_start",
+  BATCH_COMPLETE: "batch_complete",
+  // Streaming UX
+  AGENT_ACTIVITY: "agent_activity",
+  TOOL_CALL_START: "tool_call_start",
+  TOOL_CALL_COMPLETE: "tool_call_complete",
+  // Offline fallback
+  PROVIDER_FALLBACK: "provider_fallback",
+  // Permission UX
+  PERMISSION_AUTO_APPROVED: "permission_auto_approved",
   COST_WARNING: "cost_warning",
   COST_HARD_STOP: "cost_hard_stop",
 });
@@ -162,7 +192,7 @@ function createSwarmConfig(opts = {}) {
   const strategy = opts.strategy || STRATEGY.BALANCED;
   const maxAgents =
     typeof opts.maxAgents === "number"
-      ? Math.max(1, Math.min(opts.maxAgents, 20))
+      ? Math.max(1, Math.min(opts.maxAgents, 50))
       : 5;
   const concurrency =
     typeof opts.concurrency === "number"
@@ -273,7 +303,7 @@ function createTaskNode({
     patches: [], // JSON patches produced
     artifacts: [], // { id, type, name, path }
     error: null,
-    retries: 0,
+    retryCount: 0,
     maxRetries: 2,
     metadata,
     costUSD: 0,
@@ -451,9 +481,9 @@ function validateSwarmConfig(config) {
   if (
     typeof config.maxAgents !== "number" ||
     config.maxAgents < 1 ||
-    config.maxAgents > 20
+    config.maxAgents > 50
   ) {
-    errors.push("maxAgents must be 1-20");
+    errors.push("maxAgents must be 1-50");
   }
   if (typeof config.concurrency !== "number" || config.concurrency < 1) {
     errors.push("concurrency must be >= 1");

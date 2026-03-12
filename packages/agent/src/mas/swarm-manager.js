@@ -15,14 +15,12 @@ const { EventEmitter } = require("node:events");
 const crypto = require("node:crypto");
 
 const {
-  TOPOLOGY: _TOPOLOGY,
   NODE_STATUS,
   EVENT_TYPE,
   AGENT_TYPE,
   createSwarmConfig,
   createSwarmEvent,
   createTaskNode,
-  createTaskGraph: _createTaskGraph,
   validateSwarmConfig,
   validateTaskGraph,
 } = require("./types");
@@ -31,8 +29,9 @@ const { MemoryManager } = require("./memory");
 const { PermissionGate } = require("./permissions");
 const { AgentRouter } = require("./agent-router");
 const { createTopologyScheduler } = require("./topologies");
-const { BatchPlanner, BatchExecutor: _BatchExecutor } = require("./batch");
+const { BatchPlanner } = require("./batch");
 const { JsonPatchEngine } = require("./json-patch");
+const { getAgentModelTier } = require("./mode-config");
 
 // ─── Swarm States ────────────────────────────────────────────
 const SWARM_STATE = Object.freeze({
@@ -125,10 +124,19 @@ class SwarmManager extends EventEmitter {
       emitEvent: (e) => this._broadcast(e),
     });
 
+    const os = require("node:os");
+    const path = require("node:path");
     this._permissionGate = new PermissionGate({
       memory: this._memory,
       emitEvent: (e) => this._broadcast(e),
       gpuConfig: this._config.gpuGuardrails || {},
+      persistPath: path.join(
+        os.homedir(),
+        ".codein",
+        "swarm",
+        this._workspaceHash,
+        "permissions.json",
+      ),
     });
 
     this._agentRouter = new AgentRouter(
@@ -137,7 +145,7 @@ class SwarmManager extends EventEmitter {
         permissionGate: this._permissionGate,
         memory: this._memory,
         emitEvent: (e) => this._broadcast(e),
-        runLLM: this._deps.runLLM,
+        runLLM: this._createTierAwareRunLLM(),
       },
     );
 
@@ -147,14 +155,18 @@ class SwarmManager extends EventEmitter {
 
     this._state = SWARM_STATE.ACTIVE;
     this._memory.onSwarmInit(this._config);
+
+    // Validate cloud model availability
+    const cloudWarnings = this._validateCloudModels();
+
     this._broadcast(
       createSwarmEvent({
         type: EVENT_TYPE.SWARM_INIT,
-        data: { config: this._config },
+        data: { config: this._config, warnings: cloudWarnings },
       }),
     );
 
-    return { status: "active", config: this._config };
+    return { status: "active", config: this._config, warnings: cloudWarnings };
   }
 
   // ════════════════════════════════════════════════════════════
@@ -579,7 +591,10 @@ class SwarmManager extends EventEmitter {
           );
         }
       } finally {
-        if (agent) this._agentRouter.release(agent.id);
+        // Only release agents still in BUSY state — don't release if denied/errored/shutdown
+        if (agent && agent.status === "busy") {
+          this._agentRouter.release(agent.id);
+        }
       }
     };
 
@@ -731,6 +746,65 @@ class SwarmManager extends EventEmitter {
     }
 
     this.emit("swarm:event", event);
+  }
+
+  /**
+   * Check that at least one cloud model API key is configured.
+   * Returns an array of warning strings (empty if all good).
+   */
+  _validateCloudModels() {
+    const warnings = [];
+    const keyEnvVars = [
+      "OPENAI_API_KEY",
+      "ANTHROPIC_API_KEY",
+      "GOOGLE_API_KEY",
+      "DEEPSEEK_API_KEY",
+    ];
+    const hasAnyKey = keyEnvVars.some((k) => !!process.env[k]);
+    if (!hasAnyKey) {
+      warnings.push(
+        "No cloud model API key found. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, " +
+          "GOOGLE_API_KEY, or DEEPSEEK_API_KEY for full swarm capabilities. " +
+          "Falling back to local/offline models only.",
+      );
+    }
+    // Check if premium tier agents can actually use a cloud model
+    if (!hasAnyKey && this._config?.maxAgents > 1) {
+      warnings.push(
+        "Multi-agent orchestration works best with cloud models. " +
+          "Consider configuring at least one API key for production use.",
+      );
+    }
+    return warnings;
+  }
+
+  /**
+   * Wrap deps.runLLM so each call injects the model tier hint from mode-config.
+   * BaseAgent.callLLM honours opts.model || descriptor.modelHint, so agents
+   * created via createAgent already carry a modelHint.  The wrapper here
+   * ensures that even direct runLLM calls honour the tier preference.
+   */
+  _createTierAwareRunLLM() {
+    const baseRunLLM = this._deps.runLLM;
+    if (typeof baseRunLLM !== "function") return baseRunLLM;
+
+    return async (systemPrompt, userPrompt, opts = {}) => {
+      // If the caller already specified a model, respect it
+      if (opts.model) return baseRunLLM(systemPrompt, userPrompt, opts);
+
+      // Derive tier from agentType if available
+      const agentType = opts.agentType || opts._agentType;
+      if (agentType) {
+        const tier = getAgentModelTier(agentType);
+        if (tier) {
+          return baseRunLLM(systemPrompt, userPrompt, {
+            ...opts,
+            modelTier: tier,
+          });
+        }
+      }
+      return baseRunLLM(systemPrompt, userPrompt, opts);
+    };
   }
 
   _requireActive() {

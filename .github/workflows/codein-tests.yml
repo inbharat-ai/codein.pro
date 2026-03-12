@@ -14,13 +14,16 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Install agent dependencies
         run: npm install
         working-directory: packages/agent
       - name: Run agent tests
         run: npm test
         working-directory: packages/agent
+      - name: Run shared tests
+        run: node --test test/*.test.mjs
+        working-directory: packages/shared
       - name: Run media tests
         run: |
           npm install

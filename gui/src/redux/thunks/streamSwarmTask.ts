@@ -8,13 +8,14 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import posthog from "posthog-js";
 import { v4 as uuidv4 } from "uuid";
-import { SwarmCommunicator } from "../../util/SwarmCommunicator";
+import { getAgentBaseUrl } from "../../util/agentConfig";
 import {
   addPromptCompletionPair,
   setActive,
   setInactive,
   updateHistoryItemAtIndex,
 } from "../slices/sessionSlice";
+import { swarmFetch } from "../slices/swarmSlice";
 import { ThunkApiType } from "../store";
 
 export const streamSwarmTask = createAsyncThunk<
@@ -27,14 +28,15 @@ export const streamSwarmTask = createAsyncThunk<
   ThunkApiType
 >(
   "chat/streamSwarmTask",
-  async ({ goal, context, historyIndex }, { dispatch, getState }) => {
-    const state = getState();
-    const communicator = new SwarmCommunicator();
+  async ({ goal, context, historyIndex }, { dispatch }) => {
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
+    let eventSource: EventSource | null = null;
 
     try {
       // Check if agent server is available
-      const available = await communicator.isAvailable();
-      if (!available) {
+      try {
+        await swarmFetch("/status");
+      } catch {
         throw new Error(
           "Agent server not available. Starting up or connection error.",
         );
@@ -63,13 +65,16 @@ export const streamSwarmTask = createAsyncThunk<
         hasContext: !!context,
       });
 
-      const taskResponse = await communicator.submitTask({
-        goal,
-        topology: "hierarchical", // Default to hierarchical
-        context: {
-          ...context,
-          source: "vscode_gui",
-        },
+      const taskResponse = await swarmFetch("/tasks", {
+        method: "POST",
+        body: JSON.stringify({
+          goal,
+          topology: "hierarchical",
+          context: {
+            ...context,
+            source: "vscode_gui",
+          },
+        }),
       });
 
       // Poll for task completion or stream events
@@ -90,9 +95,9 @@ export const streamSwarmTask = createAsyncThunk<
         }),
       );
 
-      const pollInterval = setInterval(async () => {
+      pollInterval = setInterval(async () => {
         try {
-          const status = await communicator.getTaskStatus(taskResponse.taskId);
+          const status = await swarmFetch(`/tasks/${taskResponse.taskId}`);
 
           if (status.status !== lastStatus) {
             accumulatedContent += `\nTask status: ${status.status}\n`;
@@ -121,8 +126,8 @@ export const streamSwarmTask = createAsyncThunk<
             if (status.status === "completed") {
               // Get results
               try {
-                const results = await communicator.getTaskResults(
-                  taskResponse.taskId,
+                const results = await swarmFetch(
+                  `/tasks/${taskResponse.taskId}/results`,
                 );
 
                 const completionContent = JSON.stringify(results, null, 2);
@@ -199,24 +204,35 @@ export const streamSwarmTask = createAsyncThunk<
         }
       }, 1000); // Poll every 1 second
 
-      // Also listen for real-time events
-      communicator.addEventListener((event) => {
-        if (event.taskId === taskResponse.taskId) {
-          accumulatedContent += `\n[${event.type}] ${JSON.stringify(event.data)}`;
-          dispatch(
-            updateHistoryItemAtIndex({
-              index: historyIndex,
-              updates: {
-                message: {
-                  role: "assistant",
-                  content: accumulatedContent,
-                  id: taskResponse.taskId,
-                },
-              },
-            }),
-          );
-        }
-      });
+      // Also listen for real-time events via SSE
+      try {
+        const base = getAgentBaseUrl();
+        eventSource = new EventSource(`${base}/swarm/events`);
+        eventSource.onmessage = (event) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed.taskId === taskResponse.taskId) {
+              accumulatedContent += `\n[${parsed.type}] ${JSON.stringify(parsed.data)}`;
+              dispatch(
+                updateHistoryItemAtIndex({
+                  index: historyIndex,
+                  updates: {
+                    message: {
+                      role: "assistant",
+                      content: accumulatedContent,
+                      id: taskResponse.taskId,
+                    },
+                  },
+                }),
+              );
+            }
+          } catch {
+            /* ignore parse errors */
+          }
+        };
+      } catch {
+        /* SSE not critical — polling handles it */
+      }
     } catch (error: any) {
       console.error("Swarm task error", error);
 
@@ -238,7 +254,11 @@ export const streamSwarmTask = createAsyncThunk<
       });
     } finally {
       dispatch(setInactive());
-      communicator.dispose();
+      if (pollInterval) clearInterval(pollInterval);
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
     }
   },
 );

@@ -20,7 +20,6 @@ const {
   PERMISSION_TYPE,
   PERMISSION_DECISION,
   PERMISSION_RESPONSE,
-  NODE_STATUS: _NODE_STATUS,
   EVENT_TYPE,
   createSwarmEvent,
   createPermissionRequest,
@@ -47,12 +46,21 @@ class PermissionGate {
    * @param {function} [opts.emitEvent] — Callback to emit SwarmEvents
    * @param {object} [opts.gpuConfig] — GPU guardrails config
    */
-  constructor({ memory, emitEvent = null, gpuConfig = {} }) {
+  constructor({
+    memory,
+    emitEvent = null,
+    gpuConfig = {},
+    persistPath = null,
+  }) {
     this._memory = memory;
     this._emitEvent = emitEvent;
 
     // Pending approvals: requestId → { request, resolve, reject }
     this._pending = new Map();
+
+    // Permission persistence path (JSON file)
+    this._persistPath = persistPath;
+    this._loadPersistedPermissions();
 
     // Audit log
     this._auditLog = [];
@@ -77,6 +85,67 @@ class PermissionGate {
   _emit(type, data) {
     if (this._emitEvent) {
       this._emitEvent(createSwarmEvent({ type, data }));
+    }
+  }
+
+  // ─── Permission Persistence ────────────────────────────────
+
+  /**
+   * Load persisted approve_always decisions from disk.
+   * Decisions are stored as { permissionType: "approve_always", expiresAt: timestamp }.
+   * Expired entries are discarded on load.
+   */
+  _loadPersistedPermissions() {
+    if (!this._persistPath) return;
+    try {
+      const fs = require("node:fs");
+      if (!fs.existsSync(this._persistPath)) return;
+      const raw = fs.readFileSync(this._persistPath, "utf8");
+      const data = JSON.parse(raw);
+      const now = Date.now();
+      if (data && typeof data === "object") {
+        for (const [permType, entry] of Object.entries(data)) {
+          // Only restore non-expired entries
+          if (entry.expiresAt && entry.expiresAt > now) {
+            this._memory.working.setPermissionGrant(permType, "approve_always");
+          }
+        }
+      }
+    } catch {
+      // Corrupted file — start fresh (fail-closed)
+    }
+  }
+
+  /**
+   * Persist an approve_always decision to disk with a 24-hour TTL.
+   * @param {string} permissionType
+   */
+  _persistPermission(permissionType) {
+    if (!this._persistPath) return;
+    try {
+      const fs = require("node:fs");
+      const path = require("node:path");
+      let data = {};
+      if (fs.existsSync(this._persistPath)) {
+        try {
+          data = JSON.parse(fs.readFileSync(this._persistPath, "utf8"));
+        } catch {
+          data = {};
+        }
+      }
+      data[permissionType] = {
+        grant: "approve_always",
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hour TTL
+        createdAt: new Date().toISOString(),
+      };
+      fs.mkdirSync(path.dirname(this._persistPath), { recursive: true });
+      fs.writeFileSync(
+        this._persistPath,
+        JSON.stringify(data, null, 2),
+        "utf8",
+      );
+    } catch {
+      // Non-fatal — permission still works in-memory
     }
   }
 
@@ -194,7 +263,7 @@ class PermissionGate {
       agentId,
       permissionType,
       action,
-      costEstimate,
+      costEstimateUSD: costEstimate,
     });
     this._emit(EVENT_TYPE.PERMISSION_REQUESTED, { request });
 
@@ -247,6 +316,8 @@ class PermissionGate {
           request.permissionType,
           "approve_always",
         );
+        // Persist to disk so it survives restarts (24h TTL)
+        this._persistPermission(request.permissionType);
         break;
       case PERMISSION_RESPONSE.DENY:
         decision = PERMISSION_DECISION.DENIED;

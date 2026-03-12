@@ -28,8 +28,12 @@ function createFakeProvider() {
       costPerHour: 0.8,
     }),
     submitJob: async () => ({ jobId: "job_123", status: "submitted" }),
+    runServerless: async () => ({ id: "job_123", status: "IN_QUEUE" }),
+    runServerlessSync: async () => ({ id: "job_123", status: "COMPLETED", output: {} }),
     getJobStatus: async () => ({ status: "completed", result: { ok: true } }),
+    getServerlessJobStatus: async () => ({ status: "COMPLETED", output: {} }),
     getPodLogs: async () => "logs",
+    getPodInfo: async () => ({ id: "pod_123", runtime: {} }),
     getSessionInfo: () => ({
       podId: "pod_123",
       status: "running",
@@ -75,6 +79,7 @@ test("GpuSessionManager supports end-to-end provider lifecycle", async () => {
   const job = await manager.submitJob("u1", {
     input: { prompt: "hello" },
     jobName: "smoke",
+    endpointId: "ep_test_123",
   });
   const jobStatus = await manager.getJobStatus("u1", job.jobId);
   const logs = await manager.getLogs("u1");
@@ -84,8 +89,8 @@ test("GpuSessionManager supports end-to-end provider lifecycle", async () => {
   assert.equal(gpus.length, 1);
   assert.equal(pod.podId, "pod_123");
   assert.equal(job.jobId, "job_123");
-  assert.equal(jobStatus.status, "completed");
-  assert.equal(logs, "logs");
+  assert.equal(jobStatus.status, "COMPLETED");
+  assert.ok(logs.podId || logs.runtime !== undefined);
   assert.equal(status.connected, true);
   assert.equal(status.provider, "runpod");
   assert.equal(stopped.stopped, true);
