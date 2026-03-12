@@ -34,12 +34,41 @@ class MicroRouter {
   }
 
   /**
-   * Match a request against registered routes
+   * Match a request against registered routes.
+   * Supports API versioning: requests to /v1/foo will match route /foo.
+   * Both versioned (/v1/...) and unversioned paths are accepted for
+   * backward compatibility, but clients should prefer /v1/.
+   *
    * @param {string} method
    * @param {string} pathname
-   * @returns {{ handler: Function, params: Object }|null}
+   * @returns {{ handler: Function, params: Object, apiVersion?: string }|null}
    */
   match(method, pathname) {
+    // Strip /v1 prefix if present — normalise to unversioned for matching
+    let normalised = pathname;
+    let apiVersion = null;
+    const versionMatch = pathname.match(/^\/v(\d+)(\/.*)/);
+    if (versionMatch) {
+      apiVersion = `v${versionMatch[1]}`;
+      normalised = versionMatch[2] || "/";
+    }
+
+    const result = this._matchPath(method, normalised);
+    if (result) {
+      result.apiVersion = apiVersion;
+      return result;
+    }
+
+    // If the request had no version prefix, still try the raw pathname
+    // (already tried above when normalised === pathname)
+    return null;
+  }
+
+  /**
+   * Internal path matcher against registered routes.
+   * @private
+   */
+  _matchPath(method, pathname) {
     for (const route of this.routes) {
       if (route.method !== method.toUpperCase()) continue;
 

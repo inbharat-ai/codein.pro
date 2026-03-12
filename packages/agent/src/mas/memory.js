@@ -9,7 +9,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
-const _crypto = require("node:crypto");
 const {
   MEMORY_SCOPE,
   EVENT_TYPE,
@@ -231,6 +230,11 @@ class WorkingMemory {
   getPermissionGrant(permissionKey) {
     const grants = this.get("__permission_grants__") || {};
     return grants[permissionKey] || null;
+  }
+
+  /** Clear all cached permission grants (called on swarm shutdown). */
+  clearPermissionGrants() {
+    this.delete("__permission_grants__");
   }
 
   /** Budget tracking. */
@@ -664,7 +668,10 @@ class MemoryManager {
   /** Full teardown. */
   destroy() {
     this.shortTerm.destroy();
+    // Clear session-scoped permission grants to prevent stale approvals
+    this.working.clearPermissionGrants();
     this.working.clear();
+    this.blackboard.clear();
     // LongTerm: don't destroy persisted data on normal shutdown
   }
 }

@@ -46,10 +46,14 @@ class BaseAgent {
     this.descriptor.status = AGENT_STATUS.IDLE;
 
     // Initialize circuit breaker for LLM calls
+    // Reset timeout (90s) > LLM call timeout (30s) to allow in-flight calls to finish
+    // Half-open attempts = 2 for smoother recovery
     this._llmCircuitBreaker = new CircuitBreaker({
       failureThreshold: 5,
-      resetTimeout: 60000, // 60 seconds
-      halfOpenAttempts: 1,
+      timeout: 90000, // 90 seconds — aligned with LLM timeout (30s) + retry window
+      successThreshold: 2,
+      halfOpenAttempts: 2,
+      windowSize: 10,
     });
   }
 

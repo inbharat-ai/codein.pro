@@ -6,6 +6,7 @@
 "use strict";
 
 const { AGENT_TYPE } = require("../types");
+const { getAgentModelTier } = require("../mode-config");
 const { BaseAgent } = require("./base-agent");
 const { PlannerAgent } = require("./planner-agent");
 const { CoderAgent } = require("./coder-agent");
@@ -17,6 +18,8 @@ const { DevOpsAgent } = require("./devops-agent");
 const { SecurityAgent } = require("./security-agent");
 const { DocsAgent } = require("./docs-agent");
 const { ReviewerAgent } = require("./reviewer-agent");
+const { I18nAgent } = require("./i18n-agent");
+const { VibeBuilderAgent } = require("./vibe-builder-agent");
 
 const AGENT_CLASS_MAP = Object.freeze({
   [AGENT_TYPE.PLANNER]: PlannerAgent,
@@ -29,6 +32,8 @@ const AGENT_CLASS_MAP = Object.freeze({
   [AGENT_TYPE.SECURITY]: SecurityAgent,
   [AGENT_TYPE.DOCS]: DocsAgent,
   [AGENT_TYPE.REVIEWER]: ReviewerAgent,
+  [AGENT_TYPE.I18N]: I18nAgent,
+  [AGENT_TYPE.VIBE_BUILDER]: VibeBuilderAgent,
 });
 
 /**
@@ -42,7 +47,10 @@ function createAgent(type, deps) {
   if (!AgentClass) {
     throw new Error(`Unknown agent type: ${type}`);
   }
-  return new AgentClass(deps);
+  const agent = new AgentClass(deps);
+  // Inject per-agent model tier so each agent type gets appropriate model quality
+  agent.descriptor.modelHint = getAgentModelTier(type);
+  return agent;
 }
 
 module.exports = {
@@ -57,6 +65,8 @@ module.exports = {
   SecurityAgent,
   DocsAgent,
   ReviewerAgent,
+  I18nAgent,
+  VibeBuilderAgent,
   AGENT_CLASS_MAP,
   createAgent,
 };
