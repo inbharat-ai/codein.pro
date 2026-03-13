@@ -36,7 +36,7 @@ const topActivities: ActivityItem[] = [
     id: "history",
     icon: ClockIcon,
     i18nKey: "activityBar.history",
-    route: "/history",
+    route: ROUTES.HISTORY,
   },
   {
     id: "search",
@@ -78,7 +78,7 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
   const getActiveId = () => {
     const path = location.pathname;
     if (path === "/" || path === "/index.html") return "chat";
-    if (path === "/history") return "history";
+    if (path === ROUTES.HISTORY) return "history";
     if (path.includes("gpu")) return "gpu";
     if (path.includes("repo") || path.includes("search")) return "search";
     if (path.includes("config") || path.includes("settings")) return "settings";
