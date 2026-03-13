@@ -3,7 +3,7 @@
  * Manages application windows and their state
  */
 
-import { BrowserWindow, screen } from "electron";
+import { BrowserWindow, screen, session } from "electron";
 import Store from "electron-store";
 import * as path from "path";
 
@@ -71,6 +71,9 @@ export class WindowManager {
       this.mainWindow?.show();
       this.mainWindow?.focus();
     });
+
+    // Setup CSP headers
+    this.setupCSP();
 
     // Setup window event handlers
     this.setupWindowHandlers();
@@ -154,6 +157,34 @@ export class WindowManager {
       x: bounds.x,
       y: bounds.y,
       isMaximized,
+    });
+  }
+
+  /**
+   * Setup Content-Security-Policy headers to mitigate XSS and code injection
+   */
+  private setupCSP(): void {
+    const ses = this.mainWindow?.webContents.session;
+    if (!ses) return;
+
+    ses.webRequest.onHeadersReceived((details, callback) => {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          "Content-Security-Policy": [
+            [
+              "default-src 'self'",
+              "script-src 'self'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self' data:",
+              "connect-src 'self' http://localhost:* https://*.openai.com https://*.anthropic.com https://*.deepseek.com https://*.ai4bharat.org ws://localhost:*",
+              "worker-src 'self' blob:",
+              "frame-src 'none'",
+            ].join("; "),
+          ],
+        },
+      });
     });
   }
 

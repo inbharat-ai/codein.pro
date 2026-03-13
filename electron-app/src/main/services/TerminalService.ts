@@ -17,6 +17,35 @@ interface TerminalSession {
 export class TerminalService {
   private terminals: Map<string, TerminalSession> = new Map();
 
+  private static readonly SENSITIVE_ENV_PATTERNS = [
+    /^ANTHROPIC_API_KEY$/i,
+    /^OPENAI_API_KEY$/i,
+    /^RUNPOD_API_KEY$/i,
+    /^DEEPSEEK_API_KEY$/i,
+    /^GITHUB_TOKEN$/i,
+    /^GH_TOKEN$/i,
+    /^NPM_TOKEN$/i,
+    /^AWS_SECRET_ACCESS_KEY$/i,
+    /^AZURE_KEY$/i,
+    /^GOOGLE_API_KEY$/i,
+    /SECRET/i,
+    /PRIVATE_KEY/i,
+  ];
+
+  private scrubEnv(): Record<string, string> {
+    const env: Record<string, string> = {};
+    for (const [key, value] of Object.entries(process.env)) {
+      if (value === undefined) continue;
+      const isSensitive = TerminalService.SENSITIVE_ENV_PATTERNS.some((p) =>
+        p.test(key),
+      );
+      if (!isSensitive) {
+        env[key] = value;
+      }
+    }
+    return env;
+  }
+
   /**
    * Create a new terminal session
    */
@@ -29,7 +58,7 @@ export class TerminalService {
       cols: 80,
       rows: 24,
       cwd: cwd || os.homedir(),
-      env: process.env as any,
+      env: this.scrubEnv() as any,
     });
 
     const session: TerminalSession = {

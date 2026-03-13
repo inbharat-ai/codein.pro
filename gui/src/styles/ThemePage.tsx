@@ -69,7 +69,6 @@ function ThemePage() {
       void ideMessenger
         .request("jetbrains/getColors", undefined)
         .then((result) => {
-          console.log(result);
           if (result.status === "success") {
             const missingColors = setDocumentStylesFromTheme(result.content);
             setMissingVars(missingColors);
