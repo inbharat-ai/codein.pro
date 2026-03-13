@@ -34,7 +34,40 @@ const { JsonPatchEngine } = require("./json-patch");
 const { getAgentModelTier } = require("./mode-config");
 const { openDatabase } = require("./persistence");
 const { WorkspaceIndexer } = require("./workspace-indexer");
+const { StreamEngine } = require("./stream-engine");
+const { IndianLanguageProcessor } = require("./indian-lang");
+const { CostRouter } = require("./cost-router");
 const { createLogger } = require("./logger");
+
+// Optional modules — loaded lazily to avoid startup errors if files don't exist yet
+let WorkspaceMemory,
+  BackgroundTaskManager,
+  TaskRecovery,
+  PluginManager,
+  SkillRegistry,
+  DocGenerator;
+try {
+  ({ WorkspaceMemory } = require("./workspace-memory"));
+} catch {
+  WorkspaceMemory = null;
+}
+try {
+  ({ BackgroundTaskManager, TaskRecovery } = require("./background-tasks"));
+} catch {
+  BackgroundTaskManager = null;
+  TaskRecovery = null;
+}
+try {
+  ({ PluginManager, SkillRegistry } = require("./plugin-system"));
+} catch {
+  PluginManager = null;
+  SkillRegistry = null;
+}
+try {
+  ({ DocGenerator } = require("./doc-generator"));
+} catch {
+  DocGenerator = null;
+}
 
 const log = createLogger("SwarmManager");
 
@@ -67,6 +100,14 @@ class SwarmManager extends EventEmitter {
     this._patchEngine = null;
     this._persistence = null;
     this._workspaceIndexer = null;
+    this._streamEngine = new StreamEngine();
+    this._langProcessor = new IndianLanguageProcessor();
+    this._costRouter = null;
+    this._workspaceMemory = null;
+    this._backgroundTasks = null;
+    this._pluginManager = null;
+    this._skillRegistry = null;
+    this._docGenerator = null;
 
     // Active task graphs
     /** @type {Map<string, object>} taskId → TaskGraph */
@@ -171,6 +212,74 @@ class SwarmManager extends EventEmitter {
 
     // Initialize workspace indexer
     this._workspaceIndexer = new WorkspaceIndexer(this._persistence);
+
+    // Initialize cost router with budget from config
+    this._costRouter = new CostRouter({
+      budgetUSD: this._config.gpuGuardrails?.maxBudgetUSD || 10,
+      warningThresholdPercent: 80,
+    });
+
+    // Initialize workspace memory (learns project patterns)
+    if (WorkspaceMemory) {
+      try {
+        this._workspaceMemory = new WorkspaceMemory({
+          persistence: this._persistence,
+          workspaceRoot: process.cwd(),
+        });
+        log.info("Workspace memory initialized");
+      } catch (err) {
+        log.warn("Workspace memory init failed", { error: err.message });
+      }
+    }
+
+    // Initialize background task manager
+    if (BackgroundTaskManager) {
+      try {
+        this._backgroundTasks = new BackgroundTaskManager({
+          persistence: this._persistence,
+          maxConcurrent: this._config.concurrency || 3,
+        });
+        // Recover interrupted tasks from previous session
+        if (TaskRecovery && this._persistence) {
+          const recovery = TaskRecovery.recoverTasks(this._persistence);
+          if (recovery.recovered > 0) {
+            log.info("Recovered interrupted tasks", recovery);
+          }
+        }
+      } catch (err) {
+        log.warn("Background task manager init failed", { error: err.message });
+      }
+    }
+
+    // Initialize plugin system
+    if (PluginManager) {
+      try {
+        this._pluginManager = new PluginManager({
+          persistence: this._persistence,
+        });
+        const loaded = this._pluginManager.loadPlugins();
+        if (loaded.loaded.length > 0) {
+          log.info("Plugins loaded", { plugins: loaded.loaded });
+        }
+      } catch (err) {
+        log.warn("Plugin manager init failed", { error: err.message });
+      }
+    }
+
+    // Initialize skill registry
+    if (SkillRegistry) {
+      try {
+        this._skillRegistry = new SkillRegistry();
+        log.info("Skill registry initialized");
+      } catch (err) {
+        log.warn("Skill registry init failed", { error: err.message });
+      }
+    }
+
+    // Initialize doc generator
+    if (DocGenerator) {
+      this._docGenerator = new DocGenerator({ runLLM: this._deps.runLLM });
+    }
 
     this._state = SWARM_STATE.ACTIVE;
     this._memory.onSwarmInit(this._config);
@@ -282,6 +391,34 @@ class SwarmManager extends EventEmitter {
         log.warn("Failed to index workspace", { error: err.message });
       }
     }
+
+    // Detect Indian language and enhance prompt
+    if (this._langProcessor) {
+      const langDetection = this._langProcessor.detectLanguage(goal);
+      if (langDetection.isIndic || langDetection.isMixed) {
+        const enhanced = this._langProcessor.enhancePrompt(goal, langDetection);
+        context.language = langDetection.language;
+        context.languageEnhancement = enhanced.systemAddendum;
+        log.info("Indian language detected", {
+          language: langDetection.language,
+          confidence: langDetection.confidence,
+        });
+      }
+    }
+
+    // Inject workspace memory (learned conventions, patterns)
+    if (this._workspaceMemory && !context.conventions) {
+      try {
+        context.conventions = this._workspaceMemory.getContextForAgent("coder");
+      } catch {
+        /* Non-fatal */
+      }
+    }
+
+    // Create streaming channel for real-time UI updates
+    const taskStream = this._streamEngine.createStream(
+      sessionId || crypto.randomUUID(),
+    );
 
     this._broadcast(
       createSwarmEvent({
@@ -513,6 +650,12 @@ class SwarmManager extends EventEmitter {
     }
     this._persistence = null;
     this._workspaceIndexer = null;
+    this._costRouter = null;
+    this._workspaceMemory = null;
+    this._backgroundTasks = null;
+    this._pluginManager = null;
+    this._skillRegistry = null;
+    this._docGenerator = null;
 
     // Close SSE subscribers
     for (const sub of this._subscribers) {
@@ -552,6 +695,113 @@ class SwarmManager extends EventEmitter {
     return this._workspaceIndexer.getContextSummary(
       workspaceRoot || process.cwd(),
     );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Cost Router API
+  // ════════════════════════════════════════════════════════════
+
+  /** Get current budget status. */
+  getBudgetStatus() {
+    return this._costRouter ? this._costRouter.getBudgetStatus() : null;
+  }
+
+  /** Get cost optimization suggestions. */
+  getCostSuggestions() {
+    if (!this._costRouter || !this._persistence) return [];
+    return this._costRouter.suggestCostOptimization(
+      this._persistence.getAnalytics(),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Streaming API
+  // ════════════════════════════════════════════════════════════
+
+  /** Get the SSE handler for a specific task's stream. */
+  getTaskStreamHandler(taskId) {
+    return this._streamEngine.createSSEHandler(taskId);
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Background Tasks API
+  // ════════════════════════════════════════════════════════════
+
+  /** Submit a task for background execution. */
+  submitBackgroundTask(taskSpec) {
+    if (!this._backgroundTasks)
+      return { error: "Background tasks not available" };
+    return this._backgroundTasks.submit(taskSpec);
+  }
+
+  /** Get background task status. */
+  getBackgroundTaskStatus(taskId) {
+    if (!this._backgroundTasks) return null;
+    return this._backgroundTasks.getStatus(taskId);
+  }
+
+  /** List all background tasks. */
+  listBackgroundTasks(filter) {
+    if (!this._backgroundTasks) return [];
+    return this._backgroundTasks.listTasks(filter);
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Plugin & Skill API
+  // ════════════════════════════════════════════════════════════
+
+  /** List loaded plugins. */
+  listPlugins() {
+    return this._pluginManager ? this._pluginManager.listPlugins() : [];
+  }
+
+  /** List available skills. */
+  listSkills(category) {
+    return this._skillRegistry ? this._skillRegistry.listSkills(category) : [];
+  }
+
+  /** Execute a built-in skill. */
+  async executeSkill(name, context) {
+    if (!this._skillRegistry) return { error: "Skill registry not available" };
+    return this._skillRegistry.executeSkill(name, context);
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Document Generation API
+  // ════════════════════════════════════════════════════════════
+
+  /** Generate a commit message from a diff. */
+  async generateCommitMessage(diff, opts) {
+    if (!this._docGenerator) return { error: "Doc generator not available" };
+    return this._docGenerator.generateCommitMessage(diff, opts);
+  }
+
+  /** Generate a PR description. */
+  async generatePRDescription(opts) {
+    if (!this._docGenerator) return { error: "Doc generator not available" };
+    return this._docGenerator.generatePRDescription(opts);
+  }
+
+  /** Generate a changelog. */
+  generateChangelog(opts) {
+    if (!this._docGenerator) return { error: "Doc generator not available" };
+    return this._docGenerator.generateChangelog(opts);
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Workspace Memory API
+  // ════════════════════════════════════════════════════════════
+
+  /** Get project profile from learned patterns. */
+  getProjectProfile() {
+    return this._workspaceMemory
+      ? this._workspaceMemory.getProjectProfile()
+      : null;
+  }
+
+  /** Get detected conventions. */
+  getConventions() {
+    return this._workspaceMemory ? this._workspaceMemory.getConventions() : [];
   }
 
   // ════════════════════════════════════════════════════════════

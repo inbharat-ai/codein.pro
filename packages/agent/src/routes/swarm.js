@@ -332,6 +332,180 @@ function registerSwarmRoutes(router, deps) {
       sendJson(res, 500, { error: err.message });
     }
   });
+
+  // ─── GET /swarm/analytics — Cost analytics ─────────────────
+  router.get("/swarm/analytics", (req, res) => {
+    try {
+      const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+      const sessionId = url.searchParams.get("sessionId") || undefined;
+      const analytics = swarmManager.getAnalytics(sessionId);
+      sendJson(res, 200, { analytics });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GET /swarm/budget — Budget status ─────────────────────
+  router.get("/swarm/budget", (req, res) => {
+    try {
+      sendJson(res, 200, { budget: swarmManager.getBudgetStatus() });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GET /swarm/cost-suggestions — Cost optimization tips ──
+  router.get("/swarm/cost-suggestions", (req, res) => {
+    try {
+      sendJson(res, 200, { suggestions: swarmManager.getCostSuggestions() });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── GET /swarm/tasks/:taskId/stream — Per-task SSE stream ─
+  router.get("/swarm/tasks/:taskId/stream", (req, res, ctx) => {
+    try {
+      const handler = swarmManager.getTaskStreamHandler(ctx.taskId);
+      handler(req, res);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── Background Tasks ─────────────────────────────────────
+  router.post("/swarm/background-tasks", async (req, res) => {
+    try {
+      const raw = await readBody(req, 256 * 1024);
+      const parsed = parseJsonBody(raw);
+      if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
+      const result = swarmManager.submitBackgroundTask(parsed.value);
+      sendJson(res, 201, result);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  router.get("/swarm/background-tasks", (req, res) => {
+    try {
+      const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+      const status = url.searchParams.get("status") || undefined;
+      sendJson(res, 200, {
+        tasks: swarmManager.listBackgroundTasks({ status }),
+      });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  router.get("/swarm/background-tasks/:taskId", (req, res, ctx) => {
+    try {
+      const status = swarmManager.getBackgroundTaskStatus(ctx.taskId);
+      if (!status) return sendJson(res, 404, { error: "Task not found" });
+      sendJson(res, 200, status);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── Plugins & Skills ──────────────────────────────────────
+  router.get("/swarm/plugins", (req, res) => {
+    try {
+      sendJson(res, 200, { plugins: swarmManager.listPlugins() });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  router.get("/swarm/skills", (req, res) => {
+    try {
+      const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+      const category = url.searchParams.get("category") || undefined;
+      sendJson(res, 200, { skills: swarmManager.listSkills(category) });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  router.post("/swarm/skills/:skillName/execute", async (req, res, ctx) => {
+    try {
+      const raw = await readBody(req, 256 * 1024);
+      const parsed = parseJsonBody(raw);
+      const context = parsed.ok ? parsed.value : {};
+      const result = await swarmManager.executeSkill(ctx.skillName, context);
+      sendJson(res, 200, result);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── Document Generation ───────────────────────────────────
+  router.post("/swarm/generate/commit-message", async (req, res) => {
+    try {
+      const raw = await readBody(req, 256 * 1024);
+      const parsed = parseJsonBody(raw);
+      if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
+      const result = await swarmManager.generateCommitMessage(
+        parsed.value.diff,
+        parsed.value.opts,
+      );
+      sendJson(res, 200, result);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  router.post("/swarm/generate/pr-description", async (req, res) => {
+    try {
+      const raw = await readBody(req, 256 * 1024);
+      const parsed = parseJsonBody(raw);
+      if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
+      const result = await swarmManager.generatePRDescription(parsed.value);
+      sendJson(res, 200, result);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  router.post("/swarm/generate/changelog", async (req, res) => {
+    try {
+      const raw = await readBody(req, 256 * 1024);
+      const parsed = parseJsonBody(raw);
+      if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
+      const result = swarmManager.generateChangelog(parsed.value);
+      sendJson(res, 200, result);
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  // ─── Workspace Intelligence ────────────────────────────────
+  router.get("/swarm/workspace/profile", (req, res) => {
+    try {
+      sendJson(res, 200, { profile: swarmManager.getProjectProfile() });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  router.get("/swarm/workspace/conventions", (req, res) => {
+    try {
+      sendJson(res, 200, { conventions: swarmManager.getConventions() });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
+
+  router.get("/swarm/workspace/summary", async (req, res) => {
+    try {
+      const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+      const root = url.searchParams.get("root") || undefined;
+      const summary = await swarmManager.getWorkspaceSummary(root);
+      sendJson(res, 200, { summary });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+  });
 }
 
 module.exports = { registerSwarmRoutes };
