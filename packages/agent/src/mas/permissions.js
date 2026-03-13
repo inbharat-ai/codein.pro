@@ -25,6 +25,9 @@ const {
   createPermissionRequest,
 } = require("./types");
 const { RunpodBYOProvider } = require("../gpu-orchestration/runpod-provider");
+const { createLogger } = require("./logger");
+
+const log = createLogger("PermissionGate");
 
 // ─── Constants ───────────────────────────────────────────────
 const GPU_BUDGET_DEFAULT = 2.0; // $2
@@ -369,10 +372,10 @@ class PermissionGate {
       // Create GPU pod if API key available
       if (this._runpodApiKey) {
         this._createGpuPod(requestId, request).catch((err) => {
-          console.error(
-            `Failed to create GPU pod for ${requestId}:`,
-            err.message,
-          );
+          log.error("Failed to create GPU pod", {
+            requestId,
+            error: err.message,
+          });
         });
       }
     }
@@ -512,7 +515,7 @@ class PermissionGate {
 
       return provider;
     } catch (error) {
-      console.error("GPU pod creation failed:", error);
+      log.error("GPU pod creation failed", { error: error.message });
       throw error;
     }
   }
@@ -528,7 +531,10 @@ class PermissionGate {
     for (const [requestId, provider] of this._gpuProviders) {
       promises.push(
         provider.stopPod().catch((err) => {
-          console.error(`Failed to stop GPU pod ${requestId}:`, err.message);
+          log.error("Failed to stop GPU pod", {
+            requestId,
+            error: err.message,
+          });
         }),
       );
     }

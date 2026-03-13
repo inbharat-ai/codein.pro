@@ -2,7 +2,7 @@
  * CodIn MAS — Security Agent
  *
  * OWASP scanning, dependency audit, secret detection, security analysis.
- * Uses tool registry for file reading, npm audit, and regex-based scanning.
+ * Uses central tool registry for read_file; keeps domain-specific security tools.
  */
 "use strict";
 
@@ -16,19 +16,14 @@ const {
   PERMISSION_TYPE,
   PERMISSION_DECISION,
 } = require("../types");
+const {
+  createReadFileTool,
+  resolveWorkspaceRoot,
+  resolveSafePath,
+  COMMANDS,
+} = require("../tool-registry");
 
 const execFileAsync = promisify(execFile);
-
-const AUDIT_COMMANDS = new Set([
-  "npm",
-  "npm.cmd",
-  "npx",
-  "npx.cmd",
-  "pnpm",
-  "pnpm.cmd",
-  "yarn",
-  "yarn.cmd",
-]);
 
 // Regex patterns for detecting hardcoded secrets
 const SECRET_PATTERNS = [
@@ -213,25 +208,16 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
   }
 
   /**
-   * Build tool registry for security scanning
+   * Build tool registry for security scanning.
+   * Uses central registry for read_file; adds domain-specific tools.
    * @private
    */
   _getToolRegistry(context, node) {
-    const registry = {};
-    const workspaceRoot = this._resolveWorkspaceRoot(context);
+    const workspaceRoot = resolveWorkspaceRoot(context);
 
-    // ─── read_file ─────────────────────────────────────────
-    registry.read_file = {
-      description: "Read the contents of a file for security analysis",
-      execute: async (args) => {
-        const { path } = args || {};
-        if (!path || typeof path !== "string") {
-          throw new Error("path is required");
-        }
-        const targetPath = this._resolveSafePath(workspaceRoot, path);
-        const content = await fs.readFile(targetPath, "utf8");
-        return content.slice(0, 120000);
-      },
+    // Start with read_file from central registry
+    const registry = {
+      read_file: createReadFileTool(workspaceRoot),
     };
 
     // ─── run_audit ─────────────────────────────────────────
@@ -242,7 +228,7 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
         const manager = (args && args.manager) || "npm";
         const cmd = process.platform === "win32" ? `${manager}.cmd` : manager;
 
-        if (!AUDIT_COMMANDS.has(cmd)) {
+        if (!COMMANDS.AUDIT.has(cmd)) {
           throw new Error(`Package manager not allowed: ${manager}`);
         }
 
@@ -266,11 +252,8 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
               windowsHide: true,
             },
           );
-          // npm audit exits with non-zero when vulnerabilities found,
-          // but that's handled by catch below
           return this._summarizeAudit(stdout || stderr);
         } catch (err) {
-          // npm audit returns exit code > 0 when vulns are found
           if (err.stdout) {
             return this._summarizeAudit(err.stdout);
           }
@@ -289,7 +272,7 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
           throw new Error("path is required");
         }
 
-        const resolved = this._resolveSafePath(workspaceRoot, targetPath);
+        const resolved = resolveSafePath(workspaceRoot, targetPath);
         const stat = await fs.stat(resolved);
         const findings = [];
 
@@ -311,7 +294,7 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
         return JSON.stringify(
           {
             secretsFound: findings.length,
-            findings: findings.slice(0, 50), // Cap output
+            findings: findings.slice(0, 50),
           },
           null,
           2,
@@ -325,7 +308,7 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
         "Check package.json for known risky or deprecated packages. Args: { path?: string } (defaults to 'package.json')",
       execute: async (args) => {
         const pkgPath = (args && args.path) || "package.json";
-        const resolved = this._resolveSafePath(workspaceRoot, pkgPath);
+        const resolved = resolveSafePath(workspaceRoot, pkgPath);
         const raw = await fs.readFile(resolved, "utf8");
         const pkg = JSON.parse(raw);
 
@@ -335,8 +318,6 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
         };
 
         const warnings = [];
-
-        // Known risky/deprecated packages
         const riskyPackages = {
           "event-stream": {
             severity: "critical",
@@ -372,14 +353,8 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
 
         for (const [name, version] of Object.entries(allDeps)) {
           if (riskyPackages[name]) {
-            warnings.push({
-              package: name,
-              version,
-              ...riskyPackages[name],
-            });
+            warnings.push({ package: name, version, ...riskyPackages[name] });
           }
-
-          // Flag wildcard or latest versions
           if (version === "*" || version === "latest") {
             warnings.push({
               package: name,
@@ -388,8 +363,6 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
               reason: "Unpinned version — vulnerable to supply chain attacks",
             });
           }
-
-          // Flag git dependencies
           if (
             typeof version === "string" &&
             (version.startsWith("git") || version.startsWith("github:"))
@@ -422,22 +395,17 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
     return registry;
   }
 
-  /**
-   * Summarize npm audit JSON output into a readable report.
-   * @private
-   */
+  /** @private */
   _summarizeAudit(rawJson) {
     try {
       const audit = JSON.parse(rawJson);
       const meta = audit.metadata || {};
       const vulns = audit.vulnerabilities || {};
-
       const summary = {
         totalDependencies: meta.totalDependencies || 0,
         vulnerabilities: meta.vulnerabilities || {},
         details: [],
       };
-
       for (const [name, info] of Object.entries(vulns)) {
         summary.details.push({
           package: name,
@@ -447,38 +415,27 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
           fixAvailable: !!info.fixAvailable,
         });
       }
-
-      // Cap the output
       if (summary.details.length > 30) {
         summary.details = summary.details.slice(0, 30);
         summary.truncated = true;
       }
-
       return JSON.stringify(summary, null, 2);
     } catch {
-      // If JSON parse fails, return raw (truncated)
       return rawJson.slice(0, 10000);
     }
   }
 
-  /**
-   * Recursively scan a directory for secrets, with depth limit.
-   * @private
-   */
+  /** @private */
   async _scanDirectoryForSecrets(dir, workspaceRoot, findings, depth) {
     if (depth > 5 || findings.length > 100) return;
-
     let entries;
     try {
       entries = await fs.readdir(dir, { withFileTypes: true });
     } catch {
       return;
     }
-
     for (const entry of entries) {
       if (findings.length > 100) break;
-
-      // Skip common non-source directories
       if (
         entry.isDirectory() &&
         [
@@ -494,7 +451,6 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
       ) {
         continue;
       }
-
       const fullPath = pathModule.join(dir, entry.name);
       if (entry.isDirectory()) {
         await this._scanDirectoryForSecrets(
@@ -511,42 +467,29 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
     }
   }
 
-  /**
-   * Scan a single file for secret patterns.
-   * @private
-   */
+  /** @private */
   async _scanFileForSecrets(filePath, workspaceRoot, findings) {
     try {
       const stat = await fs.stat(filePath);
-      // Skip files > 500KB
       if (stat.size > 500 * 1024) return;
-
       const content = await fs.readFile(filePath, "utf8");
       const relativePath = pathModule.relative(workspaceRoot, filePath);
       const lines = content.split("\n");
-
       for (const secretDef of SECRET_PATTERNS) {
-        // Reset regex lastIndex
         secretDef.pattern.lastIndex = 0;
         let match;
         while ((match = secretDef.pattern.exec(content)) !== null) {
-          // Find line number
           const beforeMatch = content.slice(0, match.index);
           const lineNum = beforeMatch.split("\n").length;
-
-          // Skip if inside a comment that looks like documentation
           const line = lines[lineNum - 1] || "";
           if (line.trim().startsWith("//") && line.includes("example"))
             continue;
           if (line.trim().startsWith("*") && line.includes("example")) continue;
-
-          // Skip .env.example and similar template files
           if (
             relativePath.includes(".example") ||
             relativePath.includes(".template")
           )
             continue;
-
           findings.push({
             type: secretDef.name,
             severity: secretDef.severity,
@@ -554,33 +497,12 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
             line: lineNum,
             snippet: line.trim().slice(0, 100),
           });
-
-          // One finding per pattern per file is enough
           break;
         }
       }
     } catch {
       // Skip unreadable files
     }
-  }
-
-  // ─── Path safety (same pattern as CoderAgent) ──────────
-
-  _resolveWorkspaceRoot(context) {
-    const candidate =
-      context?.workspaceRoot || context?.workspacePath || process.cwd();
-    return pathModule.resolve(candidate);
-  }
-
-  _resolveSafePath(workspaceRoot, relativePath) {
-    const resolved = pathModule.resolve(workspaceRoot, relativePath);
-    const rootWithSep = workspaceRoot.endsWith(pathModule.sep)
-      ? workspaceRoot
-      : workspaceRoot + pathModule.sep;
-    if (resolved !== workspaceRoot && !resolved.startsWith(rootWithSep)) {
-      throw new Error("Path traversal detected");
-    }
-    return resolved;
   }
 }
 

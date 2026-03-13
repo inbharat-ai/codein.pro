@@ -8,41 +8,18 @@
 
 const pathModule = require("node:path");
 const fs = require("node:fs/promises");
-const { execFile } = require("node:child_process");
-const { promisify } = require("node:util");
 const { BaseAgent } = require("./base-agent");
 const {
   AGENT_TYPE,
   PERMISSION_TYPE,
   PERMISSION_DECISION,
 } = require("../types");
-
-const execFileAsync = promisify(execFile);
-
-const SAFE_COMMANDS = new Set([
-  "npm",
-  "npm.cmd",
-  "npx",
-  "npx.cmd",
-  "node",
-  "node.exe",
-  "docker",
-  "docker.exe",
-  "docker-compose",
-  "docker-compose.exe",
-  "kubectl",
-  "kubectl.exe",
-  "helm",
-  "helm.exe",
-  "terraform",
-  "terraform.exe",
-  "git",
-  "git.exe",
-  "pnpm",
-  "pnpm.cmd",
-  "yarn",
-  "yarn.cmd",
-]);
+const {
+  buildToolRegistry,
+  resolveWorkspaceRoot,
+  resolveSafePath,
+  SECRET_PATTERNS,
+} = require("../tool-registry");
 
 /** File extensions considered safe for DevOps config editing */
 const SAFE_CONFIG_EXTENSIONS = new Set([
@@ -69,16 +46,6 @@ const SAFE_CONFIG_EXTENSIONS = new Set([
   ".bash",
   ".zsh",
 ]);
-
-/** Patterns that suggest secrets — block writing these */
-const SECRET_PATTERNS = [
-  /password\s*[:=]\s*[^\s{$]/i,
-  /secret_?key\s*[:=]\s*[^\s{$]/i,
-  /api_?key\s*[:=]\s*[^\s{$]/i,
-  /private_?key\s*[:=]\s*[^\s{$]/i,
-  /AWS_SECRET/i,
-  /-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----/,
-];
 
 const SYSTEM_PROMPT = `You are the CodIn DevOps Agent. You manage CI/CD, Docker, and deployment infrastructure.
 
@@ -152,6 +119,7 @@ class DevOpsAgent extends BaseAgent {
       return { result: `Blocked: ${perm.reason}`, confidence: 0 };
     }
 
+    const workspaceRoot = resolveWorkspaceRoot(context);
     const prompt = `Complete this DevOps task:
 
 TASK: ${node.goal}
@@ -162,11 +130,24 @@ ${context.infrastructure || "Not provided — use read_file to examine the works
 CI/CD CONFIG:
 ${context.ciConfig || "Not provided — use read_file to look for config files"}
 
-WORKSPACE ROOT: ${this._resolveWorkspaceRoot(context)}
+WORKSPACE ROOT: ${workspaceRoot}
 
 Use the tools to read configs, validate them, write improvements, and run commands as needed.`;
 
-    const toolRegistry = this._getToolRegistry(context, node);
+    // Build standard tools from central registry
+    const toolRegistry = buildToolRegistry(this, context, node, {
+      tools: ["read_file", "write_file", "run_bash"],
+      agentLabel: "DevOps",
+      commandProfile: "DEVOPS",
+      checkSecrets: true,
+      checkDangerousSubcommands: true,
+      allowedExtensions: SAFE_CONFIG_EXTENSIONS,
+    });
+
+    // Add DevOps-specific validate_config tool
+    this._validationResults = [];
+    toolRegistry.validate_config =
+      this._createValidateConfigTool(workspaceRoot);
 
     if (Object.keys(toolRegistry).length > 0) {
       const result = await this.callLLMWithTools(prompt, toolRegistry);
@@ -190,146 +171,11 @@ Use the tools to read configs, validate them, write improvements, and run comman
   }
 
   /**
-   * Build tool registry for DevOps operations.
+   * Create the validate_config tool (DevOps-specific).
    * @private
    */
-  _getToolRegistry(context, node) {
-    const registry = {};
-    const workspaceRoot = this._resolveWorkspaceRoot(context);
-    this._validationResults = [];
-
-    // --- read_file ---
-    registry.read_file = {
-      description: "Read the contents of a file. Args: { path: string }",
-      execute: async (args) => {
-        const { path } = args || {};
-        if (!path || typeof path !== "string") {
-          throw new Error("path is required");
-        }
-        const targetPath = this._resolveSafePath(workspaceRoot, path);
-        const content = await fs.readFile(targetPath, "utf8");
-        return content.slice(0, 120000);
-      },
-    };
-
-    // --- write_file ---
-    registry.write_file = {
-      description:
-        "Write content to a config/infrastructure file. Rejects if secrets are detected. Args: { path: string, content: string }",
-      execute: async (args) => {
-        const { path, content } = args || {};
-        if (!path || typeof path !== "string") {
-          throw new Error("path is required");
-        }
-        if (typeof content !== "string") {
-          throw new Error("content must be a string");
-        }
-
-        // Check for secrets in content
-        for (const pattern of SECRET_PATTERNS) {
-          if (pattern.test(content)) {
-            throw new Error(
-              `Security: content appears to contain secrets (matched ${pattern.source}). Use environment variables instead.`,
-            );
-          }
-        }
-
-        // Warn if writing non-config files
-        const ext = pathModule.extname(path).toLowerCase();
-        const basename = pathModule.basename(path).toLowerCase();
-        const isConfig =
-          SAFE_CONFIG_EXTENSIONS.has(ext) ||
-          basename === "dockerfile" ||
-          basename === "makefile" ||
-          basename === "jenkinsfile" ||
-          basename === "procfile" ||
-          basename.startsWith(".");
-        if (!isConfig && ext !== ".js" && ext !== ".ts" && ext !== ".md") {
-          throw new Error(
-            `DevOps agent should only write config/infrastructure files. Got: ${path}`,
-          );
-        }
-
-        const perm = await this.requestPermission(
-          node.id,
-          PERMISSION_TYPE.FILE_WRITE,
-          `DevOps tool write_file: ${path}`,
-        );
-        if (perm.decision !== PERMISSION_DECISION.APPROVED) {
-          throw new Error(`Write denied: ${perm.reason}`);
-        }
-
-        const targetPath = this._resolveSafePath(workspaceRoot, path);
-        await fs.mkdir(pathModule.dirname(targetPath), { recursive: true });
-        await fs.writeFile(targetPath, content, "utf8");
-        return `Wrote ${path} (${content.length} chars)`;
-      },
-    };
-
-    // --- run_bash ---
-    registry.run_bash = {
-      description:
-        'Run a shell command (docker, kubectl, npm, npx, git, etc.). Args: { command: string (e.g. "docker build --check .", "npx yaml-lint config.yml") }',
-      execute: async (args) => {
-        const { command } = args || {};
-        if (!command || typeof command !== "string") {
-          throw new Error("command is required");
-        }
-
-        const parsed = this._parseCommand(command);
-        if (!SAFE_COMMANDS.has(parsed.cmd)) {
-          throw new Error(
-            `Command not allowed: ${parsed.cmd}. Allowed: ${[...SAFE_COMMANDS].join(", ")}`,
-          );
-        }
-
-        // Block dangerous subcommands
-        const dangerous = ["rm", "rmi", "prune", "system", "push"];
-        if (dangerous.includes(parsed.args[0])) {
-          const perm = await this.requestPermission(
-            node.id,
-            PERMISSION_TYPE.COMMAND_RUN,
-            `DevOps tool run_bash (destructive): ${command}`,
-          );
-          if (perm.decision !== PERMISSION_DECISION.APPROVED) {
-            throw new Error(`Destructive command denied: ${perm.reason}`);
-          }
-        } else {
-          const perm = await this.requestPermission(
-            node.id,
-            PERMISSION_TYPE.COMMAND_RUN,
-            `DevOps tool run_bash: ${command}`,
-          );
-          if (perm.decision !== PERMISSION_DECISION.APPROVED) {
-            throw new Error(`Command denied: ${perm.reason}`);
-          }
-        }
-
-        let stdout = "";
-        let stderr = "";
-        let exitCode = 0;
-        try {
-          const result = await execFileAsync(parsed.cmd, parsed.args, {
-            cwd: workspaceRoot,
-            timeout: 120000,
-            maxBuffer: 1024 * 1024,
-            windowsHide: true,
-          });
-          stdout = result.stdout || "";
-          stderr = result.stderr || "";
-        } catch (err) {
-          stdout = err.stdout || "";
-          stderr = err.stderr || "";
-          exitCode = err.code || 1;
-        }
-
-        const output = `${stdout}${stderr ? `\nSTDERR:\n${stderr}` : ""}`;
-        return `Exit code: ${exitCode}\n${output.trim().slice(0, 10000)}`;
-      },
-    };
-
-    // --- validate_config ---
-    registry.validate_config = {
+  _createValidateConfigTool(workspaceRoot) {
+    return {
       description:
         "Validate a YAML or JSON configuration file for syntax errors and common issues. Args: { path: string }",
       execute: async (args) => {
@@ -337,7 +183,7 @@ Use the tools to read configs, validate them, write improvements, and run comman
         if (!path || typeof path !== "string") {
           throw new Error("path is required");
         }
-        const targetPath = this._resolveSafePath(workspaceRoot, path);
+        const targetPath = resolveSafePath(workspaceRoot, path);
         const content = await fs.readFile(targetPath, "utf8");
         const ext = pathModule.extname(path).toLowerCase();
 
@@ -354,15 +200,13 @@ Use the tools to read configs, validate them, write improvements, and run comman
           }
         }
 
-        // YAML validation (basic structural checks without external deps)
+        // YAML validation (basic structural checks)
         if (ext === ".yml" || ext === ".yaml") {
-          // Check for tabs (YAML forbids tabs for indentation)
-          const tabLines = [];
           const lines = content.split("\n");
+          // Check for tabs
+          const tabLines = [];
           for (let i = 0; i < lines.length; i++) {
-            if (/^\t/.test(lines[i])) {
-              tabLines.push(i + 1);
-            }
+            if (/^\t/.test(lines[i])) tabLines.push(i + 1);
           }
           if (tabLines.length > 0) {
             valid = false;
@@ -391,7 +235,7 @@ Use the tools to read configs, validate them, write improvements, and run comman
             }
           }
 
-          // Check for duplicate keys (simple check — top-level only)
+          // Check for duplicate keys (top-level only)
           const topKeys = [];
           for (const line of lines) {
             const keyMatch = line.match(/^(\w[\w.-]*):\s/);
@@ -439,55 +283,6 @@ Use the tools to read configs, validate them, write improvements, and run comman
         return `${path}: ${valid ? "Valid with warnings" : "INVALID"}\n${issues.map((i) => `  - ${i}`).join("\n")}`;
       },
     };
-
-    return registry;
-  }
-
-  // --- Shared utility methods (same pattern as CoderAgent) ---
-
-  _resolveWorkspaceRoot(context) {
-    const candidate =
-      context?.workspaceRoot || context?.workspacePath || process.cwd();
-    return pathModule.resolve(candidate);
-  }
-
-  _resolveSafePath(workspaceRoot, relativePath) {
-    const resolved = pathModule.resolve(workspaceRoot, relativePath);
-    const rootWithSep = workspaceRoot.endsWith(pathModule.sep)
-      ? workspaceRoot
-      : workspaceRoot + pathModule.sep;
-    if (resolved !== workspaceRoot && !resolved.startsWith(rootWithSep)) {
-      throw new Error("Path traversal detected");
-    }
-    return resolved;
-  }
-
-  _parseCommand(command) {
-    const tokens = [];
-    let current = "";
-    let quote = null;
-    for (let i = 0; i < command.length; i++) {
-      const ch = command[i];
-      if ((ch === '"' || ch === "'") && quote === null) {
-        quote = ch;
-        continue;
-      }
-      if (quote && ch === quote) {
-        quote = null;
-        continue;
-      }
-      if (!quote && /\s/.test(ch)) {
-        if (current) {
-          tokens.push(current);
-          current = "";
-        }
-        continue;
-      }
-      current += ch;
-    }
-    if (current) tokens.push(current);
-    if (tokens.length === 0) throw new Error("Command is empty");
-    return { cmd: tokens[0], args: tokens.slice(1) };
   }
 }
 
