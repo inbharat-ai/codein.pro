@@ -42,6 +42,8 @@ class BaseAgent {
     this._memory = deps.memory;
     this._emitEvent = deps.emitEvent || null;
     this._runLLM = deps.runLLM;
+    this._persistence = deps.persistence || null;
+    this._sessionId = null; // Set by swarm-manager when task starts
 
     this.descriptor.status = AGENT_STATUS.IDLE;
 
@@ -147,6 +149,14 @@ class BaseAgent {
       this.descriptor.metrics.tasksCompleted++;
       this.descriptor.metrics.toolCalls++;
       this.descriptor.metrics.totalTimeMs += elapsed;
+
+      // Track cost if result includes usage metadata
+      this._trackLLMCost(result, elapsed, opts);
+
+      // If runLLM returns {text, usage}, extract the text
+      if (result && typeof result === "object" && result.text !== undefined) {
+        return result.text;
+      }
       return result;
     } catch (err) {
       this.descriptor.metrics.toolCalls++;
@@ -381,6 +391,87 @@ Always respond with ONLY valid JSON.`;
       return context.blackboard.read(this.id, topic);
     }
     return [];
+  }
+
+  // ─── Session & Cost Tracking ────────────────────────────
+
+  /** Set the active session ID for cost attribution. */
+  setSessionId(sessionId) {
+    this._sessionId = sessionId;
+  }
+
+  /**
+   * Record LLM call cost to persistence layer and agent metrics.
+   * Handles both string results and {text, usage} objects from runLLM.
+   * @private
+   */
+  _trackLLMCost(result, durationMs, opts = {}) {
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let model = opts.model || this.descriptor.modelHint || "unknown";
+
+    // If runLLM returns usage metadata
+    if (result && typeof result === "object" && result.usage) {
+      inputTokens =
+        result.usage.input_tokens || result.usage.prompt_tokens || 0;
+      outputTokens =
+        result.usage.output_tokens || result.usage.completion_tokens || 0;
+      if (result.model) model = result.model;
+    }
+
+    const totalTokens = inputTokens + outputTokens;
+
+    // Estimate cost based on model (rough pricing per 1M tokens)
+    const costPerMillion = this._getModelCost(model);
+    const costUSD =
+      (inputTokens * costPerMillion.input +
+        outputTokens * costPerMillion.output) /
+      1_000_000;
+
+    // Update agent metrics
+    this.descriptor.metrics.tokensUsed += totalTokens;
+    this.descriptor.metrics.costUSD += costUSD;
+
+    // Record to persistence
+    if (this._persistence && totalTokens > 0) {
+      try {
+        this._persistence.recordCost({
+          sessionId: this._sessionId,
+          agentId: this.id,
+          agentType: this.type,
+          model,
+          inputTokens,
+          outputTokens,
+          totalTokens,
+          costUSD,
+          durationMs,
+          purpose: `${this.type}:callLLM`,
+        });
+      } catch {
+        // Non-critical — don't fail the agent if persistence is down
+      }
+    }
+  }
+
+  /**
+   * Get cost per million tokens for a model.
+   * @private
+   */
+  _getModelCost(model) {
+    const m = (model || "").toLowerCase();
+    // Claude models
+    if (m.includes("opus")) return { input: 15, output: 75 };
+    if (m.includes("sonnet")) return { input: 3, output: 15 };
+    if (m.includes("haiku")) return { input: 0.25, output: 1.25 };
+    // OpenAI models
+    if (m.includes("gpt-4o")) return { input: 2.5, output: 10 };
+    if (m.includes("gpt-4")) return { input: 10, output: 30 };
+    if (m.includes("gpt-3.5")) return { input: 0.5, output: 1.5 };
+    // Gemini
+    if (m.includes("gemini-pro")) return { input: 1.25, output: 5 };
+    if (m.includes("gemini-flash")) return { input: 0.075, output: 0.3 };
+    // Default: assume mid-range
+    return { input: 3, output: 15 };
   }
 
   // ─── Event Emission ──────────────────────────────────────

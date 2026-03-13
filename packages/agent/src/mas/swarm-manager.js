@@ -32,6 +32,11 @@ const { createTopologyScheduler } = require("./topologies");
 const { BatchPlanner } = require("./batch");
 const { JsonPatchEngine } = require("./json-patch");
 const { getAgentModelTier } = require("./mode-config");
+const { openDatabase } = require("./persistence");
+const { WorkspaceIndexer } = require("./workspace-indexer");
+const { createLogger } = require("./logger");
+
+const log = createLogger("SwarmManager");
 
 // ─── Swarm States ────────────────────────────────────────────
 const SWARM_STATE = Object.freeze({
@@ -60,6 +65,8 @@ class SwarmManager extends EventEmitter {
     this._agentRouter = null;
     this._batchPlanner = new BatchPlanner();
     this._patchEngine = null;
+    this._persistence = null;
+    this._workspaceIndexer = null;
 
     // Active task graphs
     /** @type {Map<string, object>} taskId → TaskGraph */
@@ -144,6 +151,7 @@ class SwarmManager extends EventEmitter {
       {
         permissionGate: this._permissionGate,
         memory: this._memory,
+        persistence: this._persistence,
         emitEvent: (e) => this._broadcast(e),
         runLLM: this._createTierAwareRunLLM(),
       },
@@ -152,6 +160,17 @@ class SwarmManager extends EventEmitter {
     this._patchEngine = new JsonPatchEngine({
       workspaceHash: this._workspaceHash,
     });
+
+    // Initialize SQLite persistence (graceful fallback to in-memory)
+    this._persistence = openDatabase();
+    if (this._persistence) {
+      log.info("Persistence layer initialized", {
+        type: this._persistence._inMemory ? "in-memory" : "sqlite",
+      });
+    }
+
+    // Initialize workspace indexer
+    this._workspaceIndexer = new WorkspaceIndexer(this._persistence);
 
     this._state = SWARM_STATE.ACTIVE;
     this._memory.onSwarmInit(this._config);
@@ -235,15 +254,45 @@ class SwarmManager extends EventEmitter {
     const selectedTopology = topology || this._config.topology;
     const scheduler = createTopologyScheduler(selectedTopology);
 
+    // Create a persistence session for cost tracking
+    let sessionId = null;
+    if (this._persistence) {
+      sessionId = crypto.randomUUID();
+      this._persistence.createSession(
+        sessionId,
+        goal,
+        mode,
+        {
+          topology: selectedTopology,
+          workspaceRoot: context.workspaceRoot || process.cwd(),
+        },
+        0, // nodeCount — updated after planning
+      );
+      log.info("Session created", { sessionId, goal: goal.slice(0, 80) });
+    }
+
+    // Populate workspace summary if indexer available and not already provided
+    if (this._workspaceIndexer && !context.workspaceSummary) {
+      try {
+        const wsRoot = context.workspaceRoot || process.cwd();
+        context.workspaceSummary =
+          await this._workspaceIndexer.getContextSummary(wsRoot);
+        log.debug("Workspace summary populated", { root: wsRoot });
+      } catch (err) {
+        log.warn("Failed to index workspace", { error: err.message });
+      }
+    }
+
     this._broadcast(
       createSwarmEvent({
         type: EVENT_TYPE.TASK_SUBMITTED,
-        data: { goal, mode, topology: selectedTopology },
+        data: { goal, mode, topology: selectedTopology, sessionId },
       }),
     );
 
     // Step 1: Use planner agent to decompose the goal
     const plannerAgent = this._agentRouter.route(AGENT_TYPE.PLANNER);
+    if (sessionId) plannerAgent.setSessionId(sessionId);
     try {
       const planResult = await plannerAgent.execute(
         createTaskNode({
@@ -299,14 +348,42 @@ class SwarmManager extends EventEmitter {
       );
 
       // Step 3: Execute the graph
-      await this._executeGraph(taskGraph, scheduler, context);
+      await this._executeGraph(taskGraph, scheduler, context, sessionId);
+
+      // Complete session with final costs
+      if (sessionId && this._persistence) {
+        this._persistence.completeSession(
+          sessionId,
+          taskGraph.status,
+          { nodesCompleted: taskGraph.metadata.nodesCompleted },
+          null, // no error
+          {
+            totalCostUSD: 0, // populated by cost ledger entries
+            totalTokens: 0,
+            nodesCompleted: taskGraph.metadata.nodesCompleted,
+            nodesFailed: taskGraph.metadata.nodesFailed,
+          },
+        );
+        log.info("Session completed", { sessionId, status: taskGraph.status });
+      }
 
       return {
         taskId: taskGraph.id,
         status: taskGraph.status,
         nodes: taskGraph.nodes.length,
+        sessionId,
       };
     } catch (err) {
+      // Complete session as failed
+      if (sessionId && this._persistence) {
+        this._persistence.completeSession(
+          sessionId,
+          "failed",
+          null,
+          err.message,
+          {},
+        );
+      }
       this._agentRouter.release(plannerAgent.id);
       throw err;
     }
@@ -426,6 +503,16 @@ class SwarmManager extends EventEmitter {
     if (this._permissionGate) this._permissionGate.destroy();
     if (this._agentRouter) this._agentRouter.shutdown();
     if (this._memory) this._memory.destroy();
+    if (this._persistence && this._persistence.close) {
+      try {
+        this._persistence.close();
+        log.info("Persistence layer closed");
+      } catch {
+        // Non-fatal
+      }
+    }
+    this._persistence = null;
+    this._workspaceIndexer = null;
 
     // Close SSE subscribers
     for (const sub of this._subscribers) {
@@ -439,6 +526,32 @@ class SwarmManager extends EventEmitter {
 
     this._state = SWARM_STATE.SHUTDOWN;
     return { status: "shutdown" };
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // Analytics & Workspace API
+  // ════════════════════════════════════════════════════════════
+
+  /**
+   * Get cost analytics from persistence layer.
+   * @param {string} [sessionId] — Optional session filter
+   * @returns {object|null}
+   */
+  getAnalytics(sessionId) {
+    if (!this._persistence) return null;
+    return this._persistence.getAnalytics(sessionId);
+  }
+
+  /**
+   * Get workspace summary for a given root path.
+   * @param {string} [workspaceRoot]
+   * @returns {Promise<string|null>}
+   */
+  async getWorkspaceSummary(workspaceRoot) {
+    if (!this._workspaceIndexer) return null;
+    return this._workspaceIndexer.getContextSummary(
+      workspaceRoot || process.cwd(),
+    );
   }
 
   // ════════════════════════════════════════════════════════════
@@ -491,7 +604,7 @@ class SwarmManager extends EventEmitter {
   // Internal: Graph Execution
   // ════════════════════════════════════════════════════════════
 
-  async _executeGraph(taskGraph, scheduler, context) {
+  async _executeGraph(taskGraph, scheduler, context, sessionId) {
     taskGraph.status = "running";
     taskGraph.startedAt = new Date().toISOString();
     const concurrency = this._config?.concurrency || 4;
@@ -519,6 +632,7 @@ class SwarmManager extends EventEmitter {
       let agent;
       try {
         agent = this._agentRouter.route(node.agentType);
+        if (sessionId && agent.setSessionId) agent.setSessionId(sessionId);
 
         // Gather context from previous nodes
         const nodeContext = {
@@ -678,7 +792,7 @@ class SwarmManager extends EventEmitter {
       const iterCheck = scheduler.checkIteration(taskGraph);
       if (iterCheck.shouldIterate) {
         scheduler.resetForIteration(taskGraph);
-        return this._executeGraph(taskGraph, scheduler, context);
+        return this._executeGraph(taskGraph, scheduler, context, sessionId);
       }
     }
 
@@ -734,6 +848,15 @@ class SwarmManager extends EventEmitter {
     this._events.push(event);
     if (this._events.length > this._maxEvents) {
       this._events = this._events.slice(-this._maxEvents);
+    }
+
+    // Persist event to SQLite
+    if (this._persistence && this._persistence.recordEvent) {
+      try {
+        this._persistence.recordEvent(event);
+      } catch {
+        // Non-fatal — don't let persistence errors break event flow
+      }
     }
 
     const data = `data: ${JSON.stringify(event)}\n\n`;

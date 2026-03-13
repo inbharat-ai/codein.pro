@@ -12,6 +12,7 @@
     "typecheck": "node -e \"console.log('Typecheck gate: JavaScript runtime checks enabled')\""
   },
   "dependencies": {
+    "better-sqlite3": "^12.6.2",
     "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
     "pino": "^9.5.0"
