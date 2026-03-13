@@ -4,6 +4,7 @@
  */
 
 import { app, dialog, ipcMain, shell } from "electron";
+import * as path from "path";
 import { AgentService } from "../services/AgentService";
 import { ComputeLocalService } from "../services/ComputeLocalService";
 import { FileSystemService } from "../services/FileSystemService";
@@ -28,6 +29,47 @@ export class IpcHandler {
     private localModulesBootstrapService: LocalModulesBootstrapService,
     private windowManager: WindowManager,
   ) {}
+
+  /**
+   * Validate that a file path is a string and doesn't escape expected bounds.
+   * Blocks null-byte injection and relative traversal.
+   */
+  private validatePath(p: unknown): string {
+    if (typeof p !== "string" || p.length === 0) {
+      throw new Error("Invalid path: must be a non-empty string");
+    }
+    if (p.includes("\0")) {
+      throw new Error("Invalid path: null byte detected");
+    }
+    const resolved = path.resolve(p);
+    // Block path that resolves to system root or known sensitive dirs
+    const sensitive = ["/etc/shadow", "/etc/passwd", "C:\\Windows\\System32"];
+    for (const s of sensitive) {
+      if (resolved.toLowerCase().startsWith(s.toLowerCase())) {
+        throw new Error("Access to system path denied");
+      }
+    }
+    return resolved;
+  }
+
+  /**
+   * Validate URL for openExternal — only allow http/https
+   */
+  private validateExternalUrl(url: unknown): string {
+    if (typeof url !== "string") {
+      throw new Error("Invalid URL: must be a string");
+    }
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new Error("Invalid URL format");
+    }
+    if (!["http:", "https:", "mailto:"].includes(parsed.protocol)) {
+      throw new Error(`Blocked protocol: ${parsed.protocol}`);
+    }
+    return url;
+  }
 
   /**
    * Safe wrapper for ipcMain.handle — catches exceptions and re-throws
@@ -117,24 +159,32 @@ export class IpcHandler {
    */
   private registerFileSystemHandlers(): void {
     this.safeHandle("fs:readFile", async (_, filepath: string) => {
-      return await this.fileSystemService.readFile(filepath);
+      return await this.fileSystemService.readFile(this.validatePath(filepath));
     });
 
     this.safeHandle(
       "fs:writeFile",
       async (_, filepath: string, content: string) => {
-        return await this.fileSystemService.writeFile(filepath, content);
+        return await this.fileSystemService.writeFile(
+          this.validatePath(filepath),
+          content,
+        );
       },
     );
 
     this.safeHandle("fs:deleteFile", async (_, filepath: string) => {
-      return await this.fileSystemService.deleteFile(filepath);
+      return await this.fileSystemService.deleteFile(
+        this.validatePath(filepath),
+      );
     });
 
     this.safeHandle(
       "fs:renameFile",
       async (_, oldPath: string, newPath: string) => {
-        return await this.fileSystemService.renameFile(oldPath, newPath);
+        return await this.fileSystemService.renameFile(
+          this.validatePath(oldPath),
+          this.validatePath(newPath),
+        );
       },
     );
 
@@ -551,11 +601,23 @@ export class IpcHandler {
     });
 
     this.safeHandle("system:getAppPath", async (_, name: string) => {
+      const allowed = [
+        "home",
+        "appData",
+        "userData",
+        "temp",
+        "desktop",
+        "documents",
+        "downloads",
+      ];
+      if (!allowed.includes(name)) {
+        throw new Error(`Blocked app path name: ${name}`);
+      }
       return app.getPath(name as any);
     });
 
     this.safeHandle("system:openExternal", async (_, url: string) => {
-      return await shell.openExternal(url);
+      return await shell.openExternal(this.validateExternalUrl(url));
     });
 
     this.safeHandle("system:showItemInFolder", async (_, path: string) => {

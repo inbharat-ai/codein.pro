@@ -112,6 +112,23 @@ const MODE_CONFIGS = Object.freeze({
       PERMISSION_TYPE.FILE_WRITE,
     ],
   },
+
+  vibe: {
+    mode: "vibe",
+    label: "Vibe Builder",
+    icon: "🎨",
+    description: "Drop a screenshot or describe a UI — get working code",
+    agents: [AGENT_TYPE.VIBE_BUILDER, AGENT_TYPE.CODER],
+    topology: TOPOLOGY.STAR,
+    useSwarm: true,
+    defaultModelTier: "balanced",
+    maxConcurrency: 2,
+    maxBudgetUSD: 3.0,
+    autoApprovePermissions: [
+      PERMISSION_TYPE.FILE_READ,
+      PERMISSION_TYPE.FILE_WRITE,
+    ],
+  },
 });
 
 /**

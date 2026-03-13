@@ -499,7 +499,8 @@ export type MessageModes =
   | "implement"
   | "background"
   | "chat"
-  | "edit";
+  | "edit"
+  | "vibe";
 
 export type ToolStatus =
   | "generating" // Tool call arguments are being streamed from the LLM

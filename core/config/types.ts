@@ -396,7 +396,8 @@ declare global {
     | "implement"
     | "background"
     | "chat"
-    | "edit";
+    | "edit"
+    | "vibe";
   
   export type ToolStatus =
     | "generating"

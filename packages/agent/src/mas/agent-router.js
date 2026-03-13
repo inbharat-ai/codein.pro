@@ -8,6 +8,10 @@
 
 const { AGENT_STATUS } = require("./types");
 const { createAgent, AGENT_CLASS_MAP } = require("./agents");
+const { UnknownAgentError, AgentPoolFullError } = require("./errors");
+const { createLogger } = require("./logger");
+
+const log = createLogger("AgentRouter");
 
 class AgentRouter {
   /**
@@ -32,7 +36,7 @@ class AgentRouter {
   route(agentType) {
     // Validate type
     if (!AGENT_CLASS_MAP[agentType]) {
-      throw new Error(`Unknown agent type: ${agentType}`);
+      throw new UnknownAgentError(agentType);
     }
 
     // Try to find an idle agent of this type
@@ -58,14 +62,17 @@ class AgentRouter {
     }
 
     if (this._pool.size >= this._maxAgents) {
-      throw new Error(
-        `Agent pool full (${this._maxAgents}). Cannot spawn ${agentType}.`,
-      );
+      throw new AgentPoolFullError(this._maxAgents, agentType);
     }
 
     const agent = createAgent(agentType, this._deps);
     this._pool.set(agent.id, agent);
     agent.activate();
+    log.info("Agent spawned", {
+      agentId: agent.id,
+      type: agentType,
+      poolSize: this._pool.size,
+    });
     return agent;
   }
 

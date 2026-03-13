@@ -391,6 +391,26 @@ Always respond with ONLY valid JSON.`;
     }
   }
 
+  // ─── Confidence Scoring ─────────────────────────────────
+
+  /**
+   * Compute a dynamic confidence score based on result quality.
+   * @param {any} result — The result from LLM or tool-use loop
+   * @param {object} [context={}] — Execution context hints
+   * @returns {number} Confidence between 0.7 and 0.95
+   */
+  computeConfidence(result, context = {}) {
+    let score = 0.7; // base
+    // Boost if LLM returned structured data
+    if (result && typeof result === "object") score += 0.05;
+    // Boost if tool calls succeeded (no errors in result)
+    if (!result?.error && !result?.errors) score += 0.05;
+    // Boost if context had relevant files
+    if (context.filesRead > 0) score += 0.05;
+    // Cap at 0.95
+    return Math.min(score, 0.95);
+  }
+
   // ─── Abstract Methods (must override) ────────────────────
 
   /**

@@ -20,11 +20,6 @@ export async function routeUserInput(
   // Check for explicit multi-agent request
   const explicitRequest = getExplicitMultiAgentRequest(userInput);
   if (explicitRequest) {
-    console.log(
-      "[Router] Explicit multi-agent request detected for goal:",
-      explicitRequest.goal,
-    );
-
     const state = getState();
     const historyIndex = state.session.history.length;
 
@@ -43,16 +38,8 @@ export async function routeUserInput(
   // Classify complexity
   const classification = classifyInputComplexity(userInput);
 
-  console.log("[Router] Task classification:", {
-    isComplex: classification.isComplex,
-    reason: classification.reason,
-    confidence: classification.confidence,
-  });
-
   // If complex, route to swarm
   if (classification.isComplex && classification.confidence > 0.5) {
-    console.log("[Router] Routing to multi-agent swarm");
-
     const state = getState();
     const historyIndex = state.session.history.length;
 
@@ -69,7 +56,6 @@ export async function routeUserInput(
   }
 
   // Otherwise use normal chat
-  console.log("[Router] Routing to local LLM chat");
   dispatch(streamNormalInput({}));
   return "chat";
 }

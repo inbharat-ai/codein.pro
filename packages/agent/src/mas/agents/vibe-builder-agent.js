@@ -12,6 +12,7 @@ const {
   PERMISSION_TYPE,
   PERMISSION_DECISION,
 } = require("../types");
+const { buildToolRegistry } = require("../tool-registry");
 
 const SYSTEM_PROMPT = `You are the CodIn Vibe Builder Agent. You rapidly scaffold beautiful, functional prototypes.
 
@@ -21,6 +22,10 @@ RULES:
 3. Include sensible defaults and placeholder content
 4. Wire up basic interactivity — buttons click, forms submit, nav works
 5. Keep dependencies minimal — prefer CSS over heavy UI libraries when possible
+
+You have tools to read files, write files, and run commands. Use them to scaffold
+real files and install dependencies. Work iteratively: read existing code, write new
+files, run setup commands.
 
 OUTPUT FORMAT (JSON):
 {
@@ -75,19 +80,41 @@ class VibeBuilderAgent extends BaseAgent {
     const prompt = `Scaffold/prototype task:
 
 TASK: ${node.goal}
-${context.previousResults ? `PREVIOUS RESULTS:\n${context.previousResults.slice(0, 2000)}` : ""}
-${context.workspaceSummary ? `WORKSPACE: ${context.workspaceSummary}` : ""}
 
-Create a working, visually appealing prototype. Focus on speed and aesthetics.`;
+CONTEXT:
+${context.workspaceSummary || "No workspace context."}
+${context.repoContext?.context ? `REPO CONTEXT:\n${String(context.repoContext.context).slice(0, 6000)}` : ""}
+${context.plan ? `PLAN: ${JSON.stringify(context.plan).slice(0, 1000)}` : ""}
+${context.previousResults ? `PREVIOUS RESULTS:\n${context.previousResults.slice(0, 1000)}` : ""}
 
-    const result = await this.callLLMJson(prompt);
-    return {
-      result: result.result || "Prototype scaffolded",
-      files: result.files || [],
-      stack: result.stack || "unknown",
-      confidence: result.confidence || 0.8,
-      nextSteps: result.nextSteps || "",
-    };
+Create a working, visually appealing prototype. Focus on speed and aesthetics.
+Use the available tools to read existing files, write new ones, and run setup commands.`;
+
+    const toolRegistry = buildToolRegistry(this, context, node, {
+      tools: ["read_file", "write_file", "run_bash"],
+      agentLabel: "Vibe Builder",
+      commandProfile: "DEV",
+    });
+
+    if (Object.keys(toolRegistry).length > 0) {
+      const result = await this.callLLMWithTools(prompt, toolRegistry, {
+        maxIterations: 8,
+      });
+      return {
+        result: result.answer,
+        toolLog: result.toolLog,
+        confidence: this.computeConfidence(result, context),
+      };
+    } else {
+      const result = await this.callLLMJson(prompt);
+      return {
+        result: result.result || "Prototype scaffolded",
+        files: result.files || [],
+        stack: result.stack || "unknown",
+        confidence: result.confidence || 0.8,
+        nextSteps: result.nextSteps || "",
+      };
+    }
   }
 }
 
