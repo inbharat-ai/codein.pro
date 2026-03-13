@@ -199,7 +199,7 @@ Use the available tools to scan files, run audits, and detect secrets. Then prov
       return {
         result: result.answer,
         toolLog: result.toolLog,
-        confidence: 0.85,
+        confidence: this.computeConfidence(result, context),
       };
     } else {
       const result = await this.callLLMJson(prompt);

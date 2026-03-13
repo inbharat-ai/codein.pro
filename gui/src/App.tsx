@@ -36,7 +36,7 @@ const router = createMemoryRouter([
         element: <Chat />,
       },
       {
-        path: "/history",
+        path: ROUTES.HISTORY,
         element: <History />,
       },
       {

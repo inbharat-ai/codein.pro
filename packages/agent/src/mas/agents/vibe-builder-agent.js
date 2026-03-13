@@ -125,7 +125,7 @@ Use the available tools to read existing files, write new ones, and run setup co
       return {
         result: result.answer,
         toolLog: result.toolLog,
-        confidence: 0.8,
+        confidence: this.computeConfidence(result, context),
       };
     } else {
       const result = await this.callLLMJson(prompt);

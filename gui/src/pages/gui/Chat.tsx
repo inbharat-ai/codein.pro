@@ -5,7 +5,7 @@ import {
 import { Editor, JSONContent } from "@tiptap/react";
 import { ChatHistoryItem, InputModifiers } from "core";
 import { renderChatMessage } from "core/util/messageContent";
-import {
+import React, {
   useCallback,
   useContext,
   useEffect,
@@ -46,6 +46,7 @@ import { ToolCallDiv } from "./ToolCallDiv";
 
 import { useStore } from "react-redux";
 import { BackgroundModeView } from "../../components/BackgroundMode/BackgroundModeView";
+import { VibeModeView } from "../../components/VibeModeView";
 import { CliInstallBanner } from "../../components/CliInstallBanner";
 import FeedbackDialog from "../../components/dialogs/FeedbackDialog";
 import { ImplementPreviewPanel } from "../../components/ImplementPreviewPanel";
@@ -110,6 +111,264 @@ function fallbackRender({ error, resetErrorBoundary }: any) {
     </div>
   );
 }
+
+function handleBackgroundMode({
+  stateSnapshot,
+  editorState,
+  modifiers,
+  editorToClearOnSend,
+  ideMessenger,
+  dispatch,
+  reduxStore,
+  setIsCreatingAgent,
+}: {
+  stateSnapshot: RootState;
+  editorState: JSONContent;
+  modifiers: InputModifiers;
+  editorToClearOnSend?: Editor;
+  ideMessenger: any;
+  dispatch: any;
+  reduxStore: any;
+  setIsCreatingAgent: (v: boolean) => void;
+}) {
+  const currentOrg = selectCurrentOrg(stateSnapshot);
+  const organizationId =
+    currentOrg?.id !== "personal" ? currentOrg?.id : undefined;
+
+  setIsCreatingAgent(true);
+
+  void (async () => {
+    try {
+      const defaultContextProviders =
+        stateSnapshot.config.config.experimental?.defaultContext ?? [];
+
+      const { selectedContextItems, selectedCode, content } =
+        await resolveEditorContent({
+          editorState,
+          modifiers,
+          ideMessenger,
+          defaultContextProviders,
+          availableSlashCommands: stateSnapshot.config.config.slashCommands,
+          dispatch,
+          getState: () => reduxStore.getState(),
+        });
+
+      await ideMessenger.request("createBackgroundAgent", {
+        content,
+        contextItems: selectedContextItems,
+        selectedCode,
+        organizationId,
+      });
+
+      if (editorToClearOnSend) {
+        editorToClearOnSend.commands.clearContent();
+      }
+
+      setIsCreatingAgent(false);
+    } catch (error) {
+      console.error("Failed to create background agent:", error);
+      setIsCreatingAgent(false);
+    }
+  })();
+}
+
+const ChatHistoryItemRenderer = React.memo(function ChatHistoryItemRenderer({
+  item,
+  index,
+  history,
+  stepsOpen,
+  isStreaming,
+  sendInput,
+  isLastUserInput,
+}: {
+  item: ChatHistoryItemWithMessageId;
+  index: number;
+  history: ChatHistoryItemWithMessageId[];
+  stepsOpen: (boolean | undefined)[];
+  isStreaming: boolean;
+  sendInput: (
+    editorState: JSONContent,
+    modifiers: InputModifiers,
+    index?: number,
+  ) => void;
+  isLastUserInput: (index: number) => boolean;
+}) {
+  const { message, editorState, contextItems, appliedRules, toolCallStates } =
+    item;
+
+  const latestSummaryIndex = findLatestSummaryIndex(history);
+  const isBeforeLatestSummary =
+    latestSummaryIndex !== -1 && index < latestSummaryIndex;
+
+  if (message.role === "user") {
+    return (
+      <ContinueInputBox
+        onEnter={(editorState, modifiers) =>
+          sendInput(editorState, modifiers, index)
+        }
+        isLastUserInput={isLastUserInput(index)}
+        isMainInput={false}
+        editorState={editorState ?? item.message.content}
+        contextItems={contextItems}
+        appliedRules={appliedRules}
+        inputId={message.id}
+      />
+    );
+  }
+
+  if (message.role === "tool") {
+    return null;
+  }
+
+  if (message.role === "assistant") {
+    return (
+      <>
+        {/* Always render assistant content through normal path */}
+        <div className="thread-message">
+          <TimelineItem
+            item={item}
+            iconElement={<ChatBubbleOvalLeftIcon width="16px" height="16px" />}
+            open={
+              typeof stepsOpen[index] === "undefined" ? true : stepsOpen[index]!
+            }
+            onToggle={() => {}}
+          >
+            <StepContainer
+              index={index}
+              isLast={index === history.length - 1}
+              item={item}
+              latestSummaryIndex={latestSummaryIndex}
+            />
+          </TimelineItem>
+        </div>
+
+        {toolCallStates && (
+          <ToolCallDiv toolCallStates={toolCallStates} historyIndex={index} />
+        )}
+      </>
+    );
+  }
+
+  if (message.role === "thinking") {
+    return (
+      <div className={isBeforeLatestSummary ? "opacity-50" : ""}>
+        <ThinkingBlockPeek
+          content={renderChatMessage(message)}
+          redactedThinking={message.redactedThinking}
+          index={index}
+          prevItem={index > 0 ? history[index - 1] : null}
+          inProgress={index === history.length - 1 && isStreaming}
+          signature={message.signature}
+        />
+      </div>
+    );
+  }
+
+  // Default case - regular assistant message
+  return (
+    <div className="thread-message">
+      <TimelineItem
+        item={item}
+        iconElement={<ChatBubbleOvalLeftIcon width="16px" height="16px" />}
+        open={
+          typeof stepsOpen[index] === "undefined" ? true : stepsOpen[index]!
+        }
+        onToggle={() => {}}
+      >
+        <StepContainer
+          index={index}
+          isLast={index === history.length - 1}
+          item={item}
+          latestSummaryIndex={latestSummaryIndex}
+        />
+      </TimelineItem>
+    </div>
+  );
+});
+
+const ChatFooter = React.memo(function ChatFooter({
+  sendInput,
+  allSessionMetadata,
+  isStreaming,
+  history,
+  lastSessionId,
+  isInEdit,
+  hasDismissedExploreDialog,
+  mode,
+  isCreatingAgent,
+  onboardingCard,
+}: {
+  sendInput: (
+    editorState: JSONContent,
+    modifiers: InputModifiers,
+    index?: number,
+    editorToClearOnSend?: Editor,
+  ) => void;
+  allSessionMetadata: any[];
+  isStreaming: boolean;
+  history: ChatHistoryItemWithMessageId[];
+  lastSessionId: string | undefined;
+  isInEdit: boolean;
+  hasDismissedExploreDialog: boolean;
+  mode: string;
+  isCreatingAgent: boolean;
+  onboardingCard: { show: boolean | undefined };
+}) {
+  const dispatch = useAppDispatch();
+
+  return (
+    <div className={"relative"}>
+      <ContinueInputBox
+        isMainInput
+        isLastUserInput={false}
+        onEnter={(editorState, modifiers, editor) =>
+          sendInput(editorState, modifiers, undefined, editor)
+        }
+        inputId={MAIN_EDITOR_INPUT_ID}
+      />
+
+      <CliInstallBanner
+        sessionCount={allSessionMetadata.length}
+        sessionThreshold={3}
+        permanentDismissal={true}
+      />
+
+      <div
+        style={{
+          pointerEvents: isStreaming ? "none" : "auto",
+        }}
+      >
+        <div className="flex flex-row items-center justify-between pb-1 pl-0.5 pr-2">
+          <div className="xs:inline hidden">
+            {history.length === 0 && lastSessionId && !isInEdit && (
+              <NewSessionButton
+                onClick={async () => {
+                  await dispatch(loadLastSession());
+                }}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeftIcon className="h-3 w-3" />
+                <span className="text-xs">Last Session</span>
+              </NewSessionButton>
+            )}
+          </div>
+          <VoicePanel />
+        </div>
+        <FatalErrorIndicator />
+        {!hasDismissedExploreDialog && <ExploreDialogWatcher />}
+        {mode === "background" ? (
+          <BackgroundModeView isCreatingAgent={isCreatingAgent} />
+        ) : mode === "vibe" ? (
+          <VibeModeView />
+        ) : (
+          history.length === 0 && (
+            <EmptyChatBody showOnboardingCard={onboardingCard.show} />
+          )
+        )}
+      </div>
+    </div>
+  );
+});
 
 export function Chat() {
   const dispatch = useAppDispatch();
@@ -189,51 +448,16 @@ export function Chat() {
 
       // Handle background mode specially
       if (currentMode === "background" && !isCurrentlyInEdit) {
-        // Background mode triggers agent creation instead of chat
-        const currentOrg = selectCurrentOrg(stateSnapshot);
-        const organizationId =
-          currentOrg?.id !== "personal" ? currentOrg?.id : undefined;
-
-        setIsCreatingAgent(true);
-
-        // Create agent and track loading state
-        void (async () => {
-          try {
-            // Resolve context items from editor content (same as normal chat)
-            const defaultContextProviders =
-              stateSnapshot.config.config.experimental?.defaultContext ?? [];
-
-            const { selectedContextItems, selectedCode, content } =
-              await resolveEditorContent({
-                editorState,
-                modifiers,
-                ideMessenger,
-                defaultContextProviders,
-                availableSlashCommands:
-                  stateSnapshot.config.config.slashCommands,
-                dispatch,
-                getState: () => reduxStore.getState(),
-              });
-
-            await ideMessenger.request("createBackgroundAgent", {
-              content,
-              contextItems: selectedContextItems,
-              selectedCode,
-              organizationId,
-            });
-
-            // Clear input only after successful API call
-            if (editorToClearOnSend) {
-              editorToClearOnSend.commands.clearContent();
-            }
-
-            setIsCreatingAgent(false);
-          } catch (error) {
-            console.error("Failed to create background agent:", error);
-            setIsCreatingAgent(false);
-          }
-        })();
-
+        handleBackgroundMode({
+          stateSnapshot,
+          editorState,
+          modifiers,
+          editorToClearOnSend,
+          ideMessenger,
+          dispatch,
+          reduxStore,
+          setIsCreatingAgent,
+        });
         return;
       }
 
@@ -327,116 +551,6 @@ export function Chat() {
     [history],
   );
 
-  const renderChatHistoryItem = useCallback(
-    (item: ChatHistoryItemWithMessageId, index: number) => {
-      const {
-        message,
-        editorState,
-        contextItems,
-        appliedRules,
-        toolCallStates,
-      } = item;
-
-      // Calculate once for the entire function
-      const latestSummaryIndex = findLatestSummaryIndex(history);
-      const isBeforeLatestSummary =
-        latestSummaryIndex !== -1 && index < latestSummaryIndex;
-
-      if (message.role === "user") {
-        return (
-          <ContinueInputBox
-            onEnter={(editorState, modifiers) =>
-              sendInput(editorState, modifiers, index)
-            }
-            isLastUserInput={isLastUserInput(index)}
-            isMainInput={false}
-            editorState={editorState ?? item.message.content}
-            contextItems={contextItems}
-            appliedRules={appliedRules}
-            inputId={message.id}
-          />
-        );
-      }
-
-      if (message.role === "tool") {
-        return null;
-      }
-
-      if (message.role === "assistant") {
-        return (
-          <>
-            {/* Always render assistant content through normal path */}
-            <div className="thread-message">
-              <TimelineItem
-                item={item}
-                iconElement={
-                  <ChatBubbleOvalLeftIcon width="16px" height="16px" />
-                }
-                open={
-                  typeof stepsOpen[index] === "undefined"
-                    ? true
-                    : stepsOpen[index]!
-                }
-                onToggle={() => {}}
-              >
-                <StepContainer
-                  index={index}
-                  isLast={index === history.length - 1}
-                  item={item}
-                  latestSummaryIndex={latestSummaryIndex}
-                />
-              </TimelineItem>
-            </div>
-
-            {toolCallStates && (
-              <ToolCallDiv
-                toolCallStates={toolCallStates}
-                historyIndex={index}
-              />
-            )}
-          </>
-        );
-      }
-
-      if (message.role === "thinking") {
-        return (
-          <div className={isBeforeLatestSummary ? "opacity-50" : ""}>
-            <ThinkingBlockPeek
-              content={renderChatMessage(message)}
-              redactedThinking={message.redactedThinking}
-              index={index}
-              prevItem={index > 0 ? history[index - 1] : null}
-              inProgress={index === history.length - 1 && isStreaming}
-              signature={message.signature}
-            />
-          </div>
-        );
-      }
-
-      // Default case - regular assistant message
-      return (
-        <div className="thread-message">
-          <TimelineItem
-            item={item}
-            iconElement={<ChatBubbleOvalLeftIcon width="16px" height="16px" />}
-            open={
-              typeof stepsOpen[index] === "undefined" ? true : stepsOpen[index]!
-            }
-            onToggle={() => {}}
-          >
-            <StepContainer
-              index={index}
-              isLast={index === history.length - 1}
-              item={item}
-              latestSummaryIndex={latestSummaryIndex}
-            />
-          </TimelineItem>
-        </div>
-      );
-    },
-    [sendInput, isLastUserInput, history, stepsOpen, isStreaming],
-  );
-
   const showScrollbar = showChatScrollbar ?? window.innerHeight > 5000;
 
   const selectedChatModel = useAppSelector(selectSelectedChatModel);
@@ -476,61 +590,33 @@ export function Chat() {
                   dispatch(newSession());
                 }}
               >
-                {renderChatHistoryItem(item, index)}
+                <ChatHistoryItemRenderer
+                  item={item}
+                  index={index}
+                  history={history}
+                  stepsOpen={stepsOpen}
+                  isStreaming={isStreaming}
+                  sendInput={sendInput}
+                  isLastUserInput={isLastUserInput}
+                />
               </ErrorBoundary>
               {index === history.length - 1 && <InlineErrorMessage />}
             </div>
           ))}
       </StepsDiv>
       <ImplementPreviewPanel />
-      <div className={"relative"}>
-        <ContinueInputBox
-          isMainInput
-          isLastUserInput={false}
-          onEnter={(editorState, modifiers, editor) =>
-            sendInput(editorState, modifiers, undefined, editor)
-          }
-          inputId={MAIN_EDITOR_INPUT_ID}
-        />
-
-        <CliInstallBanner
-          sessionCount={allSessionMetadata.length}
-          sessionThreshold={3}
-          permanentDismissal={true}
-        />
-
-        <div
-          style={{
-            pointerEvents: isStreaming ? "none" : "auto",
-          }}
-        >
-          <div className="flex flex-row items-center justify-between pb-1 pl-0.5 pr-2">
-            <div className="xs:inline hidden">
-              {history.length === 0 && lastSessionId && !isInEdit && (
-                <NewSessionButton
-                  onClick={async () => {
-                    await dispatch(loadLastSession());
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeftIcon className="h-3 w-3" />
-                  <span className="text-xs">Last Session</span>
-                </NewSessionButton>
-              )}
-            </div>
-            <VoicePanel />
-          </div>
-          <FatalErrorIndicator />
-          {!hasDismissedExploreDialog && <ExploreDialogWatcher />}
-          {mode === "background" ? (
-            <BackgroundModeView isCreatingAgent={isCreatingAgent} />
-          ) : (
-            history.length === 0 && (
-              <EmptyChatBody showOnboardingCard={onboardingCard.show} />
-            )
-          )}
-        </div>
-      </div>
+      <ChatFooter
+        sendInput={sendInput}
+        allSessionMetadata={allSessionMetadata}
+        isStreaming={isStreaming}
+        history={history}
+        lastSessionId={lastSessionId}
+        isInEdit={isInEdit}
+        hasDismissedExploreDialog={hasDismissedExploreDialog}
+        mode={mode}
+        isCreatingAgent={isCreatingAgent}
+        onboardingCard={onboardingCard}
+      />
     </>
   );
 }

@@ -174,7 +174,7 @@ Use the tools to read configs, validate them, write improvements, and run comman
         result: result.answer,
         toolLog: result.toolLog,
         validationResults: this._validationResults || [],
-        confidence: 0.8,
+        confidence: this.computeConfidence(result, context),
       };
     }
 

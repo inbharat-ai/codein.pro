@@ -46,33 +46,17 @@ const GridDiv = styled.div`
   overflow-x: visible;
 `;
 
-const Layout = () => {
-  const [showStagingIndicator, setShowStagingIndicator] = useState(false);
+function useLayoutWebviewListeners() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
   const onboardingCard = useOnboardingCard();
   const ideMessenger = useContext(IdeMessengerContext);
-
   const { mainEditor } = useMainEditor();
-  const dialogMessage = useAppSelector((state) => state.ui.dialogMessage);
-
-  const showDialog = useAppSelector((state) => state.ui.showDialog);
   const isInEdit = useAppSelector((store) => store.session.isInEdit);
   const isHome =
     location.pathname === ROUTES.HOME ||
     location.pathname === ROUTES.HOME_INDEX;
-
-  useEffect(() => {
-    (async () => {
-      const response = await ideMessenger.request(
-        "controlPlane/getEnvironment",
-        undefined,
-      );
-      response.status === "success" &&
-        setShowStagingIndicator(response.content.AUTH_TYPE.includes("staging"));
-    })();
-  }, []);
 
   useWebviewListener(
     "newSession",
@@ -214,6 +198,34 @@ const Layout = () => {
     },
     [],
   );
+
+  return { isHome, onboardingCard };
+}
+
+const Layout = () => {
+  const [showStagingIndicator, setShowStagingIndicator] = useState(false);
+  const location = useLocation();
+  const dispatch = useAppDispatch();
+  const ideMessenger = useContext(IdeMessengerContext);
+
+  const dialogMessage = useAppSelector((state) => state.ui.dialogMessage);
+  const showDialog = useAppSelector((state) => state.ui.showDialog);
+  const isHome =
+    location.pathname === ROUTES.HOME ||
+    location.pathname === ROUTES.HOME_INDEX;
+
+  const { onboardingCard } = useLayoutWebviewListeners();
+
+  useEffect(() => {
+    (async () => {
+      const response = await ideMessenger.request(
+        "controlPlane/getEnvironment",
+        undefined,
+      );
+      response.status === "success" &&
+        setShowStagingIndicator(response.content.AUTH_TYPE.includes("staging"));
+    })();
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event: any) => {

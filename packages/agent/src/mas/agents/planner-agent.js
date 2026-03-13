@@ -130,7 +130,7 @@ ${context.workspaceSummary || "No workspace context available."}`;
     return {
       result: `Decomposed into ${nodes.length} nodes with ${edges.length} edges`,
       taskGraph,
-      confidence: 0.85,
+      confidence: this.computeConfidence(plan, context),
     };
   }
 }

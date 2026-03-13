@@ -172,7 +172,7 @@ Then provide a structured summary of changes.`;
       return {
         result: result.answer,
         toolLog: result.toolLog,
-        confidence: 0.8,
+        confidence: this.computeConfidence(result, context),
       };
     } else {
       const result = await this.callLLMJson(prompt);

@@ -1,5 +1,6 @@
 import {
   ChatBubbleLeftIcon,
+  PaintBrushIcon,
   RocketLaunchIcon,
   SparklesIcon,
   SwatchIcon,
@@ -24,5 +25,7 @@ export function ModeIcon({
       return <ChatBubbleLeftIcon className={className} />;
     case "background":
       return <RocketLaunchIcon className={className} />;
+    case "vibe":
+      return <PaintBrushIcon className={className} />;
   }
 }

@@ -116,7 +116,7 @@ ${context.previousResults ? `PREVIOUS RESULTS:\n${context.previousResults.slice(
       return {
         result: result.answer,
         toolLog: result.toolLog,
-        confidence: 0.8,
+        confidence: this.computeConfidence(result, context),
       };
     } else {
       // Fallback: no tools available, use direct LLM
@@ -124,7 +124,7 @@ ${context.previousResults ? `PREVIOUS RESULTS:\n${context.previousResults.slice(
       return {
         result: result.result || "Code written",
         files: result.files || [],
-        confidence: result.confidence || 0.8,
+        confidence: this.computeConfidence(result, context),
         notes: result.notes,
       };
     }

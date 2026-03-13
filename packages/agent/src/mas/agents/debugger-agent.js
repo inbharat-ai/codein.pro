@@ -114,7 +114,7 @@ ${context.previousResults || "None"}`;
       return {
         result: result.answer || "Diagnosis complete",
         toolLog: result.toolLog,
-        confidence: 0.75,
+        confidence: this.computeConfidence(result, context),
       };
     }
 

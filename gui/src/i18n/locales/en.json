@@ -1,0 +1,41 @@
+{
+  "activityBar": {
+    "chat": "AI Chat",
+    "history": "History",
+    "search": "Search",
+    "gpu": "GPU Panel",
+    "docs": "Docs & Rules",
+    "settings": "Settings"
+  },
+  "statusBar": {
+    "ready": "Ready",
+    "branch": "main",
+    "language": "TypeScript",
+    "tagline": "CodIn — AI-Powered Code Editor for Bharat",
+    "version": "v1.0.0"
+  },
+  "modes": {
+    "chat": "Chat",
+    "plan": "Plan",
+    "agent": "Agent",
+    "background": "Background",
+    "vibe": "Vibe"
+  },
+  "swarm": {
+    "title": "Multi-Agent Swarm",
+    "initialize": "Initialize Swarm",
+    "shutdown": "Shutdown",
+    "notActive": "Swarm not active. Initialize to begin."
+  },
+  "sovereign": {
+    "title": "Sovereign Mode",
+    "offlineReady": "Offline Ready"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "error": "Error",
+    "loading": "Loading...",
+    "retry": "Retry"
+  }
+}
