@@ -182,3 +182,30 @@ keys
 
 # Local Claude settings
 .claude/settings.local.json
+
+# IDE settings (full directories)
+.idea/
+**/.idea/
+.vscode/settings.json
+.vscode/tasks.json
+
+# Build artifacts
+*.tsbuildinfo
+extensions/vscode/gui/
+
+# Internal audit/report files (dev-only)
+reports/
+*_AUDIT*.md
+*_REPORT*.md
+*_STATUS*.md
+*_BLUEPRINT*.md
+*_ASSESSMENT*.md
+*_CHECKLIST*.md
+*_ROADMAP*.md
+BLOCKERS.md
+THOROUGH_CODE_INSPECTION_AUDIT.*
+MASTER_AUDIT_*.md
+
+# OS junk
+Thumbs.db
+desktop.ini
