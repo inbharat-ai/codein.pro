@@ -10,7 +10,7 @@
  * Uses native Node.js fetch (Node 18+). No external dependencies.
  */
 
-const USER_AGENT = "CodIn-Agent/1.0";
+const USER_AGENT = "CodeIn-Agent/1.0";
 
 /** Redact an API key for safe logging — show last 4 chars only */
 function redactKey(key) {
@@ -59,7 +59,7 @@ class OpenAICompatAdapter {
     // OpenRouter recommends HTTP-Referer and X-Title headers
     if (this._provider.id === "openrouter") {
       headers["HTTP-Referer"] = "https://codin.dev";
-      headers["X-Title"] = "CodIn IDE";
+      headers["X-Title"] = "CodeIn IDE";
     }
     return headers;
   }

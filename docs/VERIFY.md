@@ -71,8 +71,8 @@ npm start
 **Expected Output**:
 
 ```
-CodIn Agent listening on http://127.0.0.1:43120
-[CodIn Agent] All subsystems loaded
+CodeIn Agent listening on http://127.0.0.1:43120
+[CodeIn Agent] All subsystems loaded
 ```
 
 **Verification**:
@@ -90,7 +90,7 @@ curl http://localhost:43120/health
 ```json
 {
   "status": "ok",
-  "agent": "CodIn Agent",
+  "agent": "CodeIn Agent",
   "version": "0.1.0"
 }
 ```

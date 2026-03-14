@@ -1,4 +1,4 @@
-# 🎯 CodIn ELITE - COMPLETE PROJECT SUMMARY
+# 🎯 CodeIn ELITE - COMPLETE PROJECT SUMMARY
 
 ## You Now Have Everything to Build a World-Class IDE
 
@@ -213,7 +213,7 @@ gui/src/components/
 
 When you're done, you'll have:
 
-**CodIn ELITE v1.0**
+**CodeIn ELITE v1.0**
 
 ```
 ✅ Windows installer (40MB)

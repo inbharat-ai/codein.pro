@@ -108,7 +108,7 @@ test("OpenAI-compat adapter sets OpenRouter-specific headers", async () => {
     );
     await adapter.testConnection();
     assert.equal(capturedHeaders["HTTP-Referer"], "https://codin.dev");
-    assert.equal(capturedHeaders["X-Title"], "CodIn IDE");
+    assert.equal(capturedHeaders["X-Title"], "CodeIn IDE");
   } finally {
     restore();
   }

@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Terminal Manager
+ * CodeIn MAS — Terminal Manager
  *
  * Manages persistent terminal sessions for agent execution.
  * Each agent can have its own terminal session with command history,

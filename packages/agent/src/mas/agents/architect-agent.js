@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Architect Agent
+ * CodeIn MAS — Architect Agent
  *
  * Designs system architecture, evaluates patterns, plans large-scale changes.
  */
@@ -8,7 +8,7 @@
 const { BaseAgent } = require("./base-agent");
 const { AGENT_TYPE } = require("../types");
 
-const SYSTEM_PROMPT = `You are the CodIn Architect Agent. You design software architecture and make high-level technical decisions.
+const SYSTEM_PROMPT = `You are the CodeIn Architect Agent. You design software architecture and make high-level technical decisions.
 
 RULES:
 1. Consider scalability, maintainability, and team conventions

@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Agent Router
+ * CodeIn MAS — Agent Router
  *
  * Deterministic routing: maps task node's agentType to an active agent instance.
  * Manages the agent pool — spawns on demand, caps at maxAgents.

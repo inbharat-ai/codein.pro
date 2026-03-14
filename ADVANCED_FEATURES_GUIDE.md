@@ -1,8 +1,8 @@
-# 🚀 CodIn - Advanced Features: Debug, Research & Agent
+# 🚀 CodeIn - Advanced Features: Debug, Research & Agent
 
 ## Overview
 
-CodIn now includes three powerful advanced features:
+CodeIn now includes three powerful advanced features:
 
 1. **Debug Panel** - Full-featured debugger like Cursor/VSCode
 2. **Research Assistant** - Web research, documentation, code examples
@@ -211,7 +211,7 @@ POST http://127.0.0.1:43120/api/research/bug-solution-search
 
 ### Capabilities
 
-The CodIn Agent now supports:
+The CodeIn Agent now supports:
 
 **1. Ask Mode - Interactive Coding**
 
@@ -349,14 +349,14 @@ AI:
 
 ### Enable Debug Panel
 
-1. Open CodIn
+1. Open CodeIn
 2. Click Activity Bar → Debug (🐛)
 3. Add breakpoint by clicking line number
 4. Press F5 to start debugging
 
 ### Open Research Panel
 
-1. Open CodIn
+1. Open CodeIn
 2. Click Activity Bar → Research (🔍)
 3. Choose search type (Web/Docs/Examples/Bugs)
 4. Enter query and search
@@ -510,7 +510,7 @@ Planned features:
 Need help?
 
 1. Check these docs
-2. Ask CodIn Agent (it's always available!)
+2. Ask CodeIn Agent (it's always available!)
 3. Search web research panel
 4. Report issues on GitHub
 

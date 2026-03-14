@@ -1,8 +1,8 @@
 /**
- * CodIn MAS — Autonomous Planning Loop
+ * CodeIn MAS — Autonomous Planning Loop
  *
  * Implements the plan → execute → test → diagnose → revise → retry loop.
- * This is the core autonomy engine that allows CodIn to handle complex
+ * This is the core autonomy engine that allows CodeIn to handle complex
  * multi-step tasks without human intervention.
  */
 "use strict";

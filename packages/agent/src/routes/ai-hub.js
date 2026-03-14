@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * CodIn AI Hub — HTTP Routes
+ * CodeIn AI Hub — HTTP Routes
  *
  * REST API endpoints for multi-provider AI API management.
  *
@@ -25,6 +25,14 @@ const {
 const { AIHubManager } = require("../ai-hub/hub-manager");
 const { PROVIDERS } = require("../ai-hub/provider-registry");
 
+// Environment-based dev bypass — never from runtime deps object
+const DEV_BYPASS = process.env.CODIN_DEV_BYPASS === "true";
+if (DEV_BYPASS) {
+  console.warn(
+    "[SECURITY] Permission bypass enabled via CODIN_DEV_BYPASS — do NOT use in production",
+  );
+}
+
 function sendJson(res, status, body) {
   res.setHeader("X-AIHub-API-Version", "1");
   jsonResponse(res, status, body);
@@ -34,7 +42,7 @@ function sendJson(res, status, body) {
  * Fail-closed permission check — mirrors swarm.js ensureSwarmPermission.
  */
 async function ensureHubPermission(req, res, deps, operation, context = {}) {
-  if (deps.permissionBypass === true) {
+  if (DEV_BYPASS) {
     return true;
   }
   if (typeof deps.requirePermission !== "function") {

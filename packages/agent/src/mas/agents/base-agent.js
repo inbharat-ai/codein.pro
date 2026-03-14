@@ -1,5 +1,5 @@
 /**
- * CodIn Multi-Agent Swarm — Base Agent
+ * CodeIn Multi-Agent Swarm — Base Agent
  *
  * Abstract base class for all specialist agents.
  * Provides: identity, lifecycle, LLM interaction,
@@ -602,7 +602,7 @@ Always respond with ONLY valid JSON.`;
    * @returns {string}
    */
   getSystemPrompt() {
-    return "You are a CodIn specialist agent. Follow instructions precisely.";
+    return "You are a CodeIn specialist agent. Follow instructions precisely.";
   }
 
   /**

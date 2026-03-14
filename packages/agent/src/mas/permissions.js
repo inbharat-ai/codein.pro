@@ -1,5 +1,5 @@
 /**
- * CodIn Multi-Agent Swarm — Permission Gate
+ * CodeIn Multi-Agent Swarm — Permission Gate
  *
  * Fail-closed permission system. Every agent action that touches the file system,
  * network, git, MCP tools, or GPU spend must pass through this gate.

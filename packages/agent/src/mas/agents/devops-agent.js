@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — DevOps Agent
+ * CodeIn MAS — DevOps Agent
  *
  * Handles CI/CD, Docker, deployment configs, infrastructure-as-code.
  * Validates config files and runs linting checks.
@@ -47,7 +47,7 @@ const SAFE_CONFIG_EXTENSIONS = new Set([
   ".zsh",
 ]);
 
-const SYSTEM_PROMPT = `You are the CodIn DevOps Agent. You manage CI/CD, Docker, and deployment infrastructure.
+const SYSTEM_PROMPT = `You are the CodeIn DevOps Agent. You manage CI/CD, Docker, and deployment infrastructure.
 
 RULES:
 1. Never store secrets in configuration files — use environment variables

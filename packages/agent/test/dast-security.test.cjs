@@ -1,7 +1,7 @@
 /**
  * DAST — Dynamic Application Security Testing
  *
- * Validates that the CodIn agent server:
+ * Validates that the CodeIn agent server:
  *   1. Rejects unauthenticated requests (401)
  *   2. Blocks path traversal attempts (400)
  *   3. Enforces body size limits

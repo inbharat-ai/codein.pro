@@ -257,7 +257,7 @@ export class ElectronIde implements IDE {
   async getIdeInfo(): Promise<any> {
     return {
       ideType: "electron",
-      name: "CodIn",
+      name: "CodeIn",
       version: "1.0.0",
       remoteName: null,
       extensionVersion: "1.0.0",

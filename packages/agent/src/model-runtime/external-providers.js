@@ -126,7 +126,7 @@ const PROVIDER_CONFIGS = {
         model,
         system:
           systemMsg?.content ??
-          "You are CodIn, a world-class coding assistant.",
+          "You are CodeIn, a world-class coding assistant.",
         messages: otherMsgs.map((m) => ({ role: m.role, content: m.content })),
         max_tokens: opts.maxTokens ?? 4096,
         temperature: opts.temperature ?? 0.7,

@@ -1,4 +1,4 @@
-# 🚀 CodIn - Complete Feature Parity with Cursor & Copilot
+# 🚀 CodeIn - Complete Feature Parity with Cursor & Copilot
 
 ## ✅ Feature Implementation Status
 
@@ -496,7 +496,7 @@
 
 - **Status**: Implemented
 - **Commands**:
-  - Ask CodIn
+  - Ask CodeIn
   - Edit Code
   - Run Command
   - Generate Test
@@ -507,7 +507,7 @@
 
 - **Status**: Fully Configured
 - **Default Shortcuts**:
-  - `Ctrl+Shift+L` - Open CodIn
+  - `Ctrl+Shift+L` - Open CodeIn
   - `Ctrl+I` - Ask question
   - `Ctrl+K` - Edit code
   - `Tab` - Accept completion
@@ -724,7 +724,7 @@ npm run test:coverage
 
 ## ✨ All Features Active & Production Ready
 
-**CodIn is fully compatible with Cursor IDE and GitHub Copilot, with these additional advantages:**
+**CodeIn is fully compatible with Cursor IDE and GitHub Copilot, with these additional advantages:**
 
 ✅ **All Cursor features** + **All Copilot features**
 ✅ **Multilingual support** (Hindi, Assamese, Tamil)

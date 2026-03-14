@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Reviewer Agent
+ * CodeIn MAS — Reviewer Agent
  *
  * Code review, acceptance criteria validation, quality assurance.
  */
@@ -8,7 +8,7 @@
 const { BaseAgent } = require("./base-agent");
 const { AGENT_TYPE } = require("../types");
 
-const SYSTEM_PROMPT = `You are the CodIn Reviewer Agent. You review code for quality and correctness.
+const SYSTEM_PROMPT = `You are the CodeIn Reviewer Agent. You review code for quality and correctness.
 
 RULES:
 1. Check against acceptance criteria first

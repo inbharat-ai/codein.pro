@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Documentation Generator
+ * CodeIn MAS — Documentation Generator
  *
  * Handles documentation generation, PR descriptions, commit messages, and
  * changelog generation. Natural extensions of coding that don't require

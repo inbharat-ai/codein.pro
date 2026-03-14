@@ -1,4 +1,4 @@
-# 🎯 CodIn - Complete Feature List
+# 🎯 CodeIn - Complete Feature List
 
 ## 🧠 AI & Coding Assistance
 
@@ -404,7 +404,7 @@
 
 ---
 
-## ✨ What Makes CodIn Unique
+## ✨ What Makes CodeIn Unique
 
 1. **Debug + Research + AI** - All three work together
 2. **Multilingual** - Code in any language
@@ -421,4 +421,4 @@
 
 **All 150+ features are ACTIVE and READY TO USE** ✅
 
-Start coding with CodIn today! 🚀
+Start coding with CodeIn today! 🚀

@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Debugger Agent
+ * CodeIn MAS — Debugger Agent
  *
  * Diagnoses and fixes bugs, analyzes stack traces, identifies root causes.
  */
@@ -13,7 +13,7 @@ const {
 } = require("../types");
 const { buildToolRegistry } = require("../tool-registry");
 
-const SYSTEM_PROMPT = `You are the CodIn Debugger Agent. You diagnose and fix bugs.
+const SYSTEM_PROMPT = `You are the CodeIn Debugger Agent. You diagnose and fix bugs.
 
 RULES:
 1. Analyze stack traces, error messages, and reproduction steps

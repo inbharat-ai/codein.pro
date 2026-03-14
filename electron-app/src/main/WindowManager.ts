@@ -47,7 +47,7 @@ export class WindowManager {
       minHeight: 600,
       show: false, // Show after ready-to-show to prevent flicker
       backgroundColor: "#1e1e1e",
-      title: "CodIn",
+      title: "CodeIn",
       icon: this.getIcon(),
       webPreferences: {
         preload: path.join(__dirname, "..", "preload", "preload.js"),

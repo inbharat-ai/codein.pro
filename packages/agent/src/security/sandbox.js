@@ -62,43 +62,18 @@ class Sandbox extends EventEmitter {
 
   /**
    * Ensure the worker script file exists on disk.
+   * The worker script now uses Node.js `vm` module for proper sandboxing
+   * instead of `new Function()`. We no longer overwrite it — the canonical
+   * source is sandbox-worker.js in the same directory.
    * @private
    */
   _ensureWorkerScript() {
-    // Always overwrite to keep in sync with this version of the sandbox.
-    const workerContent = `'use strict';
-const { parentPort } = require('worker_threads');
-
-parentPort.on('message', async (message) => {
-  const { id, code, context } = message;
-
-  try {
-    const keys = Object.keys(context);
-    const values = Object.values(context);
-    const func = new Function(...keys, code);
-    const result = await func(...values);
-
-    parentPort.postMessage({
-      id,
-      success: true,
-      result: result === undefined ? null : result,
-      error: null
-    });
-  } catch (error) {
-    parentPort.postMessage({
-      id,
-      success: false,
-      result: null,
-      error: {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      }
-    });
-  }
-});
-`;
-    fs.writeFileSync(this._workerScriptPath, workerContent);
+    if (!fs.existsSync(this._workerScriptPath)) {
+      throw new Error(
+        `Sandbox worker script not found at ${this._workerScriptPath}. ` +
+          `This file is required for secure code execution.`,
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------

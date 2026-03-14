@@ -4,7 +4,7 @@ import { spawn, ChildProcessWithoutNullStreams } from "node:child_process";
 
 let agentProcess: ChildProcessWithoutNullStreams | undefined;
 
-export function startCodInAgent(context: vscode.ExtensionContext) {
+export function startCodeInAgent(context: vscode.ExtensionContext) {
   if (agentProcess) {
     return;
   }
@@ -28,15 +28,15 @@ export function startCodInAgent(context: vscode.ExtensionContext) {
   });
 
   agentProcess.stdout.on("data", (data) => {
-    console.log(`[CodIn Agent] ${data.toString().trim()}`);
+    console.log(`[CodeIn Agent] ${data.toString().trim()}`);
   });
 
   agentProcess.stderr.on("data", (data) => {
-    console.error(`[CodIn Agent] ${data.toString().trim()}`);
+    console.error(`[CodeIn Agent] ${data.toString().trim()}`);
   });
 
   agentProcess.on("exit", (code) => {
-    console.log(`[CodIn Agent] exited with code ${code}`);
+    console.log(`[CodeIn Agent] exited with code ${code}`);
     agentProcess = undefined;
   });
 

@@ -1,10 +1,10 @@
-# CodIn Electron App
+# CodeIn Electron App
 
-Standalone Electron application for CodIn - a multilingual AI-powered code editor.
+Standalone Electron application for CodeIn - a multilingual AI-powered code editor.
 
 ## Architecture
 
-This is the transformation of CodIn from a VS Code extension to a standalone Electron application, similar to Cursor.
+This is the transformation of CodeIn from a VS Code extension to a standalone Electron application, similar to Cursor.
 
 ### Directory Structure
 
@@ -48,7 +48,7 @@ electron-app/
 - **GitService**: Git operations using simple-git
 - **TerminalService**: Terminal emulation using node-pty
 - **ModelManagerService**: Local LLM model downloads and management
-- **AgentService**: CodIn Agent integration (i18n, voice, AI features)
+- **AgentService**: CodeIn Agent integration (i18n, voice, AI features)
 
 #### Preload Script
 
@@ -73,7 +73,7 @@ Node.js / Electron / System
 ### Prerequisites
 
 - Node.js 18+
-- Python 3.8+ (for CodIn Agent)
+- Python 3.8+ (for CodeIn Agent)
 - Git
 
 ### Setup
@@ -127,9 +127,9 @@ npm run dist:linux
 - **Git Integration**: Status, diff, commit, branches
 - **LSP Support**: Code intelligence (planned)
 
-### CodIn Agent
+### CodeIn Agent
 
-The CodIn Agent service runs automatically and provides:
+The CodeIn Agent service runs automatically and provides:
 
 - Translation between Indian languages
 - Voice input/output
@@ -196,7 +196,7 @@ The packaged app includes:
 - GUI (built React app)
 - Core libraries
 - llama.cpp binaries
-- CodIn Agent (Python service)
+- CodeIn Agent (Python service)
 - Default models (optional, can be downloaded)
 
 ### Bundle Size

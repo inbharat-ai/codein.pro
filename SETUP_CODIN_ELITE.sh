@@ -1,9 +1,9 @@
 #!/bin/bash OR FOR WINDOWS: .ps1
 
-# CodIn ELITE - Automated Complete Setup Script
+# CodeIn ELITE - Automated Complete Setup Script
 # This script generates ALL 100+ components and integrations
 
-echo "🚀 CodIn ELITE - Automated Setup"
+echo "🚀 CodeIn ELITE - Automated Setup"
 echo "==============================="
 
 # Colors for output
@@ -127,7 +127,7 @@ echo -e "${BLUE}Building electron-app...${NC}"
 cd ../electron-app
 npm run build
 
-echo -e "${GREEN}✅ CodIn ELITE Setup Complete!${NC}"
+echo -e "${GREEN}✅ CodeIn ELITE Setup Complete!${NC}"
 echo ""
 echo "Next steps:"
 echo "1. cd electron-app && npm run dev"

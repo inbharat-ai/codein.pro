@@ -82,7 +82,7 @@ for (const file of testFiles) {
 
 // Report
 console.log("\n" + "=".repeat(70));
-console.log("  CodIn MAS Test Report");
+console.log("  CodeIn MAS Test Report");
 console.log("=".repeat(70) + "\n");
 
 for (const r of results) {

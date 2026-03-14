@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * CodIn MAS — Security Validators
+ * CodeIn MAS — Security Validators
  *
  * Pure validation functions extracted from swarm routes for
  * testability and consistent security enforcement.

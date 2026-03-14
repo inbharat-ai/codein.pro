@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — SQLite Store
+ * CodeIn MAS — SQLite Store
  *
  * Provides SQLite-backed persistence for:
  * - Long-term memory (replaces JSON file)

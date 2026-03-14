@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — SQLite Persistence Layer
+ * CodeIn MAS — SQLite Persistence Layer
  *
  * Replaces in-memory Maps with durable storage for:
  *   - Sessions (task history, results)
@@ -121,7 +121,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status);
 `;
 
 /**
- * Open or create the CodIn SQLite database.
+ * Open or create the CodeIn SQLite database.
  * @param {string} [dbPath] — Override path (for testing)
  * @returns {object} PersistenceStore instance
  */

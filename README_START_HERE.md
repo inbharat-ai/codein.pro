@@ -1,4 +1,4 @@
-# 🎯 CodIn ELITE - The Complete World-Class IDE
+# 🎯 CodeIn ELITE - The Complete World-Class IDE
 
 ## Everything You Need to Know (30-Second to 30-Minute Read)
 
@@ -21,7 +21,7 @@
 ## What You're Building
 
 ```
-CodIn ELITE = Cursor IDE + Copilot AI + Multilingual Support + 100% Offline
+CodeIn ELITE = Cursor IDE + Copilot AI + Multilingual Support + 100% Offline
 
 Feature Count: 200+
 Languages Supported: 50+ (code) + 4 (UI: Hindi, Tamil, Assamese, English)
@@ -118,9 +118,9 @@ C:\Users\reetu\Desktop\Bharta Code\
 │   └── package.json
 │
 └── release/                                   [Installers after build.ps1 package]
-    ├── CodIn-1.0.0.exe                        [Windows installer]
-    ├── CodIn-1.0.0.dmg                        [macOS installer]
-    └── CodIn-1.0.0.AppImage                   [Linux portable]
+    ├── CodeIn-1.0.0.exe                        [Windows installer]
+    ├── CodeIn-1.0.0.dmg                        [macOS installer]
+    └── CodeIn-1.0.0.AppImage                   [Linux portable]
 ```
 
 ---
@@ -409,8 +409,8 @@ When everything is done:
 .\build.ps1 package
 
 # Output in release/ folder:
-# - CodIn-1.0.0.exe          (40MB installer)
-# - CodIn-Setup.msi          (10MB, ultra-light)
+# - CodeIn-1.0.0.exe          (40MB installer)
+# - CodeIn-Setup.msi          (10MB, ultra-light)
 ```
 
 ---

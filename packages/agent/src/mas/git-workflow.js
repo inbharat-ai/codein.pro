@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Git Workflow Automation
+ * CodeIn MAS — Git Workflow Automation
  *
  * Provides automated git operations: branch management,
  * commit generation, PR description, changelog creation.

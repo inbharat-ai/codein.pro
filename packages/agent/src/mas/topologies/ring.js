@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Ring Topology
+ * CodeIn MAS — Ring Topology
  *
  * Sequential improvement loop: agent1 → agent2 → ... → agentN →
  * check acceptance criteria → repeat (up to maxIterations).

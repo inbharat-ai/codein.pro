@@ -65,7 +65,7 @@ export function RunSection() {
       command: commandText,
       args: [],
       cwd: runInfo?.cwd,
-      name: "CodIn Run",
+      name: "CodeIn Run",
       port: runInfo?.port,
     });
     if (response.status === "success") {

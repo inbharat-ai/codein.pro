@@ -1,7 +1,7 @@
 /**
- * CodIn Backend Type Definitions
+ * CodeIn Backend Type Definitions
  *
- * Canonical type definitions for the CodIn agent runtime.
+ * Canonical type definitions for the CodeIn agent runtime.
  * These types are shared across JS and TS modules via JSDoc @type references
  * and direct TS imports. This is NOT a full TS migration — it's a type layer
  * that existing JS code can opt into incrementally.

@@ -1,11 +1,11 @@
 #!/usr/bin/env pwsh
-# CodIn ELITE - Master Build Script
+# CodeIn ELITE - Master Build Script
 # Complete from A to Z
 
 Write-Host "
 ╔════════════════════════════════════════════════════════════╗
 ║                                                            ║
-║              🚀 CodIn ELITE - Complete Build 🚀             ║
+║              🚀 CodeIn ELITE - Complete Build 🚀             ║
 ║                                                            ║
 ║          Building the world's most complete              ║
 ║          AI-powered code editor with offline              ║
@@ -122,7 +122,7 @@ function Build-GUIApp {
 }
 
 function BuildPackage {
-    Log-Step "Packaging CodIn ELITE"
+    Log-Step "Packaging CodeIn ELITE"
     
     Push-Location $electronApp
     
@@ -226,7 +226,7 @@ function PrintStatus {
 ║                   PROJECT STRUCTURE                        ║
 ╚════════════════════════════════════════════════════════════╝
 
-📁 CodIn ELITE/
+📁 CodeIn ELITE/
   ├── 📁 electron-app/
   │   ├── src/main/              [Main process code]
   │   │   ├── main.ts            [Entry point]
@@ -275,7 +275,7 @@ function PrintStatus {
    ├─ Refactoring
    └─ Voice input/output
 
-✅ CodIn Multilingual
+✅ CodeIn Multilingual
    ├─ Hindi UI
    ├─ Tamil UI
    ├─ Assamese UI

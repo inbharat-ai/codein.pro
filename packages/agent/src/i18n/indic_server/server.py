@@ -1,6 +1,6 @@
 """
 AI4Bharat Translation/STT/TTS Microservice
-Provides Indic language support for CodIn
+Provides Indic language support for CodeIn
 """
 
 from flask import Flask, request, jsonify

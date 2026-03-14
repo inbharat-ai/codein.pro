@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Docker Sandbox
+ * CodeIn MAS — Docker Sandbox
  *
  * Provides isolated Docker containers for safe code execution.
  * Supports multiple language runtimes with resource limits.
@@ -508,7 +508,7 @@ class DockerSandbox {
       }
     }
 
-    // Also clean up any orphaned CodIn containers
+    // Also clean up any orphaned CodeIn containers
     try {
       const { stdout } = await execFileAsync(
         "docker",

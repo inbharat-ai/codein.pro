@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Mode Configuration
+ * CodeIn MAS — Mode Configuration
  *
  * Maps each swarm mode to its agent set, topology, and model tier.
  * The SwarmManager reads this to configure task execution per mode.

@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Central Tool Registry
+ * CodeIn MAS — Central Tool Registry
  *
  * Single source of truth for all agent tools (read_file, write_file, run_bash, run_tests).
  * Agents call `buildToolRegistry(agent, context, node, opts)` to get their tool map.

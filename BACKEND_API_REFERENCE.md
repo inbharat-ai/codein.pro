@@ -1,4 +1,4 @@
-# 🔌 CodIn ELITE - Backend API Reference
+# 🔌 CodeIn ELITE - Backend API Reference
 
 Complete documentation of all `window.codinAPI` methods available from React components.
 

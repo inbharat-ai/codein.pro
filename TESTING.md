@@ -1,4 +1,4 @@
-# CodIn Testing Guide
+# CodeIn Testing Guide
 
 ## Unit Tests
 
@@ -38,16 +38,16 @@ This runs:
 
 ### Mode Selector
 
-1. Open VS Code with CodIn installed
+1. Open VS Code with CodeIn installed
 2. Focus the chat input (Ctrl+L)
 3. Verify mode selector shows Ask/Plan/Agent/Implement
 4. Switch to Implement mode
 5. Send a prompt requesting code changes
 6. Verify JSON contract validation and preview panel
 
-### CodIn Agent
+### CodeIn Agent
 
-1. Check CodIn Agent auto-starts (logs in Output > CodIn)
+1. Check CodeIn Agent auto-starts (logs in Output > CodeIn)
 2. Open Settings (gear icon) > Models
 3. Verify Model Manager shows empty state
 4. (Optional) Import a GGUF model via the UI
@@ -108,6 +108,6 @@ Check workflow status in Actions tab after pushing.
 ## Known Test Gaps
 
 - No E2E tests for webview <-> extension protocol
-- No integration tests for CodIn Agent HTTP endpoints
+- No integration tests for CodeIn Agent HTTP endpoints
 - Manual testing required for permission gates
 - Voice recognition quality varies by browser/OS

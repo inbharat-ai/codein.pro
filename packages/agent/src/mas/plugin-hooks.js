@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Expanded Plugin Hook System
+ * CodeIn MAS — Expanded Plugin Hook System
  *
  * Provides lifecycle hooks that plugins can subscribe to:
  * - task:start / task:finish

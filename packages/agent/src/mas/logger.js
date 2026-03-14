@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Structured Logger
+ * CodeIn MAS — Structured Logger
  *
  * Replaces raw console.log/error/warn with structured, level-aware logging.
  * Outputs JSON lines in production, human-readable in development.

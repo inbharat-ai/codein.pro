@@ -1,5 +1,5 @@
 /**
- * CodIn Multi-Agent Swarm — Types & Data Models
+ * CodeIn Multi-Agent Swarm — Types & Data Models
  *
  * All enums, factories, and validators for the MAS subsystem.
  * Follows the same fail-closed, schema-validated pattern as compute/job-model.js.

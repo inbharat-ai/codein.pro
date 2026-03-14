@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — SwarmManager Extension Methods
+ * CodeIn MAS — SwarmManager Extension Methods
  *
  * Delegation APIs extracted from SwarmManager to reduce class body size.
  * These methods delegate to optional subsystem instances (_terminalManager,

@@ -1,5 +1,5 @@
 /**
- * CodIn Preload Script
+ * CodeIn Preload Script
  * Exposes safe IPC APIs to the renderer process
  */
 
@@ -299,7 +299,7 @@ ipcRenderer.on("webview:message", (_event: IpcRendererEvent, message: any) => {
 });
 
 // Type definitions for TypeScript
-export interface CodInAPI {
+export interface CodeInAPI {
   fs: typeof fileSystemAPI;
   git: typeof gitAPI;
   terminal: typeof terminalAPI;
@@ -313,6 +313,6 @@ export interface CodInAPI {
 
 declare global {
   interface Window {
-    codinAPI: CodInAPI;
+    codinAPI: CodeInAPI;
   }
 }

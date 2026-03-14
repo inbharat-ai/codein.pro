@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Workspace Indexer
+ * CodeIn MAS — Workspace Indexer
  *
  * Scans the workspace to build a searchable file index with:
  *   - File paths, sizes, languages

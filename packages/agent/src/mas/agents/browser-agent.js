@@ -1,9 +1,16 @@
 /**
- * CodIn MAS — Browser Agent
+ * CodeIn MAS — Web Research Agent
  *
- * Provides browser automation capabilities: navigation, screenshots,
- * element interaction, content extraction, and form filling.
- * Safe by default — no arbitrary script execution.
+ * Fetches and analyzes web content via HTTP + LLM.
+ * Does NOT control a real browser.
+ *
+ * This agent uses fetch() to retrieve web pages, strips HTML to extract
+ * text content, then passes it to an LLM for analysis and summarization.
+ * It can follow links up to a configurable depth for deeper research.
+ *
+ * Previously named "Browser Agent" — renamed for honesty. There is no
+ * headless browser, Puppeteer, or Playwright involved. All web interaction
+ * is plain HTTP GET requests analyzed by an LLM.
  */
 "use strict";
 
@@ -15,10 +22,10 @@ const {
 } = require("../types");
 const { resolveWorkspaceRoot } = require("../tool-registry");
 
-// Allowlist of URL schemes permitted for navigation
+// Allowlist of URL schemes permitted for requests
 const ALLOWED_SCHEMES = new Set(["http:", "https:"]);
 
-// Blocklist of hostnames that must never be navigated to
+// Blocklist of hostnames that must never be accessed
 const BLOCKED_HOSTS = new Set([
   "localhost",
   "127.0.0.1",
@@ -27,39 +34,116 @@ const BLOCKED_HOSTS = new Set([
   "[::1]",
 ]);
 
-const SYSTEM_PROMPT = `You are the CodIn Browser Agent. You automate browser interactions for web scraping, testing, and form automation.
+// Defaults
+const DEFAULT_FETCH_TIMEOUT_MS = 15000;
+const DEFAULT_MAX_DEPTH = 2;
+const DEFAULT_MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB
+const DEFAULT_USER_AGENT =
+  "CodeIn-WebResearchAgent/1.0 (LLM-assisted; +https://github.com/codin-ide)";
+
+const SYSTEM_PROMPT = `You are the CodeIn Web Research Agent. You fetch real web pages via HTTP and analyze their content using an LLM.
+
+IMPORTANT: You do NOT control a real browser. You make HTTP GET requests and analyze the text content.
+
+CAPABILITIES:
+- Fetch web pages via HTTP GET with proper timeout and error handling
+- Extract readable text content from HTML
+- Analyze and summarize page content
+- Follow links to gather deeper information (up to a configurable depth)
+- Return structured results with URL, title, summary, extracted data, and links
 
 RULES:
-1. NEVER execute arbitrary JavaScript on pages — use only the provided tools
-2. NEVER navigate to localhost, internal IPs, or cloud metadata endpoints
-3. NEVER submit credentials or sensitive data unless explicitly instructed
-4. Respect robots.txt and rate limits
-5. Always validate URLs before navigation
-
-You have the following tools:
-- navigate(url): Navigate to a URL and return the page title and status
-- screenshot(selector?): Take a screenshot of the page or a specific element
-- click(selector): Click an element matching the CSS selector
-- extract(selector, attribute?): Extract text content or an attribute from matching elements
-- fill_form(fields): Fill form fields with the provided values
-
-WORKFLOW:
-1. Navigate to the target URL
-2. Extract or interact with page elements as needed
-3. Take screenshots for verification when appropriate
-4. Report results with extracted data
+1. NEVER access localhost, internal IPs, or cloud metadata endpoints
+2. NEVER submit credentials or sensitive data
+3. Respect rate limits — add delays between requests
+4. Always validate URLs before fetching
+5. Be transparent that analysis is LLM-assisted, not from real DOM interaction
 
 OUTPUT FORMAT (JSON):
 {
-  "result": "Brief description of browser automation outcome",
+  "result": "Summary of web research findings",
+  "pages": [{ "url": "...", "title": "...", "summary": "..." }],
   "extractedData": { "key": "value" },
-  "screenshots": ["description of screenshots taken"],
-  "actions": ["list of actions performed"],
   "confidence": 0.0-1.0
 }`;
 
+/**
+ * Strip HTML tags and decode basic entities. Returns readable plain text.
+ * @param {string} html
+ * @returns {string}
+ */
+function stripHtml(html) {
+  if (!html || typeof html !== "string") return "";
+  let text = html;
+  // Remove script and style blocks entirely
+  text = text.replace(/<script[\s\S]*?<\/script>/gi, "");
+  text = text.replace(/<style[\s\S]*?<\/style>/gi, "");
+  // Remove HTML comments
+  text = text.replace(/<!--[\s\S]*?-->/g, "");
+  // Replace block-level tags with newlines
+  text = text.replace(/<\/(p|div|li|tr|h[1-6]|br|hr)[^>]*>/gi, "\n");
+  text = text.replace(/<br\s*\/?>/gi, "\n");
+  // Strip remaining tags
+  text = text.replace(/<[^>]+>/g, " ");
+  // Decode common HTML entities
+  text = text.replace(/&amp;/g, "&");
+  text = text.replace(/&lt;/g, "<");
+  text = text.replace(/&gt;/g, ">");
+  text = text.replace(/&quot;/g, '"');
+  text = text.replace(/&#39;/g, "'");
+  text = text.replace(/&nbsp;/g, " ");
+  // Collapse whitespace
+  text = text.replace(/[ \t]+/g, " ");
+  text = text.replace(/\n{3,}/g, "\n\n");
+  return text.trim();
+}
+
+/**
+ * Extract a <title> from HTML.
+ * @param {string} html
+ * @returns {string}
+ */
+function extractTitle(html) {
+  if (!html || typeof html !== "string") return "";
+  const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  return match ? stripHtml(match[1]).trim() : "";
+}
+
+/**
+ * Extract href links from HTML.
+ * @param {string} html
+ * @param {string} baseUrl — Base URL for resolving relative links
+ * @returns {string[]} Array of absolute URLs
+ */
+function extractLinks(html, baseUrl) {
+  if (!html || typeof html !== "string") return [];
+  const links = [];
+  const seen = new Set();
+  const re = /href\s*=\s*["']([^"']+)["']/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    try {
+      const absolute = new URL(m[1], baseUrl).href;
+      if (!seen.has(absolute) && /^https?:/.test(absolute)) {
+        seen.add(absolute);
+        links.push(absolute);
+      }
+    } catch {
+      // Skip malformed URLs
+    }
+  }
+  return links;
+}
+
 class BrowserAgent extends BaseAgent {
-  constructor(deps) {
+  /**
+   * @param {object} deps — Standard BaseAgent dependencies
+   * @param {object} [opts] — Agent-specific options
+   * @param {number} [opts.maxDepth=2] — Max link-follow depth
+   * @param {number} [opts.fetchTimeoutMs=15000] — Per-request timeout
+   * @param {function} [opts.fetchFn] — Injectable fetch (for testing)
+   */
+  constructor(deps, opts = {}) {
     super(
       {
         type: AGENT_TYPE.BROWSER,
@@ -73,12 +157,21 @@ class BrowserAgent extends BaseAgent {
       },
       deps,
     );
-    this._pageState = {
-      url: null,
-      title: null,
-      status: null,
-      content: null,
-    };
+
+    /** @readonly Honestly declares what this agent can and cannot do. */
+    this.capabilities = Object.freeze({
+      realBrowser: false,
+      llmSimulated: true,
+      httpFetch: true,
+      htmlParsing: true,
+      javascript: false,
+      screenshots: false,
+      formInteraction: false,
+    });
+
+    this._maxDepth = opts.maxDepth ?? DEFAULT_MAX_DEPTH;
+    this._fetchTimeoutMs = opts.fetchTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
+    this._fetchFn = opts.fetchFn || globalThis.fetch;
   }
 
   getSystemPrompt() {
@@ -86,35 +179,85 @@ class BrowserAgent extends BaseAgent {
   }
 
   describeCapabilities() {
-    return "Automates browser interactions: navigation, screenshots, clicking, content extraction, form filling.";
+    return (
+      "Web research via HTTP fetch + LLM analysis. " +
+      "Does NOT control a real browser. " +
+      "Can fetch pages, extract text, follow links, and summarize content."
+    );
   }
 
+  /**
+   * Execute a web research task.
+   *
+   * @param {object} node — TaskNode from the graph
+   * @param {object} context — Shared execution context
+   * @returns {Promise<{ result: string, pages: object[], extractedData: object, confidence: number }>}
+   */
   async execute(node, context) {
     const perm = await this.requestPermission(
       node.id,
       PERMISSION_TYPE.NETWORK,
-      `Browser agent: ${node.goal}`,
+      `Web research agent: ${node.goal}`,
     );
     if (perm.decision !== PERMISSION_DECISION.APPROVED) {
       return { result: `Blocked: ${perm.reason}`, confidence: 0 };
     }
 
+    const targetUrl = context.targetUrl || null;
+    const maxDepth = context.maxDepth ?? this._maxDepth;
     const workspaceRoot = resolveWorkspaceRoot(context);
-    const prompt = `Complete this browser automation task:
+
+    // If we have a direct URL, fetch and analyze it
+    if (targetUrl) {
+      const pages = await this._crawl(targetUrl, maxDepth);
+
+      // Build a combined text for LLM analysis
+      const combinedContent = pages
+        .map((p) => `## ${p.title || p.url}\n${p.textContent.slice(0, 4000)}`)
+        .join("\n\n---\n\n");
+
+      const analysisPrompt = `Analyze the following web content for this research task:
+
+TASK: ${node.goal}
+
+WORKSPACE ROOT: ${workspaceRoot}
+
+WEB CONTENT (${pages.length} page(s)):
+${combinedContent.slice(0, 12000)}
+
+Provide a structured summary addressing the task. Include key findings and relevant data.`;
+
+      const analysis = await this.callLLM(analysisPrompt, { maxTokens: 2048 });
+
+      return {
+        result: analysis,
+        pages: pages.map((p) => ({
+          url: p.url,
+          title: p.title,
+          summary: p.textContent.slice(0, 500),
+          links: p.links.slice(0, 20),
+        })),
+        extractedData: {
+          pageCount: pages.length,
+          urls: pages.map((p) => p.url),
+        },
+        confidence: this.computeConfidence({ answer: analysis }, context),
+      };
+    }
+
+    // No URL — use LLM tool loop to determine what to research
+    const toolRegistry = this._buildResearchTools(context, maxDepth);
+
+    const prompt = `Complete this web research task:
 
 TASK: ${node.goal}
 
 CONTEXT:
 ${context.browserContext || "No additional context provided"}
 
-TARGET URL:
-${context.targetUrl || "Not specified — determine from the task description"}
-
 WORKSPACE ROOT: ${workspaceRoot}
 
-Use the tools to navigate, interact with, and extract data from web pages.`;
-
-    const toolRegistry = this._buildBrowserTools(context);
+Use the fetch_page tool to retrieve and analyze web pages. Use follow_links to go deeper.`;
 
     const result = await this.callLLMWithTools(prompt, toolRegistry, {
       maxIterations: 8,
@@ -125,208 +268,189 @@ Use the tools to navigate, interact with, and extract data from web pages.`;
     return {
       result: result.answer,
       toolLog: result.toolLog,
-      pageState: { ...this._pageState },
+      pages: [],
+      extractedData: {},
       confidence: this.computeConfidence(result, context),
     };
   }
 
+  // ─── Core Fetch Logic ──────────────────────────────────
+
   /**
-   * Build the browser-specific tool registry.
-   * All tools operate through LLM interpretation rather than
-   * actual browser control, making them safe by default.
+   * Fetch a single URL via HTTP GET. Returns structured page data.
+   * @param {string} url
+   * @returns {Promise<{ url: string, title: string, textContent: string, links: string[], status: number }>}
+   */
+  async _fetchPage(url) {
+    const validation = this._validateUrl(url);
+    if (!validation.safe) {
+      throw new Error(`Blocked: ${validation.reason}`);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this._fetchTimeoutMs);
+
+    try {
+      const response = await this._fetchFn(url, {
+        method: "GET",
+        headers: {
+          "User-Agent": DEFAULT_USER_AGENT,
+          Accept: "text/html, application/xhtml+xml, text/plain, */*;q=0.8",
+        },
+        signal: controller.signal,
+        redirect: "follow",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText || ""}`);
+      }
+
+      // Read body with size limit
+      const contentType = response.headers?.get?.("content-type") || "";
+      if (
+        !contentType.includes("text/") &&
+        !contentType.includes("html") &&
+        !contentType.includes("json") &&
+        !contentType.includes("xml")
+      ) {
+        throw new Error(`Unsupported content type: ${contentType}`);
+      }
+
+      const html = await response.text();
+      const truncated = html.slice(0, DEFAULT_MAX_BODY_BYTES);
+      const title = extractTitle(truncated);
+      const textContent = stripHtml(truncated);
+      const links = extractLinks(truncated, url);
+
+      return {
+        url,
+        title,
+        textContent,
+        links,
+        status: response.status,
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  /**
+   * Crawl starting from a URL, following links up to maxDepth.
+   * @param {string} startUrl
+   * @param {number} maxDepth
+   * @returns {Promise<Array<{ url: string, title: string, textContent: string, links: string[], status: number }>>}
+   */
+  async _crawl(startUrl, maxDepth) {
+    const visited = new Set();
+    const results = [];
+
+    const queue = [{ url: startUrl, depth: 0 }];
+
+    while (queue.length > 0 && results.length < 10) {
+      const { url, depth } = queue.shift();
+
+      if (visited.has(url)) continue;
+      visited.add(url);
+
+      try {
+        const page = await this._fetchPage(url);
+        results.push(page);
+
+        // Follow links if we haven't hit max depth
+        if (depth < maxDepth) {
+          // Only follow links on the same domain to avoid unbounded crawling
+          const baseDomain = new URL(startUrl).hostname;
+          for (const link of page.links.slice(0, 5)) {
+            try {
+              if (new URL(link).hostname === baseDomain && !visited.has(link)) {
+                queue.push({ url: link, depth: depth + 1 });
+              }
+            } catch {
+              // Skip malformed
+            }
+          }
+        }
+      } catch (err) {
+        // Record failed fetch but continue crawling
+        results.push({
+          url,
+          title: "",
+          textContent: `Error fetching page: ${err.message}`,
+          links: [],
+          status: 0,
+        });
+      }
+    }
+
+    return results;
+  }
+
+  // ─── Tool Registry for LLM Tool Loop ──────────────────
+
+  /**
+   * Build the research-specific tool registry for LLM tool-use loop.
    * @private
    */
-  _buildBrowserTools(context) {
+  _buildResearchTools(context, maxDepth) {
     return {
-      navigate: {
+      fetch_page: {
         description:
-          "Navigate to a URL. Args: { url: string }. Returns page title and status.",
+          "Fetch a web page and extract its text content. Args: { url: string }. Returns page title, text content, and discovered links.",
         execute: async (args) => {
           const { url } = args || {};
           if (!url || typeof url !== "string") {
             throw new Error("url is required and must be a string");
           }
-
-          // Validate URL safety
-          const validation = this._validateUrl(url);
-          if (!validation.safe) {
-            throw new Error(`Blocked: ${validation.reason}`);
-          }
-
-          // Record the navigation intent
-          this._pageState.url = url;
-          this._pageState.status = 200;
-          this._pageState.title = `Page at ${url}`;
-          this._pageState.content = null;
-
-          // Use LLM to simulate understanding of the page
-          const pageDescription = await this.callLLM(
-            `You are simulating browser navigation. The user wants to visit: ${url}\n\nDescribe what this page likely contains based on the URL. Include likely page structure, navigation elements, and main content areas. Be concise.`,
-            { maxTokens: 1024 },
-          );
-
-          this._pageState.content = pageDescription;
-
-          return `Navigated to: ${url}\nStatus: 200 OK\nPage description: ${pageDescription}`;
+          const page = await this._fetchPage(url);
+          const summary = page.textContent.slice(0, 3000);
+          const topLinks = page.links.slice(0, 10).join("\n  ");
+          return `Title: ${page.title}\nStatus: ${page.status}\n\nContent (first 3000 chars):\n${summary}\n\nLinks found:\n  ${topLinks}`;
         },
       },
 
-      screenshot: {
+      follow_links: {
         description:
-          "Take a screenshot of the page or a specific element. Args: { selector?: string }. Returns description of what is visible.",
+          "Crawl a URL and follow links up to the configured depth. Args: { url: string, depth?: number }. Returns summaries of all pages visited.",
         execute: async (args) => {
-          const { selector } = args || {};
-
-          if (!this._pageState.url) {
-            throw new Error("No page loaded. Use navigate first.");
+          const { url, depth } = args || {};
+          if (!url || typeof url !== "string") {
+            throw new Error("url is required and must be a string");
           }
-
-          const target = selector
-            ? `element matching "${selector}" on ${this._pageState.url}`
-            : `full page at ${this._pageState.url}`;
-
-          const description = await this.callLLM(
-            `You are simulating a browser screenshot. Describe what would be visible in a screenshot of: ${target}\n\nPage context: ${this._pageState.content || "No content loaded"}\n\nProvide a concise visual description.`,
-            { maxTokens: 512 },
-          );
-
-          return `Screenshot captured: ${target}\nVisual description: ${description}`;
-        },
-      },
-
-      click: {
-        description:
-          "Click an element matching the CSS selector. Args: { selector: string }. Returns result of the click action.",
-        execute: async (args) => {
-          const { selector } = args || {};
-          if (!selector || typeof selector !== "string") {
-            throw new Error("selector is required and must be a string");
-          }
-
-          if (!this._pageState.url) {
-            throw new Error("No page loaded. Use navigate first.");
-          }
-
-          // Prevent clicking on suspicious selectors that could trigger downloads or scripts
-          const dangerousPatterns = [/javascript:/i, /data:/i, /on\w+=/i];
-          for (const pattern of dangerousPatterns) {
-            if (pattern.test(selector)) {
-              throw new Error(
-                `Blocked: selector contains potentially dangerous pattern: ${pattern.source}`,
-              );
-            }
-          }
-
-          const clickResult = await this.callLLM(
-            `You are simulating a browser click action on element "${selector}" on page ${this._pageState.url}.\n\nPage context: ${this._pageState.content || "No content loaded"}\n\nDescribe what would happen after clicking this element. Did the page navigate? Did a modal open? Was a form submitted? Be concise.`,
-            { maxTokens: 512 },
-          );
-
-          return `Clicked: ${selector}\nResult: ${clickResult}`;
-        },
-      },
-
-      extract: {
-        description:
-          'Extract text content or an attribute from elements matching a CSS selector. Args: { selector: string, attribute?: string (e.g. "href", "src") }. Returns extracted data.',
-        execute: async (args) => {
-          const { selector, attribute } = args || {};
-          if (!selector || typeof selector !== "string") {
-            throw new Error("selector is required and must be a string");
-          }
-
-          if (!this._pageState.url) {
-            throw new Error("No page loaded. Use navigate first.");
-          }
-
-          const extractTarget = attribute
-            ? `the "${attribute}" attribute of elements matching "${selector}"`
-            : `the text content of elements matching "${selector}"`;
-
-          const extractedData = await this.callLLM(
-            `You are simulating browser data extraction from page ${this._pageState.url}.\n\nExtract: ${extractTarget}\n\nPage context: ${this._pageState.content || "No content loaded"}\n\nReturn the extracted data as a JSON array of strings. If no elements match, return an empty array.`,
-            { maxTokens: 1024 },
-          );
-
-          return `Extracted from "${selector}"${attribute ? ` [${attribute}]` : ""}:\n${extractedData}`;
-        },
-      },
-
-      fill_form: {
-        description:
-          "Fill form fields with provided values. Args: { fields: { selector: string, value: string }[] }. Returns confirmation of filled fields.",
-        execute: async (args) => {
-          const { fields } = args || {};
-          if (!Array.isArray(fields) || fields.length === 0) {
-            throw new Error(
-              "fields is required and must be a non-empty array of { selector, value }",
-            );
-          }
-
-          if (!this._pageState.url) {
-            throw new Error("No page loaded. Use navigate first.");
-          }
-
-          // Validate each field entry
-          for (const field of fields) {
-            if (!field.selector || typeof field.selector !== "string") {
-              throw new Error("Each field must have a selector string");
-            }
-            if (field.value === undefined || field.value === null) {
-              throw new Error(`Field "${field.selector}" must have a value`);
-            }
-          }
-
-          // Check for sensitive data patterns
-          const sensitivePatterns = [
-            /password/i,
-            /ssn/i,
-            /social.?security/i,
-            /credit.?card/i,
-            /card.?number/i,
-            /cvv/i,
-            /secret/i,
-          ];
-          const warnings = [];
-          for (const field of fields) {
-            for (const pattern of sensitivePatterns) {
-              if (pattern.test(field.selector)) {
-                warnings.push(
-                  `Warning: field "${field.selector}" may contain sensitive data`,
-                );
-                break;
-              }
-            }
-          }
-
-          const fieldSummary = fields
+          const effectiveDepth = Math.min(depth ?? maxDepth, maxDepth);
+          const pages = await this._crawl(url, effectiveDepth);
+          return pages
             .map(
-              (f) =>
-                `  ${f.selector}: "${String(f.value).slice(0, 50)}${String(f.value).length > 50 ? "..." : ""}"`,
+              (p) =>
+                `[${p.status}] ${p.url}\n  Title: ${p.title}\n  Content preview: ${p.textContent.slice(0, 500)}`,
             )
-            .join("\n");
+            .join("\n\n");
+        },
+      },
 
-          const result = [
-            `Filled ${fields.length} form field(s) on ${this._pageState.url}:`,
-            fieldSummary,
-          ];
-
-          if (warnings.length > 0) {
-            result.push("\nSecurity warnings:");
-            result.push(...warnings);
+      analyze_content: {
+        description:
+          "Pass text content to the LLM for analysis. Args: { content: string, question: string }. Returns the LLM's analysis.",
+        execute: async (args) => {
+          const { content, question } = args || {};
+          if (!content || !question) {
+            throw new Error("Both content and question are required");
           }
-
-          return result.join("\n");
+          const analysis = await this.callLLM(
+            `Analyze the following content and answer the question.\n\nQUESTION: ${question}\n\nCONTENT:\n${String(content).slice(0, 8000)}`,
+            { maxTokens: 1024 },
+          );
+          return analysis;
         },
       },
     };
   }
 
+  // ─── URL Validation ────────────────────────────────────
+
   /**
-   * Validate a URL for safety before navigation.
+   * Validate a URL for safety before making a request.
    * @param {string} url
    * @returns {{ safe: boolean, reason?: string }}
-   * @private
    */
   _validateUrl(url) {
     try {
@@ -345,7 +469,7 @@ Use the tools to navigate, interact with, and extract data from web pages.`;
       if (BLOCKED_HOSTS.has(hostname)) {
         return {
           safe: false,
-          reason: `Navigation to "${hostname}" is blocked for security`,
+          reason: `Access to "${hostname}" is blocked for security`,
         };
       }
 
@@ -353,7 +477,7 @@ Use the tools to navigate, interact with, and extract data from web pages.`;
       if (this._isPrivateIp(hostname)) {
         return {
           safe: false,
-          reason: `Navigation to private/internal IP "${hostname}" is blocked`,
+          reason: `Access to private/internal IP "${hostname}" is blocked`,
         };
       }
 
@@ -373,16 +497,12 @@ Use the tools to navigate, interact with, and extract data from web pages.`;
    * @private
    */
   _isPrivateIp(hostname) {
-    // IPv4 private ranges
     if (/^10\./.test(hostname)) return true;
     if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return true;
     if (/^192\.168\./.test(hostname)) return true;
-
-    // Link-local
     if (/^169\.254\./.test(hostname)) return true;
-
     return false;
   }
 }
 
-module.exports = { BrowserAgent };
+module.exports = { BrowserAgent, stripHtml, extractTitle, extractLinks };

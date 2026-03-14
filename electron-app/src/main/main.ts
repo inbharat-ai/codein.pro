@@ -1,5 +1,5 @@
 /**
- * CodIn Electron Main Process
+ * CodeIn Electron Main Process
  * Entry point for the standalone Electron application
  */
 
@@ -23,7 +23,7 @@ if (process.platform !== "win32") {
   fixPath();
 }
 
-class CodInApp {
+class CodeInApp {
   private windowManager: WindowManager | null = null;
   private ipcHandler: IpcHandler | null = null;
   private fileSystemService: FileSystemService | null = null;
@@ -64,7 +64,7 @@ class CodInApp {
   }
 
   private async onReady(): Promise<void> {
-    console.log("CodIn: App ready, initializing...");
+    console.log("CodeIn: App ready, initializing...");
 
     if (process.argv.includes("--bootstrap-only")) {
       await this.runInstallerBootstrap();
@@ -77,24 +77,24 @@ class CodInApp {
       this.windowManager = new WindowManager();
       buildAppMenu(this.windowManager);
       await this.windowManager.createMainWindow();
-      console.log("CodIn: Window created");
+      console.log("CodeIn: Window created");
 
       // Initialize services (non-fatal — UI stays up even if backend is slow)
       try {
         await this.initializeServices();
         this.setupIpcHandlers();
-        console.log("CodIn: Initialization complete");
+        console.log("CodeIn: Initialization complete");
       } catch (serviceError) {
-        console.warn("CodIn: Some services failed to start:", serviceError);
+        console.warn("CodeIn: Some services failed to start:", serviceError);
       }
     } catch (error) {
-      console.error("CodIn: Failed to create window:", error);
+      console.error("CodeIn: Failed to create window:", error);
       app.quit();
     }
   }
 
   private async runInstallerBootstrap(): Promise<void> {
-    console.log("CodIn: Running installer bootstrap...");
+    console.log("CodeIn: Running installer bootstrap...");
 
     this.llmBootstrapService = new LLMBootstrapService((progress) => {
       console.log(
@@ -169,7 +169,7 @@ class CodInApp {
       );
     });
 
-    // Initialize agent service (AI4Bharat + CodIn Agent)
+    // Initialize agent service (AI4Bharat + CodeIn Agent)
     this.agentService = new AgentService();
     this.agentService.start().catch((err) => {
       console.warn("[Agent] Background start failed:", err);
@@ -184,7 +184,7 @@ class CodInApp {
       console.warn("[Media] Background initialization failed:", err);
     });
 
-    console.log("CodIn: All services initialized");
+    console.log("CodeIn: All services initialized");
   }
 
   private setupIpcHandlers(): void {
@@ -198,7 +198,7 @@ class CodInApp {
       !this.mediaService
     ) {
       console.warn(
-        "CodIn: Some services not yet ready for IPC — handlers may be limited",
+        "CodeIn: Some services not yet ready for IPC — handlers may be limited",
       );
     }
 
@@ -233,7 +233,7 @@ class CodInApp {
   }
 
   private async onBeforeQuit(): Promise<void> {
-    console.log("CodIn: Shutting down...");
+    console.log("CodeIn: Shutting down...");
 
     // Stop agent service
     if (this.agentService) {
@@ -262,7 +262,7 @@ class CodInApp {
 }
 
 // Create app instance
-const codinApp = new CodInApp();
+const codinApp = new CodeInApp();
 
 // Handle uncaught exceptions
 process.on("uncaughtException", (error) => {

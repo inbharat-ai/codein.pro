@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Route contract definitions for CodIn API.
+ * Route contract definitions for CodeIn API.
  * Each contract specifies method, path, request shape, and response shape.
  * Used for validation, documentation, and frontend/backend contract stability.
  *

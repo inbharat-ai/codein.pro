@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Streaming Response Engine
+ * CodeIn MAS — Streaming Response Engine
  *
  * Provides real-time, granular event streaming from agent execution to the GUI.
  * Replaces polling-based task status checks with SSE-powered live updates.

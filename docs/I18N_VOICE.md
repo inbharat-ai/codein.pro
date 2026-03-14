@@ -2,7 +2,7 @@
 
 ## Overview
 
-CodIn provides **first-class support for Indian languages** with AI4Bharat integration, enabling developers to code in their native language.
+CodeIn provides **first-class support for Indian languages** with AI4Bharat integration, enabling developers to code in their native language.
 
 ## Supported Languages
 
@@ -23,7 +23,7 @@ CodIn provides **first-class support for Indian languages** with AI4Bharat integ
 └──────────────┬──────────────────────────┘
                │
 ┌──────────────▼──────────────────────────┐
-│   CodIn Agent (I18n Orchestrator)       │
+│   CodeIn Agent (I18n Orchestrator)       │
 │   - Translation Provider Hierarchy       │
 │   - STT Provider Hierarchy               │
 │   - TTS Provider Hierarchy               │
@@ -327,7 +327,7 @@ Response:
 
 ### Typing in Native Language
 
-1. **Open CodIn chat**
+1. **Open CodeIn chat**
 2. **Select language** (or use auto-detect)
 3. **Type in Hindi/Assamese/Tamil**
 4. **Send message**

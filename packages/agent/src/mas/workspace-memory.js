@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Workspace Memory
+ * CodeIn MAS — Workspace Memory
  *
  * Learns from user behavior and project patterns to provide better
  * suggestions over time. Detects code conventions, tracks command

@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * CodIn MAS — Background Task Manager
+ * CodeIn MAS — Background Task Manager
  *
  * Enables reliable multi-agent task execution that survives IDE restarts.
  * Users can start tasks, close the IDE, come back later, and see results.

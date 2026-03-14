@@ -1,4 +1,4 @@
-# 🚀 CodIn ELITE - Quick Reference Cheat Sheet
+# 🚀 CodeIn ELITE - Quick Reference Cheat Sheet
 
 ## Commands to Remember
 
@@ -241,14 +241,14 @@ NICE-TO-HAVE (Polish later):
 # Initial setup
 git init
 git add .
-git commit -m "Initial CodIn ELITE - complete IDE"
+git commit -m "Initial CodeIn ELITE - complete IDE"
 
 # Daily work
 git add .
 git commit -m "Add GitPanel component"
 
 # Push to GitHub
-git remote add origin https://github.com/yourname/CodIn
+git remote add origin https://github.com/yourname/CodeIn
 git push -u origin main
 ```
 

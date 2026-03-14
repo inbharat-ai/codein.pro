@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CodIn Agent Server - Main entry point
+CodeIn Agent Server - Main entry point
 Provides AI4Bharat multilingual support and local LLM orchestration
 """
 
@@ -14,12 +14,12 @@ AGENT_DIR = Path(__file__).parent
 sys.path.insert(0, str(AGENT_DIR / "i18n" / "indic_server"))
 
 def main():
-    parser = argparse.ArgumentParser(description="CodIn Agent Server")
+    parser = argparse.ArgumentParser(description="CodeIn Agent Server")
     parser.add_argument("--port", type=int, default=43120, help="Port to run the server on")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to bind to")
     args = parser.parse_args()
 
-    print(f"Starting CodIn Agent Server on {args.host}:{args.port}")
+    print(f"Starting CodeIn Agent Server on {args.host}:{args.port}")
     print(f"Agent directory: {AGENT_DIR}")
     
     try:

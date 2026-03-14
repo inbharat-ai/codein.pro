@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Tester Agent
+ * CodeIn MAS — Tester Agent
  *
  * Writes tests, runs test suites, validates coverage.
  * Uses central tool registry for file I/O and test execution.
@@ -14,7 +14,7 @@ const {
 } = require("../types");
 const { buildToolRegistry, resolveWorkspaceRoot } = require("../tool-registry");
 
-const SYSTEM_PROMPT = `You are the CodIn Tester Agent. You write and run tests.
+const SYSTEM_PROMPT = `You are the CodeIn Tester Agent. You write and run tests.
 
 RULES:
 1. Write tests that cover edge cases and error paths

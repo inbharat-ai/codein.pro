@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Coder Agent (Hardened)
+ * CodeIn MAS — Coder Agent (Hardened)
  *
  * The flagship agent. Writes, edits, and creates code reliably.
  * Requests file_write permission before modifying anything.
@@ -24,7 +24,7 @@ const { createLogger } = require("../logger");
 
 const log = createLogger("CoderAgent");
 
-const SYSTEM_PROMPT = `You are the CodIn Coder Agent — an expert software engineer.
+const SYSTEM_PROMPT = `You are the CodeIn Coder Agent — an expert software engineer.
 
 WORKFLOW (follow this order strictly):
 1. READ existing files first to understand the codebase

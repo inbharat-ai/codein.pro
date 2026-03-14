@@ -2,7 +2,7 @@
 
 ## Windows
 
-1. Extract `CodIn.exe` from `electron-app/release/win-unpacked/`
+1. Extract `CodeIn.exe` from `electron-app/release/win-unpacked/`
 2. Double-click to launch
 3. Confirm app window appears
 4. Check logs at `%APPDATA%/CodeIn/logs/`

@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Indian Language Native Support
+ * CodeIn MAS — Indian Language Native Support
  *
  * Enables native Indian language understanding for the AI assistant.
  * Not just translated UI labels — the assistant understands Hindi/Tamil/Bengali/etc

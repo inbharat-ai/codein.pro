@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Plugin & Skill System
+ * CodeIn MAS — Plugin & Skill System
  *
  * Lets users add custom tools, skills, and MCP servers to extend agent
  * capabilities.  Plugins live under ~/.codein/plugins/ (configurable) and

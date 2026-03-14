@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — I18N Agent
+ * CodeIn MAS — I18N Agent
  *
  * Handles internationalization: extracts strings from JSX/TSX,
  * creates/updates translation files, and validates locale coverage.
@@ -85,7 +85,7 @@ const SCANNABLE_EXTENSIONS = new Set([
   ".svelte",
 ]);
 
-const SYSTEM_PROMPT = `You are the CodIn I18N Agent. You handle internationalization and localization.
+const SYSTEM_PROMPT = `You are the CodeIn I18N Agent. You handle internationalization and localization.
 
 RULES:
 1. Extract user-facing strings into translation keys

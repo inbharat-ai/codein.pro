@@ -1,9 +1,9 @@
 "use strict";
 
 /**
- * CodIn Remote Plugin Protocol v1
+ * CodeIn Remote Plugin Protocol v1
  *
- * Defines the contract for external plugins communicating with CodIn
+ * Defines the contract for external plugins communicating with CodeIn
  * over HTTP or WebSocket. Plugins register capabilities, subscribe to
  * hooks, and receive lifecycle events.
  *
@@ -14,7 +14,7 @@ const PROTOCOL_VERSION = 1;
 
 /** Message types in the protocol */
 const MESSAGE_TYPE = Object.freeze({
-  // Plugin → CodIn
+  // Plugin → CodeIn
   REGISTER: "plugin:register",
   UNREGISTER: "plugin:unregister",
   HOOK_SUBSCRIBE: "hook:subscribe",
@@ -22,7 +22,7 @@ const MESSAGE_TYPE = Object.freeze({
   HOOK_RESPONSE: "hook:response",
   HEARTBEAT: "plugin:heartbeat",
 
-  // CodIn → Plugin
+  // CodeIn → Plugin
   REGISTERED: "plugin:registered",
   HOOK_DISPATCH: "hook:dispatch",
   LIFECYCLE: "lifecycle",
@@ -40,7 +40,7 @@ const PLUGIN_CAPABILITY = Object.freeze({
 
 /**
  * Create a registration message.
- * Plugin sends this to CodIn to register itself.
+ * Plugin sends this to CodeIn to register itself.
  */
 function createRegistration(pluginInfo) {
   return {
@@ -60,7 +60,7 @@ function createRegistration(pluginInfo) {
 
 /**
  * Create a hook dispatch message.
- * CodIn sends this to plugins when a hook event occurs.
+ * CodeIn sends this to plugins when a hook event occurs.
  */
 function createHookDispatch(hookEvent, data, requestId) {
   return {

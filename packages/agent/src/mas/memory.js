@@ -1,5 +1,5 @@
 /**
- * CodIn Multi-Agent Swarm — Memory Engine
+ * CodeIn Multi-Agent Swarm — Memory Engine
  *
  * Three-tier memory system: ShortTerm → Working → LongTerm
  * With lifecycle hooks, pruning, compression, and secret stripping.

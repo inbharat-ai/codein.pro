@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Batch Engine
+ * CodeIn MAS — Batch Engine
  *
  * Groups operations by type and dependency for efficient execution.
  * Rules:

@@ -13,10 +13,10 @@ Legacy `assets/llama` is mirrored in CI for compatibility with existing code pat
 
 ### Local Builds (Windows only — macOS/Linux require CI)
 
-| OS      | Arch | Artifact                         | Size (bytes) | SHA256                                                             | Built      | Signed? | Status      |
-| ------- | ---- | -------------------------------- | ------------ | ------------------------------------------------------------------ | ---------- | ------- | ----------- |
-| Windows | x64  | CodIn-1.0.0-win-x64-portable.zip | 134,272,760  | `eda78cd4d074bd6adec5768a6536be6d16f0dd79044851ddd03f5aac4b66f310` | 2026-03-01 | No      | **SHIPPED** |
-| Windows | x64  | CodIn.exe (inside zip)           | 176,813,568  | `67dc2a7036860a68e5312c212c31b8772ac463ed0289fcc44897867f55075e89` | 2026-03-01 | No      | SHIPPED     |
+| OS      | Arch | Artifact                          | Size (bytes) | SHA256                                                             | Built      | Signed? | Status      |
+| ------- | ---- | --------------------------------- | ------------ | ------------------------------------------------------------------ | ---------- | ------- | ----------- |
+| Windows | x64  | CodeIn-1.0.0-win-x64-portable.zip | 134,272,760  | `eda78cd4d074bd6adec5768a6536be6d16f0dd79044851ddd03f5aac4b66f310` | 2026-03-01 | No      | **SHIPPED** |
+| Windows | x64  | CodeIn.exe (inside zip)           | 176,813,568  | `67dc2a7036860a68e5312c212c31b8772ac463ed0289fcc44897867f55075e89` | 2026-03-01 | No      | SHIPPED     |
 
 ### CI Release Artifacts (produced by `.github/workflows/release-matrix.yml`)
 

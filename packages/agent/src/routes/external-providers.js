@@ -249,7 +249,7 @@ function registerExternalProviderRoutes(router, deps) {
           { role: "system", content: "You are a helpful coding assistant." },
           {
             role: "user",
-            content: "Reply with exactly: CodIn provider test successful",
+            content: "Reply with exactly: CodeIn provider test successful",
           },
         ];
 

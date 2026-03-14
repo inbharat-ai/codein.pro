@@ -31,7 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
     vscode.window
       .showWarningMessage(
-        "Error activating the CodIn extension.",
+        "Error activating the CodeIn extension.",
         "View Logs",
         "Retry",
       )

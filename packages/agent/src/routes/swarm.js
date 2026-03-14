@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — HTTP Routes
+ * CodeIn MAS — HTTP Routes
  *
  * REST API endpoints for the Multi-Agent Swarm system.
  *
@@ -49,14 +49,22 @@ const {
 } = require("./swarm-validators");
 const { RateLimiter } = require("../utils/rate-limiter");
 
+// Environment-based dev bypass — never from runtime deps object
+const DEV_BYPASS = process.env.CODIN_DEV_BYPASS === "true";
+if (DEV_BYPASS) {
+  console.warn(
+    "[SECURITY] Permission bypass enabled via CODIN_DEV_BYPASS — do NOT use in production",
+  );
+}
+
 function sendJson(res, status, body) {
   res.setHeader("X-Swarm-API-Version", "1");
   jsonResponse(res, status, body);
 }
 
 async function ensureSwarmPermission(req, res, deps, operation, context = {}) {
-  // Explicit opt-in bypass for localhost dev mode
-  if (deps.permissionBypass === true) {
+  // Explicit opt-in bypass for localhost dev mode (env-only, never from deps)
+  if (DEV_BYPASS) {
     return true;
   }
   // FAIL-CLOSED: if the permission system is not configured, deny all mutating operations

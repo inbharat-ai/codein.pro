@@ -1,7 +1,7 @@
 /**
  * Swarm Task Thunk
  *
- * Orchestrates complex multi-step tasks through the CodIn MAS.
+ * Orchestrates complex multi-step tasks through the CodeIn MAS.
  * Used for refactoring, planning, architecture, and other multi-agent work.
  */
 

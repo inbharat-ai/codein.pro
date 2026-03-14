@@ -1,5 +1,5 @@
 /**
- * CodIn IDE Shell
+ * CodeIn IDE Shell
  * Professional IDE layout: Activity Bar | Main Content | Status Bar
  * Wraps the existing chat GUI in a Cursor/Copilot-style layout
  */
@@ -114,8 +114,8 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
       {/* Activity Bar */}
       <div className="ide-activity-bar">
         <div className="ide-activity-top">
-          {/* CodIn Logo */}
-          <div className="ide-logo" title="CodIn">
+          {/* CodeIn Logo */}
+          <div className="ide-logo" title="CodeIn">
             <svg viewBox="0 0 24 24" fill="none" className="ide-logo-svg">
               <path
                 d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"

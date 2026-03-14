@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Refactorer Agent
+ * CodeIn MAS — Refactorer Agent
  *
  * Restructures code for clarity, performance, or maintainability.
  * Runs tests before and after to verify behavior preservation.
@@ -21,7 +21,7 @@ const {
   resolveSafePath,
 } = require("../tool-registry");
 
-const SYSTEM_PROMPT = `You are the CodIn Refactorer Agent. You improve code structure without changing behavior.
+const SYSTEM_PROMPT = `You are the CodeIn Refactorer Agent. You improve code structure without changing behavior.
 
 RULES:
 1. Preserve all existing behavior — refactoring must be behavior-preserving

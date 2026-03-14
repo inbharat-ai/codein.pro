@@ -76,7 +76,7 @@ class HTTPPoolManager extends EventEmitter {
       const requestOptions = {
         method,
         headers: {
-          "User-Agent": "CodIn-HTTPPool/1.0",
+          "User-Agent": "CodeIn-HTTPPool/1.0",
           ...headers,
         },
         agent,

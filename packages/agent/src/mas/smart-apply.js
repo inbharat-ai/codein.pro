@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Smart Apply & Command Runner
+ * CodeIn MAS — Smart Apply & Command Runner
  *
  * AST-aware / intelligent code editing capabilities for agents, replacing
  * naive file overwrites with surgical edits, fuzzy matching, syntax

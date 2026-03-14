@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Agent Registry
+ * CodeIn MAS — Agent Registry
  *
  * Re-exports all agent classes and provides a factory.
  */

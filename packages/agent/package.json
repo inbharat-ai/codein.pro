@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
-  "description": "CodIn Agent - Local runtime service with AI, i18n, and research capabilities",
+  "description": "CodeIn Agent - Local runtime service with AI, i18n, and research capabilities",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

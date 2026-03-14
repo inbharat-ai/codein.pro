@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="./landing/assets/codein-logo.png" alt="CodIn" width="140" />
+<img src="./landing/assets/codein-logo.png" alt="CodeIn" width="140" />
 
 <br/><br/>
 
@@ -45,9 +45,9 @@
 
 <br/>
 
-## What is CodIn?
+## What is CodeIn?
 
-**CodIn** (कोडइन) is a free, open-source AI coding IDE that combines **Cursor/Copilot-class workflows** with a multi-agent swarm system, 50+ LLM providers, local-first inference via llama.cpp, and multilingual intelligence for **19 Indian languages** — all under Apache 2.0.
+**CodeIn** (कोडइन) is a free, open-source AI coding IDE that combines **Cursor/Copilot-class workflows** with a multi-agent swarm system, 50+ LLM providers, local-first inference via llama.cpp, and multilingual intelligence for **19 Indian languages** — all under Apache 2.0.
 
 <div align="center">
 
@@ -55,7 +55,7 @@
 
 </div>
 
-Not just autocomplete — CodIn is a **full AI engineering system** with autonomous task planning, multi-agent orchestration, Docker sandboxing, Git workflow automation, and a real-time permission loop. Every AI action is auditable, cancellable, and runs locally by default.
+Not just autocomplete — CodeIn is a **full AI engineering system** with autonomous task planning, multi-agent orchestration, Docker sandboxing, Git workflow automation, and a real-time permission loop. Every AI action is auditable, cancellable, and runs locally by default.
 
 <br/>
 
@@ -98,7 +98,7 @@ Not just autocomplete — CodIn is a **full AI engineering system** with autonom
 | **Multi-Agent Swarm**   | 13 agent types (planner, coder, debugger, tester, architect, security, docs, reviewer, refactorer, devops, i18n, vibe-builder, browser), 4 topologies (pipeline, fan-out, round-robin, hierarchical), circuit breakers, 3-tier memory |
 | **AI Hub**              | 50+ providers: OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, Together, Fireworks, OpenRouter, and more. Real-time health monitoring, model browser, cost tracking                                       |
 | **Local AI**            | llama.cpp integration for fully offline inference. No mandatory cloud dependency                                                                                                                                                      |
-| **Vibe Coding**         | Describe intent in natural language → CodIn plans, generates, refactors, validates, and iterates across files                                                                                                                         |
+| **Vibe Coding**         | Describe intent in natural language → CodeIn plans, generates, refactors, validates, and iterates across files                                                                                                                        |
 | **Autonomous Planner**  | plan → execute → test → diagnose → revise → retry loop with configurable retry limits                                                                                                                                                 |
 | **Docker Sandbox**      | Secure code execution with capability dropping, read-only root, resource limits, network isolation                                                                                                                                    |
 | **Git Workflow**        | Automated branching, commits, diffs, staging — all through the swarm agent                                                                                                                                                            |
@@ -120,11 +120,11 @@ Not just autocomplete — CodIn is a **full AI engineering system** with autonom
 
 <br/>
 
-## CodIn vs. Paid Tools
+## CodeIn vs. Paid Tools
 
 <div align="center">
 
-| Feature                               |   **CodIn**    | Cursor ($20/mo) | Copilot ($10/mo) | Windsurf ($15/mo) |
+| Feature                               |   **CodeIn**   | Cursor ($20/mo) | Copilot ($10/mo) | Windsurf ($15/mo) |
 | :------------------------------------ | :------------: | :-------------: | :--------------: | :---------------: |
 | AI Code Completion                    |    **Yes**     |       Yes       |       Yes        |        Yes        |
 | AI Chat & Agent Mode                  |    **Yes**     |       Yes       |       Yes        |        Yes        |
@@ -149,7 +149,7 @@ Not just autocomplete — CodIn is a **full AI engineering system** with autonom
 
 ## Multi-Agent Swarm
 
-CodIn's MAS (Multi-Agent Swarm) is the core orchestration engine. It's not a wrapper around a single LLM — it coordinates **specialized agents** working together on complex tasks.
+CodeIn's MAS (Multi-Agent Swarm) is the core orchestration engine. It's not a wrapper around a single LLM — it coordinates **specialized agents** working together on complex tasks.
 
 ```
 User: "Add JWT auth to this Express API with tests"
@@ -201,7 +201,7 @@ User: "Add JWT auth to this Express API with tests"
 
 <div align="center">
 
-> CodIn detects your language via Unicode script analysis, preserves technical terms,
+> CodeIn detects your language via Unicode script analysis, preserves technical terms,
 > and normalizes multilingual input into structured English for AI execution.
 
 </div>
@@ -209,7 +209,7 @@ User: "Add JWT auth to this Express API with tests"
 <table>
 <tr>
 <th align="center">What you say</th>
-<th align="center">What CodIn understands</th>
+<th align="center">What CodeIn understands</th>
 </tr>
 <tr>
 <td><b>"login page bana do with Google auth"</b></td>
@@ -259,13 +259,13 @@ Plus code-mixed patterns: **Hinglish** · **Benglish** · **Tanglish** and more.
 
 ```
 +---------------------------------------------------------+
-|                    CodIn Clients                        |
+|                    CodeIn Clients                        |
 |  Electron Desktop  |  IDE Extension  |  GUI Panels     |
 +--------------------+--------+--------+-----------------+
                               | HTTP + SSE
                               v
 +---------------------------------------------------------+
-|           CodIn Agent Runtime (:43120)                  |
+|           CodeIn Agent Runtime (:43120)                  |
 |                                                         |
 |  26 Route Modules:                                      |
 |  auth | models | runtime | i18n | research | mcp |      |
@@ -336,7 +336,7 @@ npm start
 ```
 
 ```
-  CodIn Agent listening on http://127.0.0.1:43120
+  CodeIn Agent listening on http://127.0.0.1:43120
   All subsystems loaded
 ```
 
@@ -363,7 +363,7 @@ curl http://127.0.0.1:43120/status
 
 ## AI Hub — 50+ Providers
 
-CodIn's AI Hub lets you bring your own API key and use any model you prefer:
+CodeIn's AI Hub lets you bring your own API key and use any model you prefer:
 
 <div align="center">
 
@@ -512,7 +512,7 @@ Tests:       1256 passed, 1 skipped, 1257 total
 
 ## GPU on Demand — RunPod Integration
 
-CodIn connects to [RunPod](https://www.runpod.io/) via MCP for on-demand GPU compute:
+CodeIn connects to [RunPod](https://www.runpod.io/) via MCP for on-demand GPU compute:
 
 | Tool                   | What it does                            |
 | :--------------------- | :-------------------------------------- |
@@ -565,7 +565,7 @@ Apache 2.0 — see [`LICENSE`](LICENSE) for details.
 
 <br/>
 
-<img src="./landing/assets/codein-logo.png" alt="CodIn" width="48"/>
+<img src="./landing/assets/codein-logo.png" alt="CodeIn" width="48"/>
 
 <br/>
 
@@ -575,7 +575,7 @@ _Making AI coding accessible to everyone, in every language_
 
 <br/>
 
-[![Star this repo](https://img.shields.io/github/stars/inbharat-ai/codein.pro?style=for-the-badge&logo=github&label=Star%20CodIn&color=6366F1)](https://github.com/inbharat-ai/codein.pro)
+[![Star this repo](https://img.shields.io/github/stars/inbharat-ai/codein.pro?style=for-the-badge&logo=github&label=Star%20CodeIn&color=6366F1)](https://github.com/inbharat-ai/codein.pro)
 
 <br/>
 
@@ -588,7 +588,7 @@ _Making AI coding accessible to everyone, in every language_
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Jest](https://img.shields.io/badge/Jest-C21325?style=flat-square&logo=jest&logoColor=white)
 
-<sub>If CodIn helps you, give it a star — it means the world to us!</sub>
+<sub>If CodeIn helps you, give it a star — it means the world to us!</sub>
 
 </div>
 

@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Cost-Conscious Model Routing
+ * CodeIn MAS — Cost-Conscious Model Routing
  *
  * Intelligent model selection that uses cheap models for simple tasks and
  * expensive models for complex ones. Designed for cost-sensitive developers

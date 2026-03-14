@@ -834,7 +834,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/health") {
       jsonResponse(res, 200, {
         status: "ok",
-        agent: "CodIn Agent",
+        agent: "CodeIn Agent",
         version: "0.1.0",
       });
       return;
@@ -1062,7 +1062,7 @@ server.on("request", (req, res) => {
 server.listen(DEFAULT_PORT, "127.0.0.1", () => {
   logger.info(
     { port: DEFAULT_PORT },
-    `CodIn Agent listening on http://127.0.0.1:${DEFAULT_PORT}`,
+    `CodeIn Agent listening on http://127.0.0.1:${DEFAULT_PORT}`,
   );
 });
 

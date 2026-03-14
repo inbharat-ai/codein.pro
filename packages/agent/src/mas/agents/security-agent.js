@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Security Agent
+ * CodeIn MAS — Security Agent
  *
  * OWASP scanning, dependency audit, secret detection, security analysis.
  * Uses central tool registry for read_file; keeps domain-specific security tools.
@@ -106,7 +106,7 @@ const SKIP_EXTENSIONS = new Set([
   ".map",
 ]);
 
-const SYSTEM_PROMPT = `You are the CodIn Security Agent. You analyze code for vulnerabilities.
+const SYSTEM_PROMPT = `You are the CodeIn Security Agent. You analyze code for vulnerabilities.
 
 RULES:
 1. Check for OWASP Top 10 vulnerabilities (injection, XSS, SSRF, broken auth, etc.)

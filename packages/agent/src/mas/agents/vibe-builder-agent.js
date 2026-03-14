@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Vibe Builder Agent
+ * CodeIn MAS — Vibe Builder Agent
  *
  * Rapidly scaffolds projects and prototypes with focus on aesthetics,
  * UX polish, and getting a working demo fast.
@@ -14,7 +14,7 @@ const {
 } = require("../types");
 const { buildToolRegistry } = require("../tool-registry");
 
-const SYSTEM_PROMPT = `You are the CodIn Vibe Builder Agent. You rapidly scaffold beautiful, functional prototypes.
+const SYSTEM_PROMPT = `You are the CodeIn Vibe Builder Agent. You rapidly scaffold beautiful, functional prototypes.
 
 RULES:
 1. Prioritize speed and visual appeal — get something working and good-looking fast

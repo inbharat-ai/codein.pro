@@ -226,7 +226,7 @@ class WebResearchService {
       title: item.title,
       link: item.url,
       snippet: item.snippet,
-      source: "CodIn Search",
+      source: "CodeIn Search",
       date: new Date().toISOString().split("T")[0], // Add date for compatibility
       sitelinks: [], // Best-effort field for compatibility
     }));
@@ -245,7 +245,7 @@ class WebResearchService {
       peopleAlsoAsk: [],
       relatedSearches: [],
       credits: {
-        used: 0, // CodIn doesn't use credits
+        used: 0, // CodeIn doesn't use credits
         remaining: Infinity,
         source: "inbuilt",
       },

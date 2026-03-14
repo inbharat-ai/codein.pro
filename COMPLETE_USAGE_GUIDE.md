@@ -1,4 +1,4 @@
-# 🚀 CodIn - Complete Feature Usage Guide
+# 🚀 CodeIn - Complete Feature Usage Guide
 
 ## Quick Access
 
@@ -20,7 +20,7 @@ python server.py --port 43120
 
 ✅ Should see: `Running on http://127.0.0.1:43120`
 
-### 2. Start CodIn
+### 2. Start CodeIn
 
 ```bash
 cd "C:\Users\reetu\Desktop\Bharta Code"
@@ -44,7 +44,7 @@ File → Open Folder → Select your project
 **Scenario**: You want to understand how to implement Redux in React
 
 ```
-Step 1: Open CodIn Chat (Ctrl+Shift+L)
+Step 1: Open CodeIn Chat (Ctrl+Shift+L)
 Step 2: Type: "How do I set up Redux in this project?"
 Step 3: Press Enter
 Step 4: AI analyzes your project structure and responds with:
@@ -251,7 +251,7 @@ Step 3: Agent speaks the response in selected language
 #### Available Tools by Default
 
 ```
-CodIn Agent Tools:
+CodeIn Agent Tools:
   • File Management (read, write, delete)
   • Code Analysis (lint, format, test)
   • Git Operations (commit, push, branch)
@@ -492,21 +492,21 @@ Check:
 
 ## 📊 Feature Comparison Matrix
 
-| Feature            | CodIn | Cursor | Copilot |
-| ------------------ | ----- | ------ | ------- |
-| Ask Mode           | ✅    | ✅     | ✅      |
-| Plan Mode          | ✅    | ✅     | ❌      |
-| Agent Mode         | ✅    | ✅     | ✅      |
-| Tab Autocomplete   | ✅    | ✅     | ✅      |
-| Git Integration    | ✅    | ✅     | ✅      |
-| Voice Input        | ✅    | ❌     | ❌      |
-| Voice Output       | ✅    | ❌     | ❌      |
-| Multilingual       | ✅    | ❌     | ❌      |
-| Local Models       | ✅    | ✅     | ❌      |
-| MCP Support        | ✅    | ✅     | ❌      |
-| Security Hardening | ✅    | ≈      | ✅      |
-| Custom Models      | ✅    | ✅     | ❌      |
-| Offline Capable    | ✅    | ✅     | ❌      |
+| Feature            | CodeIn | Cursor | Copilot |
+| ------------------ | ------ | ------ | ------- |
+| Ask Mode           | ✅     | ✅     | ✅      |
+| Plan Mode          | ✅     | ✅     | ❌      |
+| Agent Mode         | ✅     | ✅     | ✅      |
+| Tab Autocomplete   | ✅     | ✅     | ✅      |
+| Git Integration    | ✅     | ✅     | ✅      |
+| Voice Input        | ✅     | ❌     | ❌      |
+| Voice Output       | ✅     | ❌     | ❌      |
+| Multilingual       | ✅     | ❌     | ❌      |
+| Local Models       | ✅     | ✅     | ❌      |
+| MCP Support        | ✅     | ✅     | ❌      |
+| Security Hardening | ✅     | ≈      | ✅      |
+| Custom Models      | ✅     | ✅     | ❌      |
+| Offline Capable    | ✅     | ✅     | ❌      |
 
 ---
 
@@ -544,7 +544,7 @@ Team: Global (India, US, SE Asia)
 Languages: हिन्दी, తెలుగు, தமிழ், English
 
 Task: Implement user authentication
-  ✓ Ask in native language → CodIn translates
+  ✓ Ask in native language → CodeIn translates
   ✓ Get response in native language
   ✓ Everyone understands → Better collaboration ✓
 ```

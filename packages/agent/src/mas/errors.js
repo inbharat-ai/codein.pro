@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Error Types
+ * CodeIn MAS — Error Types
  *
  * Structured error hierarchy for the multi-agent swarm subsystem.
  * Every error carries a code, context, and is instanceof its category.
