@@ -22,6 +22,7 @@ import { profilesReducer } from "./slices/profilesSlice";
 import sessionReducer from "./slices/sessionSlice";
 import swarmReducer from "./slices/swarmSlice";
 import aiHubReducer from "./slices/aiHubSlice";
+import computerReducer from "./slices/computerSlice";
 import tabsReducer from "./slices/tabsSlice";
 import uiReducer from "./slices/uiSlice";
 
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
   profiles: profilesReducer,
   swarm: swarmReducer,
   aiHub: aiHubReducer,
+  computer: computerReducer,
 });
 
 const saveSubsetFilters = [

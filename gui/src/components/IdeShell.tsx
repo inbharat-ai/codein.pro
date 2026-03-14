@@ -14,6 +14,7 @@ import {
   CircleStackIcon,
   CodeBracketIcon,
   BoltIcon,
+  ComputerDesktopIcon,
 } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -71,6 +72,12 @@ const topActivities: ActivityItem[] = [
     i18nKey: "activityBar.aiHub",
     route: ROUTES.AI_HUB,
   },
+  {
+    id: "computer",
+    icon: ComputerDesktopIcon,
+    i18nKey: "activityBar.computer",
+    route: ROUTES.COMPUTER,
+  },
 ];
 
 const bottomActivities: ActivityItem[] = [
@@ -98,6 +105,7 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
     if (path.includes("gpu")) return "gpu";
     if (path.includes("git")) return "git";
     if (path.includes("ai-hub")) return "ai-hub";
+    if (path.includes("computer")) return "computer";
     if (path.includes("repo") || path.includes("search")) return "search";
     if (path.includes("config") || path.includes("settings")) return "settings";
     return "chat";

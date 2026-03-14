@@ -26,6 +26,7 @@ export const ROUTES = {
   GIT: "/git",
   GPU: "/gpu",
   AI_HUB: "/ai-hub",
+  COMPUTER: "/computer",
   HISTORY: "/history",
   // EXAMPLE_ROUTE_WITH_PARAMS: (params: ParamsType) => `/route/${params}`,
 };

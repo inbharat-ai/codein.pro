@@ -25,6 +25,7 @@ const { registerGitRoutes } = require("./git");
 const { registerPipelineRoutes } = require("./pipeline");
 const { registerRepoIntelligenceRoutes } = require("./repo-intelligence");
 const { registerAIHubRoutes } = require("./ai-hub");
+const { registerComputerRoutes } = require("./computer");
 
 /**
  * Creates and configures the full application router.
@@ -101,6 +102,9 @@ function createAppRouter(deps) {
 
   // AI API Hub — Multi-provider AI model management (OpenRouter, Groq, Gemini)
   registerAIHubRoutes(router, deps);
+
+  // Computer Use — Autonomous execution, workflow templates, skill discovery
+  registerComputerRoutes(router, deps);
 
   // Expose deps object for late binding of observability references
   router._deps = deps;
