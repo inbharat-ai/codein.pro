@@ -320,17 +320,36 @@ class PluginManager {
 
     try {
       const script = new vm.Script(
-        `(async () => { ${handlerCode}\nif (typeof handler === "function") { __result = await handler(__args, __ctx); } })();`,
+        `__promise = (async () => { ${handlerCode}\nif (typeof handler === "function") { __result = await handler(__args, __ctx); } })();`,
         { filename: handlerPath, timeout: HANDLER_TIMEOUT_MS },
       );
 
       const vmContext = vm.createContext(sandbox);
-      await script.runInContext(vmContext);
+      script.runInContext(vmContext);
+
+      // Enforce async timeout — vm.Script timeout only covers sync compilation
+      const asyncTimeout = new Promise((_, reject) => {
+        const t = setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Plugin tool "${toolName}" timed out after ${HANDLER_TIMEOUT_MS}ms`,
+              ),
+            ),
+          HANDLER_TIMEOUT_MS,
+        );
+        if (t.unref) t.unref();
+        sandbox.__timeoutHandle = t;
+      });
+
+      await Promise.race([sandbox.__promise, asyncTimeout]);
+      if (sandbox.__timeoutHandle) clearTimeout(sandbox.__timeoutHandle);
 
       const duration = Date.now() - start;
       log.info("Plugin tool executed", { pluginName, toolName, duration });
       return { result: sandbox.__result, duration };
     } catch (err) {
+      if (sandbox.__timeoutHandle) clearTimeout(sandbox.__timeoutHandle);
       const duration = Date.now() - start;
       log.error("Plugin tool execution failed", {
         pluginName,
@@ -368,11 +387,29 @@ class PluginManager {
         sandbox.__hookData = data;
 
         const script = new vm.Script(
-          `(async () => { ${handlerCode}\nif (typeof hook === "function") { await hook(__hookData, __ctx); } })();`,
+          `__promise = (async () => { ${handlerCode}\nif (typeof hook === "function") { await hook(__hookData, __ctx); } })();`,
           { filename: handlerPath, timeout: HANDLER_TIMEOUT_MS },
         );
         const vmContext = vm.createContext(sandbox);
-        await script.runInContext(vmContext);
+        script.runInContext(vmContext);
+
+        // Enforce async timeout for hooks
+        const hookTimeout = new Promise((_, reject) => {
+          const t = setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `Hook "${hookName}" timed out after ${HANDLER_TIMEOUT_MS}ms`,
+                ),
+              ),
+            HANDLER_TIMEOUT_MS,
+          );
+          if (t.unref) t.unref();
+          sandbox.__hookTimeoutHandle = t;
+        });
+        await Promise.race([sandbox.__promise, hookTimeout]);
+        if (sandbox.__hookTimeoutHandle)
+          clearTimeout(sandbox.__hookTimeoutHandle);
         ran++;
       } catch (err) {
         errors++;
@@ -916,6 +953,24 @@ function createPluginSandbox(pluginDir, context) {
     if (!isAllowed) {
       throw new Error(
         `Access denied: cannot read "${resolved}" — outside allowed directories`,
+      );
+    }
+
+    // Resolve symlinks and re-check to prevent symlink traversal attacks
+    const realFs = require("node:fs");
+    let realPath;
+    try {
+      realPath = realFs.realpathSync(resolved);
+    } catch {
+      // File doesn't exist yet — allow (readFile will fail naturally)
+      realPath = resolved;
+    }
+    const realAllowed = allowed.some(
+      (dir) => realPath.startsWith(dir + path.sep) || realPath === dir,
+    );
+    if (!realAllowed) {
+      throw new Error(
+        `Access denied: symlink target "${realPath}" is outside allowed directories`,
       );
     }
 

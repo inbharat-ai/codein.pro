@@ -357,9 +357,12 @@ class SmartApply {
     if (replacement == null)
       throw new Error("replace edit requires a 'replacement' string");
 
-    // Exact match
+    // Exact match — use function replacement to avoid $ pattern interpolation
     if (content.includes(search)) {
-      return content.replace(search, replacement);
+      const idx = content.indexOf(search);
+      return (
+        content.slice(0, idx) + replacement + content.slice(idx + search.length)
+      );
     }
 
     // Fuzzy match — search line-by-line blocks
@@ -431,9 +434,10 @@ class SmartApply {
     const { search } = edit;
     if (!search) throw new Error("delete edit requires a 'search' string");
 
-    // Exact match
+    // Exact match — use slice to avoid $ pattern issues in String.replace
     if (content.includes(search)) {
-      return content.replace(search, "");
+      const idx = content.indexOf(search);
+      return content.slice(0, idx) + content.slice(idx + search.length);
     }
 
     // Fuzzy match
@@ -481,9 +485,9 @@ class SmartApply {
         bestStart = offsets[i];
         const endLine = i + windowSize - 1;
         bestEnd = offsets[endLine] + contentLines[endLine].length;
-        // Include the trailing newline if present.
+        // Include the trailing newline so replacement doesn't leave orphan newlines
         if (bestEnd < content.length && content[bestEnd] === "\n") {
-          // Keep end at the char after the last line content (not the newline).
+          bestEnd += 1;
         }
       }
     }

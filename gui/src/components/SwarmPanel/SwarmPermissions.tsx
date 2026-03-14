@@ -18,7 +18,18 @@ export function SwarmPermissions() {
   const dispatch = useAppDispatch();
   const pending = useAppSelector(selectPendingPermissions);
 
-  if (pending.length === 0) return null;
+  if (pending.length === 0) {
+    return (
+      <div>
+        <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+          Permissions
+        </h3>
+        <p className="text-vsc-foreground/40 text-[10px]">
+          No pending permission requests
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>

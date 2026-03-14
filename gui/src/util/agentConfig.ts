@@ -16,7 +16,7 @@ export function getAgentBaseUrl(): string {
   return "http://127.0.0.1:43120";
 }
 
-export function agentFetch(
+export async function agentFetch(
   input: string,
   init?: RequestInit,
 ): Promise<Response> {
@@ -24,5 +24,22 @@ export function agentFetch(
   const url = input.startsWith("http")
     ? input
     : `${base}${input.startsWith("/") ? "" : "/"}${input}`;
-  return fetch(url, init);
+
+  // Auto-authenticate
+  let token: string | null = null;
+  try {
+    const { ensureAuth } = await import("./authService");
+    token = await ensureAuth();
+  } catch {
+    // If auth fails, proceed without token — server will return 401
+  }
+
+  const headers: Record<string, string> = {
+    ...(init?.headers as Record<string, string>),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  return fetch(url, { ...init, headers });
 }

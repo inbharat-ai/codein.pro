@@ -1,6 +1,5 @@
 "use strict";
 
-const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const { i18nOrchestrator } = require("../src/i18n/orchestrator");

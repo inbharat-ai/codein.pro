@@ -219,7 +219,15 @@ export const streamSwarmTask = createAsyncThunk<
           try {
             const parsed = JSON.parse(event.data);
             if (parsed.taskId === taskResponse.taskId) {
-              accumulatedContent += `\n[${parsed.type}] ${JSON.stringify(parsed.data)}`;
+              // Sanitize event data to prevent XSS when rendered
+              const safeType = String(parsed.type || "").replace(
+                /[<>&"']/g,
+                "",
+              );
+              const safeData = JSON.stringify(parsed.data || {})
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+              accumulatedContent += `\n[${safeType}] ${safeData}`;
               dispatch(
                 updateHistoryItemAtIndex({
                   index: historyIndex,

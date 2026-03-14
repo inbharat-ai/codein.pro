@@ -19,7 +19,6 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const path = require("node:path");
 
 // ── Direct unit imports ──

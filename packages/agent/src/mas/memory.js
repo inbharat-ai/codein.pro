@@ -31,18 +31,24 @@ const SECRET_PATTERNS = [
 // 1. SECRET STRIPPING
 // ═══════════════════════════════════════════════════════════════
 
-function stripSecrets(value) {
+function stripSecrets(value, _seen = new WeakSet()) {
   if (typeof value === "string") {
     let cleaned = value;
     for (const pattern of SECRET_PATTERNS) {
+      // Reset lastIndex for global regexes to avoid stale state
+      pattern.lastIndex = 0;
       cleaned = cleaned.replace(pattern, "[REDACTED]");
     }
     return cleaned;
   }
   if (Array.isArray(value)) {
-    return value.map(stripSecrets);
+    if (_seen.has(value)) return "[Circular]";
+    _seen.add(value);
+    return value.map((v) => stripSecrets(v, _seen));
   }
   if (value && typeof value === "object") {
+    if (_seen.has(value)) return "[Circular]";
+    _seen.add(value);
     const result = {};
     for (const [k, v] of Object.entries(value)) {
       const keyLower = k.toLowerCase();
@@ -56,7 +62,7 @@ function stripSecrets(value) {
       ) {
         result[k] = "[REDACTED]";
       } else {
-        result[k] = stripSecrets(v);
+        result[k] = stripSecrets(v, _seen);
       }
     }
     return result;
@@ -360,7 +366,7 @@ class LongTermMemory {
     if (!entry) return undefined;
     entry.accessedAt = Date.now();
     entry.accessCount++;
-    this._dirty = true;
+    // Don't mark dirty on read — only writes should trigger disk I/O
     return entry.value;
   }
 
@@ -432,11 +438,31 @@ class LongTermMemory {
 // ═══════════════════════════════════════════════════════════════
 
 class Blackboard {
-  constructor() {
+  /**
+   * @param {object} [opts]
+   * @param {object} [opts.persistence] — Optional SqliteMemoryStore for write-through persistence
+   */
+  constructor(opts = {}) {
     /** @type {Array<{ from: string, to: string|null, topic: string, payload: any, ts: string }>} */
     this._messages = [];
     /** @type {Map<string, any>} */
     this._shared = new Map();
+    /** @type {object|null} */
+    this._persistence = opts.persistence || null;
+
+    // Load existing shared state from persistence if available
+    if (this._persistence) {
+      try {
+        const saved = this._persistence.get("blackboard:shared");
+        if (saved && typeof saved === "object") {
+          for (const [k, v] of Object.entries(saved)) {
+            this._shared.set(k, v);
+          }
+        }
+      } catch {
+        // Non-fatal: persistence may not have prior data
+      }
+    }
   }
 
   /**
@@ -447,13 +473,28 @@ class Blackboard {
    * @param {any} payload — Message content
    */
   post(from, to, topic, payload) {
-    this._messages.push({
+    const msg = {
       from,
       to,
       topic,
       payload: stripSecrets(payload),
       ts: new Date().toISOString(),
-    });
+    };
+    this._messages.push(msg);
+
+    // Write-through: persist recent messages to SQLite for cross-session durability
+    if (this._persistence) {
+      try {
+        // Store last 100 messages to avoid unbounded growth
+        const recent = this._messages.slice(-100);
+        this._persistence.set("blackboard:messages", recent, {
+          scope: "working",
+          tags: ["blackboard"],
+        });
+      } catch {
+        // Non-fatal: don't block message bus on persistence failure
+      }
+    }
   }
 
   /**
@@ -477,6 +518,19 @@ class Blackboard {
    */
   setShared(key, value) {
     this._shared.set(key, stripSecrets(value));
+
+    // Write-through: persist shared state to SQLite
+    if (this._persistence) {
+      try {
+        this._persistence.set(
+          "blackboard:shared",
+          Object.fromEntries(this._shared),
+          { scope: "working", tags: ["blackboard"] },
+        );
+      } catch {
+        // Non-fatal
+      }
+    }
   }
 
   /**
@@ -512,15 +566,21 @@ class MemoryManager {
    * @param {string} opts.workspaceHash
    * @param {boolean} [opts.longTermEnabled]
    * @param {function} [opts.emitEvent] — Callback to emit SwarmEvents
+   * @param {object} [opts.blackboardPersistence] — Optional SqliteMemoryStore for blackboard write-through
    */
-  constructor({ workspaceHash, longTermEnabled = false, emitEvent = null }) {
+  constructor({
+    workspaceHash,
+    longTermEnabled = false,
+    emitEvent = null,
+    blackboardPersistence = null,
+  }) {
     this.shortTerm = new ShortTermMemory();
     this.working = new WorkingMemory();
     this.longTerm = new LongTermMemory({
       workspaceHash,
       enabled: longTermEnabled,
     });
-    this.blackboard = new Blackboard();
+    this.blackboard = new Blackboard({ persistence: blackboardPersistence });
     this._emitEvent = emitEvent;
   }
 

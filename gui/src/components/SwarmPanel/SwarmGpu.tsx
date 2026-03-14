@@ -5,7 +5,18 @@ export function SwarmGpu() {
   const status = useAppSelector(selectSwarmStatus);
   const gpu = status?.gpu;
 
-  if (!gpu) return null;
+  if (!gpu) {
+    return (
+      <div>
+        <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+          GPU Budget
+        </h3>
+        <p className="text-vsc-foreground/40 text-[10px]">
+          No GPU session active
+        </p>
+      </div>
+    );
+  }
 
   const budget = gpu.budget ?? 100;
   const spent = gpu.spent ?? 0;

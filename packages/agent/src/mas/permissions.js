@@ -270,10 +270,33 @@ class PermissionGate {
     });
     this._emit(EVENT_TYPE.PERMISSION_REQUESTED, { request });
 
+    // Timeout: auto-deny after 5 minutes to prevent hung promises
+    const PERMISSION_TIMEOUT_MS = 5 * 60 * 1000;
     return new Promise((resolve) => {
+      const timeoutHandle = setTimeout(() => {
+        if (this._pending.has(request.id)) {
+          this._pending.delete(request.id);
+          this._audit({
+            nodeId: request.nodeId,
+            agentId: request.agentId,
+            permissionType: request.permissionType,
+            action: request.action,
+            decision: PERMISSION_DECISION.DENIED,
+            reason: "Permission request timed out (5 min)",
+          });
+          resolve({
+            decision: PERMISSION_DECISION.DENIED,
+            reason: "Permission request timed out (5 min)",
+          });
+        }
+      }, PERMISSION_TIMEOUT_MS);
+      // Don't block Node exit
+      if (timeoutHandle.unref) timeoutHandle.unref();
+
       this._pending.set(request.id, {
         request,
         resolve,
+        timeoutHandle,
         createdAt: Date.now(),
       });
     });
@@ -301,7 +324,8 @@ class PermissionGate {
     }
 
     this._pending.delete(requestId);
-    const { request, resolve } = entry;
+    const { request, resolve, timeoutHandle } = entry;
+    if (timeoutHandle) clearTimeout(timeoutHandle);
 
     let decision;
     let reason;
@@ -367,7 +391,7 @@ class PermissionGate {
       decision === PERMISSION_DECISION.APPROVED &&
       request.permissionType === PERMISSION_TYPE.REMOTE_GPU_SPEND
     ) {
-      this._recordGpuSpend(request.costEstimate);
+      this._recordGpuSpend(request.costEstimateUSD || 0);
 
       // Create GPU pod if API key available
       if (this._runpodApiKey) {
@@ -545,6 +569,7 @@ class PermissionGate {
   /** Cancel all pending permissions (e.g., on swarm shutdown). */
   cancelAllPending() {
     for (const [, entry] of this._pending) {
+      if (entry.timeoutHandle) clearTimeout(entry.timeoutHandle);
       entry.resolve({
         decision: PERMISSION_DECISION.DENIED,
         reason: "Swarm shutdown — all pending permissions cancelled",

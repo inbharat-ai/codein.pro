@@ -5,6 +5,9 @@
     "search": "Search",
     "gpu": "GPU Panel",
     "docs": "Docs & Rules",
+    "swarm": "Swarm",
+    "git": "Git",
+    "aiHub": "AI Hub",
     "settings": "Settings"
   },
   "statusBar": {

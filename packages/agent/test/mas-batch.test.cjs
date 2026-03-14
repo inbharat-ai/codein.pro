@@ -5,7 +5,6 @@
  * and BatchExecutor parallel/sequential execution.
  */
 const assert = require("node:assert/strict");
-const test = require("node:test");
 
 const {
   BATCH_TYPE,

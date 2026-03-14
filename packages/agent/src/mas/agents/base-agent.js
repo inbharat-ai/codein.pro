@@ -44,6 +44,7 @@ class BaseAgent {
     this._runLLM = deps.runLLM;
     this._persistence = deps.persistence || null;
     this._sessionId = null; // Set by swarm-manager when task starts
+    this._taskStream = null; // Set per-task for real-time streaming
 
     this.descriptor.status = AGENT_STATUS.IDLE;
 
@@ -153,6 +154,23 @@ class BaseAgent {
       // Track cost if result includes usage metadata
       this._trackLLMCost(result, elapsed, opts);
 
+      // Stream thinking/cost events to UI
+      if (this._taskStream) {
+        try {
+          if (this._taskStream.emitCostUpdate) {
+            this._taskStream.emitCostUpdate({
+              agentId: this.id,
+              agentType: this.type,
+              durationMs: elapsed,
+              tokensUsed: this.descriptor.metrics.tokensUsed,
+              costUSD: this.descriptor.metrics.costUSD,
+            });
+          }
+        } catch {
+          /* non-fatal stream error */
+        }
+      }
+
       // If runLLM returns {text, usage}, extract the text
       if (result && typeof result === "object" && result.text !== undefined) {
         return result.text;
@@ -246,12 +264,17 @@ Always respond with ONLY valid JSON.`;
         iterationTimeout,
       );
 
+      // Guard against null/undefined LLM responses
+      if (raw == null) {
+        return { answer: "LLM returned no response", toolLog };
+      }
+
       let parsed;
       try {
         parsed = this._extractJson(raw);
       } catch {
         // LLM returned non-JSON — treat as final answer
-        return { answer: raw, toolLog };
+        return { answer: String(raw), toolLog };
       }
 
       // Final answer
@@ -268,12 +291,31 @@ Always respond with ONLY valid JSON.`;
         const callCount = (toolCallCounts.get(toolName) || 0) + 1;
         toolCallCounts.set(toolName, callCount);
 
-        // Detect infinite loop: same tool called 3+ times
-        if (callCount >= 3) {
+        // Detect infinite loop: same tool called 6+ times with identical args
+        // Higher threshold for read_file/write_file which are legitimately called multiple times
+        const loopThreshold = ["read_file", "write_file", "run_bash"].includes(
+          toolName,
+        )
+          ? 8
+          : 6;
+        if (callCount >= loopThreshold) {
           return {
             answer: `Error: Tool "${toolName}" called ${callCount} times. Possible infinite loop detected. Aborting.`,
             toolLog,
           };
+        }
+
+        // Stream tool call event
+        if (this._taskStream && this._taskStream.emitToolCall) {
+          try {
+            this._taskStream.emitToolCall({
+              tool: toolName,
+              args,
+              agentId: this.id,
+            });
+          } catch {
+            /* non-fatal */
+          }
         }
 
         try {
@@ -282,10 +324,56 @@ Always respond with ONLY valid JSON.`;
             iterationTimeout,
           );
           toolLog.push({ tool: toolName, args, result });
+
+          // Stream tool result event
+          if (this._taskStream && this._taskStream.emitToolResult) {
+            try {
+              this._taskStream.emitToolResult({
+                tool: toolName,
+                success: true,
+                resultPreview: String(result).slice(0, 500),
+                agentId: this.id,
+              });
+            } catch {
+              /* non-fatal */
+            }
+          }
+
+          // Stream code write event for write_file calls
+          if (
+            toolName === "write_file" &&
+            this._taskStream &&
+            this._taskStream.emitCodeWrite
+          ) {
+            try {
+              this._taskStream.emitCodeWrite({
+                filePath: args.path || args.filePath,
+                agentId: this.id,
+              });
+            } catch {
+              /* non-fatal */
+            }
+          }
+
           conversation = `Tool "${toolName}" returned:\n${result}\n\nContinue with the task. Use another tool or provide your final answer as {"answer": "..."}`;
         } catch (err) {
           const errMsg = err.message || String(err);
           toolLog.push({ tool: toolName, args, result: `ERROR: ${errMsg}` });
+
+          // Stream tool error
+          if (this._taskStream && this._taskStream.emitToolResult) {
+            try {
+              this._taskStream.emitToolResult({
+                tool: toolName,
+                success: false,
+                error: errMsg,
+                agentId: this.id,
+              });
+            } catch {
+              /* non-fatal */
+            }
+          }
+
           conversation = `Tool "${toolName}" failed with error: ${errMsg}\n\nContinue with the task. Try a different approach or provide your final answer as {"answer": "..."}`;
         }
       } else if (parsed.tool) {
@@ -398,6 +486,11 @@ Always respond with ONLY valid JSON.`;
   /** Set the active session ID for cost attribution. */
   setSessionId(sessionId) {
     this._sessionId = sessionId;
+  }
+
+  /** Set the TaskStream for real-time event streaming to UI. */
+  setTaskStream(taskStream) {
+    this._taskStream = taskStream;
   }
 
   /**

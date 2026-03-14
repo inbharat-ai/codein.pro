@@ -11,6 +11,9 @@ import {
   CpuChipIcon,
   DocumentTextIcon,
   MagnifyingGlassIcon,
+  CircleStackIcon,
+  CodeBracketIcon,
+  BoltIcon,
 } from "@heroicons/react/24/outline";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -45,16 +48,28 @@ const topActivities: ActivityItem[] = [
     route: ROUTES.REPO_INTELLIGENCE,
   },
   {
+    id: "swarm",
+    icon: CircleStackIcon,
+    i18nKey: "activityBar.swarm",
+    route: ROUTES.SWARM,
+  },
+  {
     id: "gpu",
     icon: CpuChipIcon,
     i18nKey: "activityBar.gpu",
     route: ROUTES.GPU,
   },
   {
-    id: "docs",
-    icon: DocumentTextIcon,
-    i18nKey: "activityBar.docs",
-    route: ROUTES.CONFIG,
+    id: "git",
+    icon: CodeBracketIcon,
+    i18nKey: "activityBar.git",
+    route: ROUTES.GIT,
+  },
+  {
+    id: "ai-hub",
+    icon: BoltIcon,
+    i18nKey: "activityBar.aiHub",
+    route: ROUTES.AI_HUB,
   },
 ];
 
@@ -79,7 +94,10 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
     const path = location.pathname;
     if (path === "/" || path === "/index.html") return "chat";
     if (path === ROUTES.HISTORY) return "history";
+    if (path.includes("swarm")) return "swarm";
     if (path.includes("gpu")) return "gpu";
+    if (path.includes("git")) return "git";
+    if (path.includes("ai-hub")) return "ai-hub";
     if (path.includes("repo") || path.includes("search")) return "search";
     if (path.includes("config") || path.includes("settings")) return "settings";
     return "chat";

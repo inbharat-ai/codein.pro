@@ -62,6 +62,17 @@ export function SwarmTaskView() {
       </div>
 
       {/* Active task display */}
+      {!activeTask && !loading && (
+        <p className="text-vsc-foreground/40 text-[10px]">
+          No active task. Describe a goal above to get started.
+        </p>
+      )}
+      {loading && !activeTask && (
+        <div className="text-vsc-foreground/50 flex items-center gap-2 py-2 text-[10px]">
+          <span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+          Orchestrating task...
+        </div>
+      )}
       {activeTask && (
         <div className="bg-vsc-input-background space-y-1.5 rounded p-2">
           <div className="flex items-center justify-between text-xs">

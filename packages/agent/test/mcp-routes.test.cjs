@@ -9,7 +9,6 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const { EventEmitter } = require("node:events");
 
 // ─── Imports ─────────────────────────────────────────────────

@@ -11,7 +11,18 @@ const STATUS_COLORS: Record<string, string> = {
 export function SwarmAgents() {
   const agents = useAppSelector(selectSwarmAgents);
 
-  if (agents.length === 0) return null;
+  if (agents.length === 0) {
+    return (
+      <div>
+        <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+          Agents
+        </h3>
+        <p className="text-vsc-foreground/40 text-[10px]">
+          No agents spawned yet. Submit a task to auto-spawn agents.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>

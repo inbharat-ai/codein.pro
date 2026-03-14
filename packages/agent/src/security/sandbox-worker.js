@@ -1,16 +1,19 @@
+"use strict";
 const { parentPort } = require("worker_threads");
 
 parentPort.on("message", async (message) => {
-  const { id, code, context, timeout } = message;
+  const { id, code, context } = message;
 
   try {
-    const func = new Function(...Object.keys(context), code);
-    const result = await func(...Object.values(context));
+    const keys = Object.keys(context);
+    const values = Object.values(context);
+    const func = new Function(...keys, code);
+    const result = await func(...values);
 
     parentPort.postMessage({
       id,
       success: true,
-      result,
+      result: result === undefined ? null : result,
       error: null,
     });
   } catch (error) {

@@ -38,6 +38,7 @@ const { StreamEngine } = require("./stream-engine");
 const { IndianLanguageProcessor } = require("./indian-lang");
 const { CostRouter } = require("./cost-router");
 const { createLogger } = require("./logger");
+const { applyExtensionMethods } = require("./swarm-extensions");
 
 // Optional modules — loaded lazily to avoid startup errors if files don't exist yet
 let WorkspaceMemory,
@@ -45,7 +46,16 @@ let WorkspaceMemory,
   TaskRecovery,
   PluginManager,
   SkillRegistry,
-  DocGenerator;
+  DocGenerator,
+  TerminalManager,
+  GitWorkflow,
+  AutonomousPlanner,
+  DockerSandbox,
+  SqliteMemoryStore,
+  SqliteTaskQueue,
+  PluginHookManager,
+  HOOK_EVENT,
+  SmartApply;
 try {
   ({ WorkspaceMemory } = require("./workspace-memory"));
 } catch {
@@ -67,6 +77,43 @@ try {
   ({ DocGenerator } = require("./doc-generator"));
 } catch {
   DocGenerator = null;
+}
+try {
+  ({ TerminalManager } = require("./terminal-manager"));
+} catch {
+  TerminalManager = null;
+}
+try {
+  ({ GitWorkflow } = require("./git-workflow"));
+} catch {
+  GitWorkflow = null;
+}
+try {
+  ({ AutonomousPlanner } = require("./autonomous-planner"));
+} catch {
+  AutonomousPlanner = null;
+}
+try {
+  ({ DockerSandbox } = require("./docker-sandbox"));
+} catch {
+  DockerSandbox = null;
+}
+try {
+  ({ SqliteMemoryStore, SqliteTaskQueue } = require("./sqlite-store"));
+} catch {
+  SqliteMemoryStore = null;
+  SqliteTaskQueue = null;
+}
+try {
+  ({ PluginHookManager, HOOK_EVENT } = require("./plugin-hooks"));
+} catch {
+  PluginHookManager = null;
+  HOOK_EVENT = null;
+}
+try {
+  ({ SmartApply } = require("./smart-apply"));
+} catch {
+  SmartApply = null;
 }
 
 const log = createLogger("SwarmManager");
@@ -108,13 +155,21 @@ class SwarmManager extends EventEmitter {
     this._pluginManager = null;
     this._skillRegistry = null;
     this._docGenerator = null;
+    this._terminalManager = null;
+    this._gitWorkflow = null;
+    this._autonomousPlanner = null;
+    this._dockerSandbox = null;
+    this._sqliteMemoryStore = null;
+    this._sqliteTaskQueue = null;
+    this._pluginHooks = null;
+    this._smartApply = null;
 
     // Active task graphs
     /** @type {Map<string, object>} taskId → TaskGraph */
     this._tasks = new Map();
 
     // Event log for SSE streaming
-    this._events = [];
+    this._eventLog = [];
     this._maxEvents = 2000;
 
     // SSE subscribers
@@ -163,7 +218,11 @@ class SwarmManager extends EventEmitter {
     // Workspace hash for file persistence
     this._workspaceHash =
       config.workspaceHash ||
-      crypto.createHash("md5").update(process.cwd()).digest("hex").slice(0, 12);
+      crypto
+        .createHash("sha256")
+        .update(process.cwd())
+        .digest("hex")
+        .slice(0, 12);
 
     // Initialize subsystems
     this._memory = new MemoryManager({
@@ -171,6 +230,17 @@ class SwarmManager extends EventEmitter {
       longTermEnabled: config.longTermMemory || false,
       emitEvent: (e) => this._broadcast(e),
     });
+
+    // Initialize SQLite persistence FIRST (other subsystems depend on it)
+    this._persistence = openDatabase();
+    if (this._persistence) {
+      log.info("Persistence layer initialized", {
+        type: this._persistence._inMemory ? "in-memory" : "sqlite",
+      });
+    }
+
+    // Initialize workspace indexer (uses persistence for caching)
+    this._workspaceIndexer = new WorkspaceIndexer(this._persistence);
 
     const os = require("node:os");
     const path = require("node:path");
@@ -202,17 +272,6 @@ class SwarmManager extends EventEmitter {
       workspaceHash: this._workspaceHash,
     });
 
-    // Initialize SQLite persistence (graceful fallback to in-memory)
-    this._persistence = openDatabase();
-    if (this._persistence) {
-      log.info("Persistence layer initialized", {
-        type: this._persistence._inMemory ? "in-memory" : "sqlite",
-      });
-    }
-
-    // Initialize workspace indexer
-    this._workspaceIndexer = new WorkspaceIndexer(this._persistence);
-
     // Initialize cost router with budget from config
     this._costRouter = new CostRouter({
       budgetUSD: this._config.gpuGuardrails?.maxBudgetUSD || 10,
@@ -233,17 +292,25 @@ class SwarmManager extends EventEmitter {
     }
 
     // Initialize background task manager
+    // Note: BackgroundTaskManager uses its own InMemoryPersistence (save/get/query/update API),
+    // which is separate from the main SQLite persistence (different API surface).
     if (BackgroundTaskManager) {
       try {
         this._backgroundTasks = new BackgroundTaskManager({
-          persistence: this._persistence,
+          persistence: null, // Uses internal InMemoryPersistence — SQLite persistence has incompatible API
           maxConcurrent: this._config.concurrency || 3,
         });
         // Recover interrupted tasks from previous session
-        if (TaskRecovery && this._persistence) {
-          const recovery = TaskRecovery.recoverTasks(this._persistence);
-          if (recovery.recovered > 0) {
-            log.info("Recovered interrupted tasks", recovery);
+        if (TaskRecovery && this._backgroundTasks._persistence) {
+          try {
+            const recovery = TaskRecovery.recoverTasks(
+              this._backgroundTasks._persistence,
+            );
+            if (recovery.recovered > 0) {
+              log.info("Recovered interrupted tasks", recovery);
+            }
+          } catch (recoveryErr) {
+            log.warn("Task recovery failed", { error: recoveryErr.message });
           }
         }
       } catch (err) {
@@ -257,10 +324,20 @@ class SwarmManager extends EventEmitter {
         this._pluginManager = new PluginManager({
           persistence: this._persistence,
         });
-        const loaded = this._pluginManager.loadPlugins();
-        if (loaded.loaded.length > 0) {
-          log.info("Plugins loaded", { plugins: loaded.loaded });
-        }
+        // loadPlugins() is async — fire and forget, log results when done
+        this._pluginManager
+          .loadPlugins()
+          .then((loaded) => {
+            if (loaded.loaded.length > 0) {
+              log.info("Plugins loaded", { plugins: loaded.loaded });
+            }
+            if (loaded.errors.length > 0) {
+              log.warn("Plugin load errors", { errors: loaded.errors });
+            }
+          })
+          .catch((err) => {
+            log.warn("Plugin loading failed", { error: err.message });
+          });
       } catch (err) {
         log.warn("Plugin manager init failed", { error: err.message });
       }
@@ -281,8 +358,163 @@ class SwarmManager extends EventEmitter {
       this._docGenerator = new DocGenerator({ runLLM: this._deps.runLLM });
     }
 
+    // Initialize terminal manager
+    if (TerminalManager) {
+      try {
+        this._terminalManager = new TerminalManager();
+        log.info("Terminal manager initialized");
+      } catch (err) {
+        log.warn("Terminal manager init failed", { error: err.message });
+      }
+    }
+
+    // Initialize git workflow
+    if (GitWorkflow) {
+      try {
+        this._gitWorkflow = new GitWorkflow({ runLLM: this._deps.runLLM });
+        log.info("Git workflow initialized");
+      } catch (err) {
+        log.warn("Git workflow init failed", { error: err.message });
+      }
+    }
+
+    // Initialize autonomous planner
+    if (AutonomousPlanner) {
+      try {
+        this._autonomousPlanner = new AutonomousPlanner({
+          runLLM: this._deps.runLLM,
+          executeStep: (step, ctx) => this._executeAutonomousStep(step, ctx),
+          runTests: null, // optional — can be configured later
+        });
+        // Forward planner events to the main event stream
+        this._autonomousPlanner.on("event", (event) => {
+          this._broadcast(
+            createSwarmEvent({
+              type: EVENT_TYPE.NODE_COMPLETED, // reuse existing event type for planner events
+              data: {
+                plannerEvent: event.type,
+                planId: event.planId,
+                ...event.data,
+              },
+            }),
+          );
+        });
+        log.info("Autonomous planner initialized");
+      } catch (err) {
+        log.warn("Autonomous planner init failed", { error: err.message });
+      }
+    }
+
+    // Initialize Docker sandbox
+    if (DockerSandbox) {
+      try {
+        this._dockerSandbox = new DockerSandbox();
+        log.info("Docker sandbox initialized");
+      } catch (err) {
+        log.warn("Docker sandbox init failed", { error: err.message });
+      }
+    }
+
+    // Initialize SQLite memory store (additional persistence layer for memory)
+    if (SqliteMemoryStore) {
+      try {
+        this._sqliteMemoryStore = new SqliteMemoryStore({
+          workspaceHash: this._workspaceHash,
+          enabled: true,
+        });
+        log.info("SQLite memory store initialized", {
+          usingSqlite: this._sqliteMemoryStore.usingSqlite,
+        });
+
+        // Wire SQLite memory store as write-through persistence for the blackboard
+        if (this._memory && this._memory.blackboard) {
+          this._memory.blackboard._persistence = this._sqliteMemoryStore;
+          log.debug("Blackboard persistence wired to SQLite memory store");
+        }
+      } catch (err) {
+        log.warn("SQLite memory store init failed", { error: err.message });
+      }
+    }
+
+    // Initialize SQLite task queue (durable task storage)
+    if (SqliteTaskQueue) {
+      try {
+        this._sqliteTaskQueue = new SqliteTaskQueue({
+          workspaceHash: this._workspaceHash,
+        });
+        log.info("SQLite task queue initialized", {
+          usingSqlite: this._sqliteTaskQueue.usingSqlite,
+        });
+      } catch (err) {
+        log.warn("SQLite task queue init failed", { error: err.message });
+      }
+    }
+
+    // Initialize plugin hooks
+    if (PluginHookManager) {
+      try {
+        this._pluginHooks = new PluginHookManager({ logger: log });
+        log.info("Plugin hook manager initialized");
+      } catch (err) {
+        log.warn("Plugin hook manager init failed", { error: err.message });
+      }
+    }
+
+    // Connect loaded plugins to hook system
+    if (this._pluginManager && this._pluginHooks) {
+      try {
+        const plugins = this._pluginManager.listPlugins();
+        let hookCount = 0;
+        for (const plugin of plugins) {
+          // Plugin manifests declare hooks as { hookName: handlerPath } in plugin-system.js.
+          // Bridge the two systems: for each plugin hook declared in the manifest,
+          // register a proxy handler with PluginHookManager that delegates to PluginManager.runHook().
+          const entry = this._pluginManager._plugins.get(plugin.name);
+          if (
+            entry &&
+            entry.manifest &&
+            typeof entry.manifest.hooks === "object"
+          ) {
+            for (const [hookName] of Object.entries(entry.manifest.hooks)) {
+              const pluginName = plugin.name;
+              const pm = this._pluginManager;
+              this._pluginHooks.register(hookName, pluginName, async (ctx) => {
+                await pm.runHook(hookName, ctx);
+              });
+              hookCount++;
+            }
+          }
+        }
+        if (plugins.length > 0) {
+          log.info("Plugin hooks connected", {
+            pluginCount: plugins.length,
+            hookCount,
+          });
+        }
+      } catch (err) {
+        log.warn("Plugin hook connection failed", { error: err.message });
+      }
+    }
+
+    // Initialize smart apply
+    if (SmartApply) {
+      try {
+        this._smartApply = new SmartApply({ workspaceRoot: process.cwd() });
+        log.info("Smart apply initialized");
+      } catch (err) {
+        log.warn("Smart apply init failed", { error: err.message });
+      }
+    }
+
     this._state = SWARM_STATE.ACTIVE;
     this._memory.onSwarmInit(this._config);
+
+    // Emit plugin hook: swarm:init
+    if (this._pluginHooks && HOOK_EVENT) {
+      this._pluginHooks
+        .emit(HOOK_EVENT.SWARM_INIT, { config: this._config })
+        .catch(() => {});
+    }
 
     // Validate cloud model availability
     const cloudWarnings = this._validateCloudModels();
@@ -304,6 +536,18 @@ class SwarmManager extends EventEmitter {
   agentSpawn(type) {
     this._requireActive();
     const agent = this._agentRouter.route(type);
+
+    // Emit plugin hook: agent:spawn
+    if (this._pluginHooks && HOOK_EVENT) {
+      this._pluginHooks
+        .emit(HOOK_EVENT.AGENT_SPAWN, {
+          agentId: agent.id,
+          type,
+          descriptor: agent.descriptor,
+        })
+        .catch(() => {});
+    }
+
     return agent.descriptor;
   }
 
@@ -332,7 +576,7 @@ class SwarmManager extends EventEmitter {
       pendingPermissions: this._permissionGate
         ? this._permissionGate.getPendingCount()
         : 0,
-      eventCount: this._events.length,
+      eventCount: this._eventLog.length,
     };
   }
 
@@ -416,9 +660,9 @@ class SwarmManager extends EventEmitter {
     }
 
     // Create streaming channel for real-time UI updates
-    const taskStream = this._streamEngine.createStream(
-      sessionId || crypto.randomUUID(),
-    );
+    const streamId = sessionId || crypto.randomUUID();
+    const taskStream = this._streamEngine.createStream(streamId);
+    context._taskStream = taskStream;
 
     this._broadcast(
       createSwarmEvent({
@@ -426,6 +670,18 @@ class SwarmManager extends EventEmitter {
         data: { goal, mode, topology: selectedTopology, sessionId },
       }),
     );
+
+    // Emit plugin hook: task:start
+    if (this._pluginHooks && HOOK_EVENT) {
+      this._pluginHooks
+        .emit(HOOK_EVENT.TASK_START, {
+          goal,
+          mode,
+          topology: selectedTopology,
+          sessionId,
+        })
+        .catch(() => {});
+    }
 
     // Step 1: Use planner agent to decompose the goal
     const plannerAgent = this._agentRouter.route(AGENT_TYPE.PLANNER);
@@ -463,6 +719,26 @@ class SwarmManager extends EventEmitter {
 
       // Register the task
       this._tasks.set(taskGraph.id, taskGraph);
+
+      // Persist task to SQLite queue for durability
+      if (this._sqliteTaskQueue) {
+        try {
+          this._sqliteTaskQueue.enqueue({
+            id: taskGraph.id,
+            goal,
+            priority: "normal",
+            mode: mode || "single",
+          });
+          this._sqliteTaskQueue.updateStatus(taskGraph.id, "running");
+          log.debug("Task persisted to SQLite queue", { taskId: taskGraph.id });
+        } catch (persistErr) {
+          log.warn("Failed to persist task to SQLite queue", {
+            taskId: taskGraph.id,
+            error: persistErr.message,
+          });
+        }
+      }
+
       this._memory.onTaskStart(taskGraph);
       if (typeof onTaskCreated === "function") {
         try {
@@ -504,6 +780,65 @@ class SwarmManager extends EventEmitter {
         log.info("Session completed", { sessionId, status: taskGraph.status });
       }
 
+      // Update SQLite task queue with completion
+      if (this._sqliteTaskQueue) {
+        try {
+          const mergedResult = taskGraph.nodes
+            .filter((n) => n.status === NODE_STATUS.SUCCEEDED)
+            .map((n) => ({
+              nodeId: n.id,
+              goal: n.goal,
+              agentType: n.agentType,
+            }));
+          this._sqliteTaskQueue.complete(taskGraph.id, mergedResult);
+          log.debug("Task completion persisted to SQLite queue", {
+            taskId: taskGraph.id,
+          });
+        } catch (persistErr) {
+          log.warn("Failed to update completed task in SQLite queue", {
+            taskId: taskGraph.id,
+            error: persistErr.message,
+          });
+        }
+      }
+
+      // Persist task summary to SQLite memory store for cross-session recall
+      if (this._sqliteMemoryStore) {
+        try {
+          this._sqliteMemoryStore.set(
+            `task:${taskGraph.id}`,
+            {
+              goal,
+              status: taskGraph.status,
+              nodesCompleted: taskGraph.metadata.nodesCompleted,
+              nodesFailed: taskGraph.metadata.nodesFailed,
+              completedAt: taskGraph.completedAt,
+            },
+            { scope: "long_term", tags: ["task_result"] },
+          );
+          log.debug("Task summary persisted to SQLite memory store", {
+            taskId: taskGraph.id,
+          });
+        } catch (persistErr) {
+          log.warn("Failed to persist task summary to SQLite memory store", {
+            taskId: taskGraph.id,
+            error: persistErr.message,
+          });
+        }
+      }
+
+      // Emit plugin hook: task:finish
+      if (this._pluginHooks && HOOK_EVENT) {
+        this._pluginHooks
+          .emit(HOOK_EVENT.TASK_FINISH, {
+            taskId: taskGraph.id,
+            status: taskGraph.status,
+            nodesCompleted: taskGraph.metadata.nodesCompleted,
+            sessionId,
+          })
+          .catch(() => {});
+      }
+
       return {
         taskId: taskGraph.id,
         status: taskGraph.status,
@@ -521,7 +856,31 @@ class SwarmManager extends EventEmitter {
           {},
         );
       }
-      this._agentRouter.release(plannerAgent.id);
+
+      // Update SQLite task queue with failure
+      if (this._sqliteTaskQueue) {
+        try {
+          // taskGraph may not exist if planning failed — use sessionId as fallback key
+          const failedId =
+            (typeof taskGraph !== "undefined" && taskGraph?.id) || sessionId;
+          if (failedId) {
+            this._sqliteTaskQueue.fail(failedId, err.message || String(err));
+            log.debug("Task failure persisted to SQLite queue", {
+              taskId: failedId,
+            });
+          }
+        } catch (persistErr) {
+          log.warn("Failed to update failed task in SQLite queue", {
+            error: persistErr.message,
+          });
+        }
+      }
+
+      try {
+        this._agentRouter.release(plannerAgent.id);
+      } catch {
+        /* already released */
+      }
       throw err;
     }
   }
@@ -635,6 +994,11 @@ class SwarmManager extends EventEmitter {
       this.taskCancel(taskId);
     }
 
+    // Emit plugin hook: swarm:shutdown
+    if (this._pluginHooks && HOOK_EVENT) {
+      this._pluginHooks.emit(HOOK_EVENT.SWARM_SHUTDOWN, {}).catch(() => {});
+    }
+
     // Shutdown subsystems
     if (this._taskPruneInterval) clearInterval(this._taskPruneInterval);
     if (this._permissionGate) this._permissionGate.destroy();
@@ -648,6 +1012,37 @@ class SwarmManager extends EventEmitter {
         // Non-fatal
       }
     }
+    if (this._terminalManager) {
+      try {
+        this._terminalManager.shutdown();
+      } catch {
+        /* non-fatal */
+      }
+    }
+    if (this._dockerSandbox) {
+      this._dockerSandbox.shutdown().catch(() => {});
+    }
+    if (this._sqliteMemoryStore) {
+      try {
+        this._sqliteMemoryStore.close();
+      } catch {
+        /* non-fatal */
+      }
+    }
+    if (this._sqliteTaskQueue) {
+      try {
+        this._sqliteTaskQueue.close();
+      } catch {
+        /* non-fatal */
+      }
+    }
+    if (this._pluginHooks) {
+      try {
+        this._pluginHooks.clear();
+      } catch {
+        /* non-fatal */
+      }
+    }
     this._persistence = null;
     this._workspaceIndexer = null;
     this._costRouter = null;
@@ -656,6 +1051,14 @@ class SwarmManager extends EventEmitter {
     this._pluginManager = null;
     this._skillRegistry = null;
     this._docGenerator = null;
+    this._terminalManager = null;
+    this._gitWorkflow = null;
+    this._autonomousPlanner = null;
+    this._dockerSandbox = null;
+    this._sqliteMemoryStore = null;
+    this._sqliteTaskQueue = null;
+    this._pluginHooks = null;
+    this._smartApply = null;
 
     // Close SSE subscribers
     for (const sub of this._subscribers) {
@@ -666,6 +1069,9 @@ class SwarmManager extends EventEmitter {
       }
     }
     this._subscribers.clear();
+
+    // Remove all EventEmitter listeners so Node doesn't stay alive
+    this.removeAllListeners();
 
     this._state = SWARM_STATE.SHUTDOWN;
     return { status: "shutdown" };
@@ -727,11 +1133,52 @@ class SwarmManager extends EventEmitter {
   // Background Tasks API
   // ════════════════════════════════════════════════════════════
 
-  /** Submit a task for background execution. */
+  /** Submit a task for background execution — auto-starts if capacity available. */
   submitBackgroundTask(taskSpec) {
     if (!this._backgroundTasks)
       return { error: "Background tasks not available" };
-    return this._backgroundTasks.submit(taskSpec);
+    const submission = this._backgroundTasks.submit(taskSpec);
+
+    // Auto-drain: start the task if we have capacity
+    this._drainBackgroundQueue();
+
+    return submission;
+  }
+
+  /**
+   * Drain the background task queue — start queued tasks up to concurrency limit.
+   * @private
+   */
+  _drainBackgroundQueue() {
+    if (!this._backgroundTasks) return;
+
+    const queue = this._backgroundTasks._queue;
+    if (!queue || queue.size === 0) return;
+
+    // Peek at next task and try to start it
+    const next = queue.peek();
+    if (!next) return;
+
+    const handle = this._backgroundTasks.start(next.id, async (spec) => {
+      // Execute via taskOrchestrate
+      return this.taskOrchestrate({
+        goal: spec.goal,
+        mode: spec.mode || "single",
+        topology: spec.topology,
+        context: spec.context || {},
+      });
+    });
+
+    // If started successfully, schedule next drain after completion
+    if (handle) {
+      // Listen for completion to drain next
+      this._backgroundTasks.once("task:completed", () =>
+        this._drainBackgroundQueue(),
+      );
+      this._backgroundTasks.once("task:failed", () =>
+        this._drainBackgroundQueue(),
+      );
+    }
   }
 
   /** Get background task status. */
@@ -832,7 +1279,7 @@ class SwarmManager extends EventEmitter {
   subscribe(res) {
     this._subscribers.add(res);
     // Send recent events as replay
-    const recent = this._events.slice(-50);
+    const recent = this._eventLog.slice(-50);
     for (const event of recent) {
       try {
         res.write(`data: ${JSON.stringify(event)}\n\n`);
@@ -847,7 +1294,7 @@ class SwarmManager extends EventEmitter {
   }
 
   getEventLog(limit = 100) {
-    return this._events.slice(-limit);
+    return this._eventLog.slice(-limit);
   }
 
   // ════════════════════════════════════════════════════════════
@@ -872,6 +1319,20 @@ class SwarmManager extends EventEmitter {
       node.status = NODE_STATUS.RUNNING;
       node.startedAt = new Date().toISOString();
       this._memory.onNodeStart(node);
+
+      // Emit to task stream for real-time UI
+      if (context._taskStream && context._taskStream.emitNodeStart) {
+        try {
+          context._taskStream.emitNodeStart({
+            nodeId: node.id,
+            goal: node.goal,
+            agentType: node.agentType,
+          });
+        } catch {
+          /* non-fatal */
+        }
+      }
+
       this._broadcast(
         createSwarmEvent({
           type: EVENT_TYPE.NODE_STARTED,
@@ -883,6 +1344,8 @@ class SwarmManager extends EventEmitter {
       try {
         agent = this._agentRouter.route(node.agentType);
         if (sessionId && agent.setSessionId) agent.setSessionId(sessionId);
+        if (context._taskStream && agent.setTaskStream)
+          agent.setTaskStream(context._taskStream);
 
         // Gather context from previous nodes
         const nodeContext = {
@@ -893,13 +1356,19 @@ class SwarmManager extends EventEmitter {
         };
 
         const nodePromise = agent.execute(node, nodeContext);
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(
+        let timeoutHandle;
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutHandle = setTimeout(
             () => reject(new Error("Node execution timeout (3 min)")),
             NODE_TIMEOUT_MS,
-          ),
-        );
-        const result = await Promise.race([nodePromise, timeoutPromise]);
+          );
+        });
+        let result;
+        try {
+          result = await Promise.race([nodePromise, timeoutPromise]);
+        } finally {
+          clearTimeout(timeoutHandle);
+        }
         if (
           taskGraph.status === "cancelled" ||
           node.status === NODE_STATUS.CANCELLED
@@ -912,6 +1381,43 @@ class SwarmManager extends EventEmitter {
         node.status = NODE_STATUS.SUCCEEDED;
         node.completedAt = new Date().toISOString();
         taskGraph.metadata.nodesCompleted++;
+
+        // Emit node complete to task stream
+        if (context._taskStream && context._taskStream.emitNodeComplete) {
+          try {
+            context._taskStream.emitNodeComplete({
+              nodeId: node.id,
+              agentType: node.agentType,
+              resultPreview: JSON.stringify(result).slice(0, 300),
+            });
+          } catch {
+            /* non-fatal */
+          }
+        }
+
+        // Learn from successful task execution (workspace memory)
+        if (this._workspaceMemory && result) {
+          try {
+            // Learn from tool calls (file patterns, commands used)
+            if (result.toolLog && Array.isArray(result.toolLog)) {
+              for (const entry of result.toolLog) {
+                if (entry.tool === "run_bash" && entry.args?.command) {
+                  this._workspaceMemory.recordCommand(entry.args.command, {
+                    exitCode: 0,
+                  });
+                }
+                if (entry.tool === "write_file" && entry.args?.path) {
+                  this._workspaceMemory.learnPattern(
+                    "file_edit",
+                    entry.args.path,
+                  );
+                }
+              }
+            }
+          } catch {
+            /* non-fatal workspace memory learning */
+          }
+        }
 
         this._memory.onNodeEnd(node);
         this._broadcast(
@@ -930,17 +1436,26 @@ class SwarmManager extends EventEmitter {
           node.completedAt = new Date().toISOString();
           return;
         }
-        // Retry logic
+        // Retry logic — actually re-execute the node
         if (node.retryCount < node.maxRetries) {
           node.retryCount++;
-          node.status = NODE_STATUS.RETRYING;
           this._broadcast(
             createSwarmEvent({
               type: EVENT_TYPE.NODE_RETRIED,
-              data: { nodeId: node.id, retry: node.retryCount },
+              data: {
+                nodeId: node.id,
+                retry: node.retryCount,
+                error: err.message,
+              },
             }),
           );
-          node.status = NODE_STATUS.QUEUED; // Re-queue for next round
+          // Release the failed agent before retrying
+          if (agent && agent.status === "busy") {
+            this._agentRouter.release(agent.id);
+            agent = null; // Prevent double-release in finally
+          }
+          // Re-execute with a fresh agent
+          return executeNode(node);
         } else {
           node.status = NODE_STATUS.FAILED;
           node.error = err.message || String(err);
@@ -955,9 +1470,13 @@ class SwarmManager extends EventEmitter {
           );
         }
       } finally {
-        // Only release agents still in BUSY state — don't release if denied/errored/shutdown
-        if (agent && agent.status === "busy") {
-          this._agentRouter.release(agent.id);
+        // Release agent back to pool (agent may be null if already released during retry)
+        if (agent) {
+          try {
+            this._agentRouter.release(agent.id);
+          } catch {
+            // Already released — safe to ignore
+          }
         }
       }
     };
@@ -1095,9 +1614,9 @@ class SwarmManager extends EventEmitter {
   }
 
   _broadcast(event) {
-    this._events.push(event);
-    if (this._events.length > this._maxEvents) {
-      this._events = this._events.slice(-this._maxEvents);
+    this._eventLog.push(event);
+    if (this._eventLog.length > this._maxEvents) {
+      this._eventLog = this._eventLog.slice(-this._maxEvents);
     }
 
     // Persist event to SQLite
@@ -1163,21 +1682,76 @@ class SwarmManager extends EventEmitter {
 
     return async (systemPrompt, userPrompt, opts = {}) => {
       // If the caller already specified a model, respect it
-      if (opts.model) return baseRunLLM(systemPrompt, userPrompt, opts);
+      if (opts.model) {
+        const result = await baseRunLLM(systemPrompt, userPrompt, opts);
+        this._trackCostRouterSpend(result, opts);
+        return result;
+      }
 
-      // Derive tier from agentType if available
+      // Use CostRouter for intelligent model selection if available
       const agentType = opts.agentType || opts._agentType;
+      if (this._costRouter && agentType) {
+        try {
+          const selection = this._costRouter.selectModel({
+            agentType,
+            goal: opts.goal || "",
+            contextSize: (systemPrompt + userPrompt).length,
+          });
+          if (selection && selection.model) {
+            const result = await baseRunLLM(systemPrompt, userPrompt, {
+              ...opts,
+              model: selection.model,
+              modelTier: selection.tier,
+            });
+            this._trackCostRouterSpend(result, opts);
+            return result;
+          }
+        } catch {
+          // Fall through to mode-config fallback
+        }
+      }
+
+      // Fallback: derive tier from agentType via mode-config
       if (agentType) {
         const tier = getAgentModelTier(agentType);
         if (tier) {
-          return baseRunLLM(systemPrompt, userPrompt, {
+          const result = await baseRunLLM(systemPrompt, userPrompt, {
             ...opts,
             modelTier: tier,
           });
+          this._trackCostRouterSpend(result, opts);
+          return result;
         }
       }
-      return baseRunLLM(systemPrompt, userPrompt, opts);
+      const result = await baseRunLLM(systemPrompt, userPrompt, opts);
+      this._trackCostRouterSpend(result, opts);
+      return result;
     };
+  }
+
+  /**
+   * Track LLM spend in the CostRouter for budget enforcement.
+   * @private
+   */
+  _trackCostRouterSpend(result, opts) {
+    if (!this._costRouter || !result) return;
+    try {
+      if (typeof result === "object" && result.usage) {
+        const inputTokens =
+          result.usage.input_tokens || result.usage.prompt_tokens || 0;
+        const outputTokens =
+          result.usage.output_tokens || result.usage.completion_tokens || 0;
+        const model = result.model || opts.model || "unknown";
+        this._costRouter.trackSpend({
+          model,
+          inputTokens,
+          outputTokens,
+          agentType: opts.agentType || opts._agentType || "unknown",
+        });
+      }
+    } catch {
+      /* non-fatal */
+    }
   }
 
   _requireActive() {
@@ -1186,5 +1760,8 @@ class SwarmManager extends EventEmitter {
     }
   }
 }
+
+// Attach delegation APIs (terminal, git, planner, docker, sqlite, plugins, smart-apply)
+applyExtensionMethods(SwarmManager);
 
 module.exports = { SwarmManager, SWARM_STATE };

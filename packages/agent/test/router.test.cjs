@@ -1,5 +1,4 @@
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const { getRouterDecision } = require("../src/router");
 
 test("router chooses cloud when local model missing", () => {
