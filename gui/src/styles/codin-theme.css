@@ -55,7 +55,7 @@
   /* ── Semantic Foreground ───────────────────────────────────────── */
   --codin-fg-primary: #e8e6f0; /* main text — warm white with indigo tint */
   --codin-fg-secondary: #a8a5c0; /* secondary text */
-  --codin-fg-muted: #6b6890; /* muted/subtle text */
+  --codin-fg-muted: #8b88ad; /* muted/subtle text — lightened for WCAG AA 4.5:1 contrast on bg-primary */
   --codin-fg-inverse: #0f0e17; /* text on light backgrounds */
 
   /* ── Accent Colors ─────────────────────────────────────────────── */
@@ -518,4 +518,74 @@
 }
 .codin-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--codin-indigo-800);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   6. ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Global focus-visible ring for interactive elements ─────────── */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--codin-border-focus);
+  outline-offset: 2px;
+}
+
+/* ── Skip-to-content link (screen reader + keyboard) ───────────── */
+.codin-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--codin-accent-saffron);
+  color: var(--codin-fg-inverse);
+  font-weight: 600;
+  border-radius: var(--codin-radius-md);
+}
+.codin-skip-link:focus {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  width: auto;
+  height: auto;
+}
+
+/* ── aria-live region utility classes ──────────────────────────── */
+.codin-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.codin-live-polite {
+  /* Apply to elements with aria-live="polite" — no visual style needed */
+}
+
+.codin-live-assertive {
+  /* Apply to elements with aria-live="assertive" — no visual style needed */
+}
+
+/* ── Reduced motion preference ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

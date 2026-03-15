@@ -332,7 +332,7 @@ export function ModelManagerPanel() {
           <div className="offline-help">
             <div className="help-icon">ℹ️</div>
             <div className="help-content">
-              <strong>CodIn Agent is offline</strong>
+              <strong>CodeIn Agent is offline</strong>
               <p>Make sure the agent server is running on port 43120.</p>
               <button
                 className="btn-retry"

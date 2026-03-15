@@ -1,5 +1,5 @@
 /**
- * Minimal pattern-matching HTTP router for CodIn Agent
+ * Minimal pattern-matching HTTP router for CodeIn Agent
  * Replaces the monolithic if-chain in index.js with a clean, modular approach.
  */
 

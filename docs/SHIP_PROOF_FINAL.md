@@ -67,10 +67,10 @@ On macOS/Linux, `chmod +x` is applied automatically.
 
 ### Artifacts Produced Locally
 
-| Artifact                         | Size (bytes) | SHA256                                                             | Timestamp        |
-| -------------------------------- | ------------ | ------------------------------------------------------------------ | ---------------- |
-| CodIn-1.0.0-win-x64-portable.zip | 134,272,760  | `eda78cd4d074bd6adec5768a6536be6d16f0dd79044851ddd03f5aac4b66f310` | 2026-03-01 00:28 |
-| CodIn.exe (inside zip, portable) | 176,813,568  | `67dc2a7036860a68e5312c212c31b8772ac463ed0289fcc44897867f55075e89` | 2026-03-01 00:27 |
+| Artifact                          | Size (bytes) | SHA256                                                             | Timestamp        |
+| --------------------------------- | ------------ | ------------------------------------------------------------------ | ---------------- |
+| CodeIn-1.0.0-win-x64-portable.zip | 134,272,760  | `eda78cd4d074bd6adec5768a6536be6d16f0dd79044851ddd03f5aac4b66f310` | 2026-03-01 00:28 |
+| CodeIn.exe (inside zip, portable) | 176,813,568  | `67dc2a7036860a68e5312c212c31b8772ac463ed0289fcc44897867f55075e89` | 2026-03-01 00:27 |
 
 ### CI Artifacts (via `.github/workflows/release-matrix.yml`)
 
@@ -155,8 +155,8 @@ Components verified to exist in `gui/src/components/`:
 See [ARTIFACT_CHECKSUMS.txt](ARTIFACT_CHECKSUMS.txt).
 
 ```
-eda78cd4d074bd6adec5768a6536be6d16f0dd79044851ddd03f5aac4b66f310  CodIn-1.0.0-win-x64-portable.zip
-67dc2a7036860a68e5312c212c31b8772ac463ed0289fcc44897867f55075e89  CodIn.exe (inside zip)
+eda78cd4d074bd6adec5768a6536be6d16f0dd79044851ddd03f5aac4b66f310  CodeIn-1.0.0-win-x64-portable.zip
+67dc2a7036860a68e5312c212c31b8772ac463ed0289fcc44897867f55075e89  CodeIn.exe (inside zip)
 d4a1dbde7091a2dda4aeb7066d4ae098d705f6c06575cecd1baca86b0bb6a2da  llama-server.exe (win32)
 ```
 

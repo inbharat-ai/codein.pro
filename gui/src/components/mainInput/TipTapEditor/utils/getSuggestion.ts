@@ -40,14 +40,12 @@ function getSuggestion(
           });
 
           if (!props.clientRect) {
-            console.log("no client rect");
             return;
           }
 
           const container = document.getElementById(TIPPY_DIV_ID);
 
           if (!container) {
-            console.log("no container");
             return;
           }
 

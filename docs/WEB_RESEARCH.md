@@ -1,8 +1,8 @@
-# 🔍 CodIn Web Research System
+# 🔍 CodeIn Web Research System
 
 ## Overview
 
-CodIn includes a powerful, **fully inbuilt web research system** with no external API dependencies required. The system provides Serper-compatible search capabilities and specialized research endpoints.
+CodeIn includes a powerful, **fully inbuilt web research system** with no external API dependencies required. The system provides Serper-compatible search capabilities and specialized research endpoints.
 
 ---
 
@@ -19,7 +19,7 @@ CodIn includes a powerful, **fully inbuilt web research system** with no externa
 
 - Drop-in replacement for Serper API
 - Industry-standard response schema
-- Labeled as "CodIn Search"
+- Labeled as "CodeIn Search"
 - Best-effort `organic`, `answerBox`, `knowledgeGraph` support
 
 ### ✅ **Specialized Research Tools**
@@ -72,7 +72,7 @@ All endpoints are available at `http://localhost:43120/api/research/`
         "title": "React Hooks – React",
         "link": "https://react.dev/reference/react/hooks",
         "snippet": "Hooks let you use different React features from your components...",
-        "source": "CodIn Search"
+        "source": "CodeIn Search"
       }
     ],
     "answerBox": {},
@@ -267,7 +267,7 @@ export CODIN_BRAVE_API_KEY="BSxxxxxxxxxx"
 export CODIN_SERPAPI_KEY="xxxxxxxxxxxxxxxx"
 ```
 
-**Note:** If no API keys are set, CodIn automatically uses **DuckDuckGo** (no API key required).
+**Note:** If no API keys are set, CodeIn automatically uses **DuckDuckGo** (no API key required).
 
 ---
 
@@ -450,9 +450,9 @@ View all research activity in the Config UI:
 
 ---
 
-## 🌐 Comparison: CodIn vs Serper API
+## 🌐 Comparison: CodeIn vs Serper API
 
-| Feature             | CodIn (Inbuilt)        | Serper API           |
+| Feature             | CodeIn (Inbuilt)       | Serper API           |
 | ------------------- | ---------------------- | -------------------- |
 | **Cost**            | ✅ Free                | 💰 Paid ($50-500/mo) |
 | **API Key**         | ✅ None required       | ❌ Required          |
@@ -523,7 +523,7 @@ return {
 
 ```
 ┌─────────────────────────────────────────────┐
-│         CodIn Agent (Node.js)               │
+│         CodeIn Agent (Node.js)               │
 ├─────────────────────────────────────────────┤
 │  POST /api/research/serper                  │
 │         ↓                                   │
@@ -569,7 +569,7 @@ curl http://localhost:43120/health
 # Expected response
 {
   "status": "ok",
-  "agent": "CodIn Agent",
+  "agent": "CodeIn Agent",
   "version": "0.1.0"
 }
 ```
@@ -645,7 +645,7 @@ await permissionManager.requestPermission("webFetch", {
 
 ---
 
-**Made with ❤️ by the CodIn Team**
+**Made with ❤️ by the CodeIn Team**
 
 For support or feature requests:
 

@@ -1,4 +1,4 @@
-# CodIn Ship-Readiness — Final Release Checklist
+# CodeIn Ship-Readiness — Final Release Checklist
 
 **Date**: 2025-01-27  
 **Sprint**: 6.5 → 9/10 Ship-Readiness  

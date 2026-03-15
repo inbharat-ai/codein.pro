@@ -1,5 +1,5 @@
 /**
- * CodIn Application Menu
+ * CodeIn Application Menu
  * Full native menu bar with working shortcuts
  */
 
@@ -181,7 +181,7 @@ export function buildAppMenu(windowManager: {
       label: "Help",
       submenu: [
         {
-          label: "CodIn Documentation",
+          label: "CodeIn Documentation",
           click: () => shell.openExternal("https://codin.pro/docs"),
         },
         {
@@ -193,14 +193,14 @@ export function buildAppMenu(windowManager: {
         },
         { type: "separator" },
         {
-          label: `About CodIn v${app.getVersion()}`,
+          label: `About CodeIn v${app.getVersion()}`,
           click: () => {
             const win = windowManager.getMainWindow();
             if (win) {
               dialog.showMessageBox(win, {
                 type: "info",
-                title: "About CodIn",
-                message: `CodIn v${app.getVersion()}`,
+                title: "About CodeIn",
+                message: `CodeIn v${app.getVersion()}`,
                 detail:
                   "Multilingual AI-Powered Code Editor\nBuilt for Bharat\n\n© 2026 InBharat AI",
               });

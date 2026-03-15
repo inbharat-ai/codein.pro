@@ -36,14 +36,16 @@ export function SwarmHeader() {
   };
 
   return (
-    <div className="border-vsc-input-border space-y-2 border-b p-2">
+    <div className="border-codin-border space-y-2 border-b p-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Multi-Agent Swarm</h2>
+        <h2 className="text-codin-fg text-sm font-semibold">
+          Multi-Agent Swarm
+        </h2>
         <span
-          className={`rounded px-1.5 py-0.5 text-xs ${
+          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
             isActive
-              ? "bg-green-900/40 text-green-400"
-              : "bg-zinc-700 text-zinc-400"
+              ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30"
+              : "bg-codin-bg-surface text-codin-fg-muted"
           }`}
         >
           {status?.state || "idle"}
@@ -51,9 +53,9 @@ export function SwarmHeader() {
       </div>
 
       {!isActive && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <select
-            className="bg-vsc-input-background border-vsc-input-border w-full rounded border px-2 py-1 text-xs"
+            className="bg-codin-bg-surface border-codin-border text-codin-fg focus:border-codin-border-focus w-full rounded border px-2 py-1.5 text-xs focus:outline-none"
             value={topology}
             onChange={(e) => setTopology(e.target.value)}
           >
@@ -63,7 +65,7 @@ export function SwarmHeader() {
               </option>
             ))}
           </select>
-          <div className="flex items-center gap-2 text-xs">
+          <div className="text-codin-fg-secondary flex items-center gap-2 text-xs">
             <label>Max Agents:</label>
             <input
               type="number"
@@ -71,13 +73,13 @@ export function SwarmHeader() {
               max={20}
               value={maxAgents}
               onChange={(e) => setMaxAgents(parseInt(e.target.value, 10) || 10)}
-              className="bg-vsc-input-background border-vsc-input-border w-16 rounded border px-1 py-0.5"
+              className="bg-codin-bg-surface border-codin-border text-codin-fg focus:border-codin-border-focus w-16 rounded border px-1.5 py-1 focus:outline-none"
             />
           </div>
           <button
             onClick={handleInit}
             disabled={loading}
-            className="w-full rounded bg-blue-600 py-1.5 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
+            className="bg-codin-indigo-600 hover:bg-codin-indigo-500 w-full rounded py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50"
           >
             {loading ? "Initializing..." : "Initialize Swarm"}
           </button>
@@ -85,14 +87,14 @@ export function SwarmHeader() {
       )}
 
       {isActive && (
-        <div className="flex items-center gap-2 text-xs">
+        <div className="text-codin-fg-secondary flex items-center gap-2 text-xs">
           <span className="flex-1">
             Agents: {status?.agents?.length || 0} | Tasks:{" "}
             {status?.activeTasks || 0}
           </span>
           <button
             onClick={handleShutdown}
-            className="rounded bg-red-800 px-2 py-1 text-xs text-white hover:bg-red-700"
+            className="rounded bg-red-900/60 px-2.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-800/80"
           >
             Shutdown
           </button>
@@ -100,11 +102,11 @@ export function SwarmHeader() {
       )}
 
       {error && (
-        <div className="flex items-center justify-between text-xs text-red-400">
+        <div className="flex items-center justify-between rounded bg-red-900/20 px-2 py-1 text-xs text-red-400">
           <span>{error}</span>
           <button
             onClick={() => dispatch(clearError())}
-            className="ml-2 underline"
+            className="ml-2 text-red-300 underline hover:text-red-200"
           >
             dismiss
           </button>

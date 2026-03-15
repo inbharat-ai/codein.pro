@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Web Research Service for CodIn
+Web Research Service for CodeIn
 Enables web search, research, and information gathering capabilities
 """
 
@@ -24,7 +24,7 @@ class WebResearchService:
         self.cache = {}
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'CodIn/1.0 (+https://github.com/codin)'
+            'User-Agent': 'CodeIn/1.0 (+https://github.com/codin)'
         })
         self.max_retries = 3
         self.timeout = 10
@@ -382,7 +382,7 @@ if __name__ == '__main__':
     # Test the service
     service = WebResearchService()
 
-    print("🔍 CodIn Web Research Service")
+    print("🔍 CodeIn Web Research Service")
     print("=" * 50)
 
     # Test web search

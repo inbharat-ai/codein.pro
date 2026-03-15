@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Docs Agent
+ * CodeIn MAS — Docs Agent
  *
  * Writes documentation: READMEs, API docs, inline comments.
  */
@@ -12,7 +12,7 @@ const {
   PERMISSION_DECISION,
 } = require("../types");
 
-const SYSTEM_PROMPT = `You are the CodIn Docs Agent. You write clear, accurate documentation.
+const SYSTEM_PROMPT = `You are the CodeIn Docs Agent. You write clear, accurate documentation.
 
 RULES:
 1. Match the project's existing documentation style and format

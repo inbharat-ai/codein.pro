@@ -4,7 +4,6 @@
  * Covers RFC 6902 operations, validation, auto-repair, pointer parsing.
  */
 const assert = require("node:assert/strict");
-const test = require("node:test");
 
 const {
   validatePatchOp,

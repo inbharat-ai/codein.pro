@@ -44,7 +44,7 @@
 
 ## Supported OS Targets
 
-- Windows (CodIn.exe)
+- Windows (CodeIn.exe)
 - macOS (CodeIn-darwin-x64.dmg)
 - Linux (CodeIn-linux-x64.AppImage)
 

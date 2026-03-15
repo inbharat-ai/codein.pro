@@ -6,7 +6,6 @@
  */
 "use strict";
 
-const { describe, it, beforeEach, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
 
 const { SwarmManager, SWARM_STATE } = require("../src/mas/swarm-manager");

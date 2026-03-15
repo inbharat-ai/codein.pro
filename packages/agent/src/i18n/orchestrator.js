@@ -34,6 +34,93 @@ const CODIN_DIR = path.join(os.homedir(), ".codin");
 const I18N_DIR = path.join(CODIN_DIR, "i18n");
 const DEFAULT_LLAMA_ENDPOINT = "http://127.0.0.1:8080";
 
+/**
+ * Simple in-memory LRU cache for translations.
+ * Max entries: 1000, TTL: 1 hour per entry.
+ * Key format: `${sourceLang}:${targetLang}:${hash(text)}`
+ */
+class TranslationLRUCache {
+  constructor(maxSize = 1000, ttlMs = 60 * 60 * 1000) {
+    this.maxSize = maxSize;
+    this.ttlMs = ttlMs;
+    /** @type {Map<string, {value: string, expiresAt: number}>} */
+    this.cache = new Map();
+  }
+
+  /**
+   * Simple hash using charCode sum — sufficient for cache key differentiation.
+   */
+  _hash(text) {
+    let h = 0;
+    for (let i = 0; i < text.length; i++) {
+      h = (h + text.charCodeAt(i) * (i + 1)) | 0;
+    }
+    return h.toString(36);
+  }
+
+  _makeKey(sourceLang, targetLang, text) {
+    return `${sourceLang}:${targetLang}:${this._hash(text)}`;
+  }
+
+  /**
+   * Retrieve a cached translation, or undefined if missing / expired.
+   * Accessing an entry moves it to the most-recent position (LRU refresh).
+   */
+  get(sourceLang, targetLang, text) {
+    const key = this._makeKey(sourceLang, targetLang, text);
+    const entry = this.cache.get(key);
+    if (!entry) return undefined;
+
+    if (Date.now() > entry.expiresAt) {
+      this.cache.delete(key);
+      return undefined;
+    }
+
+    // Move to end (most recently used)
+    this.cache.delete(key);
+    this.cache.set(key, entry);
+    return entry.value;
+  }
+
+  /**
+   * Store a translation result in the cache.
+   * Evicts the least-recently-used entry when the cache is full.
+   */
+  set(sourceLang, targetLang, text, translatedText) {
+    const key = this._makeKey(sourceLang, targetLang, text);
+
+    // If already present, delete first so re-insert moves it to end
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
+
+    // Evict oldest entry if at capacity
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value;
+      this.cache.delete(oldestKey);
+    }
+
+    this.cache.set(key, {
+      value: translatedText,
+      expiresAt: Date.now() + this.ttlMs,
+    });
+  }
+
+  /**
+   * Clear all cached translations.
+   */
+  clear() {
+    this.cache.clear();
+  }
+
+  /**
+   * Number of entries currently in the cache.
+   */
+  get size() {
+    return this.cache.size;
+  }
+}
+
 async function getFetch() {
   if (typeof fetch === "function") {
     return fetch;
@@ -70,6 +157,7 @@ class I18nOrchestrator {
     this.multilingualHardener = MultilingualHardener
       ? new MultilingualHardener()
       : null;
+    this.translationCache = new TranslationLRUCache();
     this.ensureDirectories();
   }
 
@@ -140,22 +228,35 @@ class I18nOrchestrator {
       return text;
     }
 
+    // Check the translation cache first
+    const cached = this.translationCache.get(sourceLang, targetLang, text);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    let result;
+
     // Use technical term preservator if available
     if (this.termPreservator) {
       const rawTranslateFn = async (cleanText, src, tgt) => {
         return await this._rawTranslate(cleanText, src, tgt);
       };
-      const result = await this.termPreservator.translateWithPreservation(
+      const preserved = await this.termPreservator.translateWithPreservation(
         text,
         sourceLang,
         targetLang,
         rawTranslateFn,
       );
-      return result.text;
+      result = preserved.text;
+    } else {
+      // Fallback: translate without term preservation
+      result = await this._rawTranslate(text, sourceLang, targetLang);
     }
 
-    // Fallback: translate without term preservation
-    return await this._rawTranslate(text, sourceLang, targetLang);
+    // Store in cache
+    this.translationCache.set(sourceLang, targetLang, text, result);
+
+    return result;
   }
 
   /**
@@ -476,6 +577,13 @@ class I18nOrchestrator {
             }),
           },
         ];
+  }
+
+  /**
+   * Clear the translation cache
+   */
+  clearCache() {
+    this.translationCache.clear();
   }
 
   /**

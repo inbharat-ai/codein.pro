@@ -3,21 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "type": "commonjs",
-  "description": "CodIn Agent - Local runtime service with AI, i18n, and research capabilities",
+  "description": "CodeIn Agent - Local runtime service with AI, i18n, and research capabilities",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node --test test/*.test.cjs",
+    "test": "jest --no-coverage -- test/",
     "lint": "eslint src",
     "typecheck": "node -e \"console.log('Typecheck gate: JavaScript runtime checks enabled')\""
   },
   "dependencies": {
+    "better-sqlite3": "^12.6.2",
     "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
     "pino": "^9.5.0"
   },
   "devDependencies": {
-    "eslint": "^9.14.0"
+    "eslint": "^9.14.0",
+    "jest": "^30.3.0"
   },
   "engines": {
     "node": ">=20.19.0"

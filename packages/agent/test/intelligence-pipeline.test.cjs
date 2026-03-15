@@ -4,7 +4,6 @@
  * BudgetGuardrails, DecisionLogger, HybridOrchestrator integration.
  */
 
-const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const fs = require("node:fs");

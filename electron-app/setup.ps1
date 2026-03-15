@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
-# CodIn Electron - Quick Setup Script for Windows (PowerShell)
+# CodeIn Electron - Quick Setup Script for Windows (PowerShell)
 
-Write-Host "🚀 CodIn Electron Setup" -ForegroundColor Cyan
+Write-Host "🚀 CodeIn Electron Setup" -ForegroundColor Cyan
 Write-Host "======================" -ForegroundColor Cyan
 Write-Host ""
 

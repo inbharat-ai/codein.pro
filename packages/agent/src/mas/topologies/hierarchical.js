@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Hierarchical Topology
+ * CodeIn MAS — Hierarchical Topology
  *
  * Supervisor (planner) decomposes the task, workers execute sub-tasks,
  * supervisor resolves conflicts and synthesizes final result.

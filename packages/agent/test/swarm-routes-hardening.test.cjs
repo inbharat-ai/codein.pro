@@ -5,7 +5,6 @@
  */
 "use strict";
 
-const { describe, it, beforeEach, mock } = require("node:test");
 const assert = require("node:assert/strict");
 const { registerSwarmRoutes } = require("../src/routes/swarm");
 

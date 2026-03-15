@@ -1,7 +1,7 @@
 /**
  * Swarm Task Thunk
  *
- * Orchestrates complex multi-step tasks through the CodIn MAS.
+ * Orchestrates complex multi-step tasks through the CodeIn MAS.
  * Used for refactoring, planning, architecture, and other multi-agent work.
  */
 
@@ -29,7 +29,7 @@ export const streamSwarmTask = createAsyncThunk<
 >(
   "chat/streamSwarmTask",
   async ({ goal, context, historyIndex }, { dispatch }) => {
-    let pollInterval: ReturnType<typeof setInterval> | null = null;
+    let pollTimeout: ReturnType<typeof setTimeout> | null = null;
     let eventSource: EventSource | null = null;
 
     try {
@@ -95,7 +95,10 @@ export const streamSwarmTask = createAsyncThunk<
         }),
       );
 
-      pollInterval = setInterval(async () => {
+      let delay = 500;
+      const maxDelay = 8000;
+
+      const poll = async () => {
         try {
           const status = await swarmFetch(`/tasks/${taskResponse.taskId}`);
 
@@ -114,6 +117,9 @@ export const streamSwarmTask = createAsyncThunk<
               }),
             );
             lastStatus = status.status;
+            delay = 500;
+          } else {
+            delay = Math.min(delay * 2, maxDelay);
           }
 
           if (
@@ -121,10 +127,7 @@ export const streamSwarmTask = createAsyncThunk<
             status.status === "failed" ||
             status.status === "cancelled"
           ) {
-            clearInterval(pollInterval);
-
             if (status.status === "completed") {
-              // Get results
               try {
                 const results = await swarmFetch(
                   `/tasks/${taskResponse.taskId}/results`,
@@ -197,12 +200,16 @@ export const streamSwarmTask = createAsyncThunk<
                 reason: status.status,
               });
             }
+            return;
           }
+
+          pollTimeout = setTimeout(poll, delay);
         } catch (pollErr) {
           console.error("Error polling task status", pollErr);
-          clearInterval(pollInterval);
         }
-      }, 1000); // Poll every 1 second
+      };
+
+      pollTimeout = setTimeout(poll, delay);
 
       // Also listen for real-time events via SSE
       try {
@@ -212,7 +219,15 @@ export const streamSwarmTask = createAsyncThunk<
           try {
             const parsed = JSON.parse(event.data);
             if (parsed.taskId === taskResponse.taskId) {
-              accumulatedContent += `\n[${parsed.type}] ${JSON.stringify(parsed.data)}`;
+              // Sanitize event data to prevent XSS when rendered
+              const safeType = String(parsed.type || "").replace(
+                /[<>&"']/g,
+                "",
+              );
+              const safeData = JSON.stringify(parsed.data || {})
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+              accumulatedContent += `\n[${safeType}] ${safeData}`;
               dispatch(
                 updateHistoryItemAtIndex({
                   index: historyIndex,
@@ -254,7 +269,7 @@ export const streamSwarmTask = createAsyncThunk<
       });
     } finally {
       dispatch(setInactive());
-      if (pollInterval) clearInterval(pollInterval);
+      if (pollTimeout) clearTimeout(pollTimeout);
       if (eventSource) {
         eventSource.close();
         eventSource = null;

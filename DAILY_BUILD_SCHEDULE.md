@@ -1,8 +1,8 @@
-# 🏁 CodIn ELITE - Daily Build Schedule & Work Log
+# 🏁 CodeIn ELITE - Daily Build Schedule & Work Log
 
 ## Overview
 
-**Goal**: Complete CodIn ELITE from A to Z in 2-3 days  
+**Goal**: Complete CodeIn ELITE from A to Z in 2-3 days  
 **Total Work**: 40-50 hours  
 **Target Completion**: By end of Day 3  
 **Outcome**: Production-ready IDE installer
@@ -403,7 +403,7 @@ Wait for build to complete. Installer will be in `release/` folder.
 ```bash
 git add .
 git commit -m "Day 3: Complete AI integration, final testing, build release"
-git tag -a v1.0.0-alpha -m "CodIn ELITE Alpha Release - Complete from A to Z"
+git tag -a v1.0.0-alpha -m "CodeIn ELITE Alpha Release - Complete from A to Z"
 git push origin main
 ```
 

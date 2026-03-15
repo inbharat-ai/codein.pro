@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — MCP Tool Surface
+ * CodeIn MAS — MCP Tool Surface
  *
  * 11 tools exposed as MCP-callable tools for the swarm system.
  * Each tool follows the MCP tool schema: name, description, inputSchema, handler.

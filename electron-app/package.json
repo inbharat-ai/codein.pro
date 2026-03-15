@@ -1,10 +1,10 @@
 {
   "name": "codin-electron",
-  "productName": "CodIn",
+  "productName": "CodeIn",
   "version": "1.0.0",
-  "description": "CodIn - Multilingual AI-powered code editor for Indian languages",
+  "description": "CodeIn - Multilingual AI-powered code editor for Indian languages",
   "main": "dist/main/main.js",
-  "author": "CodIn Team",
+  "author": "CodeIn Team",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
@@ -46,7 +46,7 @@
   },
   "build": {
     "appId": "com.codin.editor",
-    "productName": "CodIn",
+    "productName": "CodeIn",
     "directories": {
       "buildResources": "build",
       "output": "release"

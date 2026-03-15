@@ -45,6 +45,8 @@ export function ModeSelect() {
     } else if (mode === "plan") {
       dispatch(setMode("agent"));
     } else if (mode === "agent") {
+      dispatch(setMode("vibe"));
+    } else if (mode === "vibe") {
       // Skip background mode if local agent is selected
       dispatch(setMode(isLocalAgent ? "chat" : "background"));
     } else {
@@ -117,7 +119,9 @@ export function ModeSelect() {
                 ? "Agent"
                 : mode === "background"
                   ? "Background"
-                  : "Plan"}
+                  : mode === "vibe"
+                    ? "Vibe"
+                    : "Plan"}
           </span>
           <ChevronDownIcon
             className="h-2 w-2 flex-shrink-0"
@@ -183,6 +187,24 @@ export function ModeSelect() {
             {!isGoodAtAgentMode && notGreatAtAgent("Agent")}
             <CheckIcon
               className={`ml-auto h-3 w-3 ${mode === "agent" ? "" : "opacity-0"}`}
+            />
+          </ListboxOption>
+
+          <ListboxOption value="vibe" className={"gap-1"}>
+            <div className="flex flex-row items-center gap-1.5">
+              <ModeIcon mode="vibe" />
+              <span className="">Vibe</span>
+              <ToolTip
+                style={{
+                  zIndex: 200001,
+                }}
+                content="Screenshot to Code"
+              >
+                <InformationCircleIcon className="h-2.5 w-2.5 flex-shrink-0" />
+              </ToolTip>
+            </div>
+            <CheckIcon
+              className={`ml-auto h-3 w-3 ${mode === "vibe" ? "" : "opacity-0"}`}
             />
           </ListboxOption>
 

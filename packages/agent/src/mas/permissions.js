@@ -1,5 +1,5 @@
 /**
- * CodIn Multi-Agent Swarm — Permission Gate
+ * CodeIn Multi-Agent Swarm — Permission Gate
  *
  * Fail-closed permission system. Every agent action that touches the file system,
  * network, git, MCP tools, or GPU spend must pass through this gate.
@@ -25,6 +25,9 @@ const {
   createPermissionRequest,
 } = require("./types");
 const { RunpodBYOProvider } = require("../gpu-orchestration/runpod-provider");
+const { createLogger } = require("./logger");
+
+const log = createLogger("PermissionGate");
 
 // ─── Constants ───────────────────────────────────────────────
 const GPU_BUDGET_DEFAULT = 2.0; // $2
@@ -267,10 +270,33 @@ class PermissionGate {
     });
     this._emit(EVENT_TYPE.PERMISSION_REQUESTED, { request });
 
+    // Timeout: auto-deny after 5 minutes to prevent hung promises
+    const PERMISSION_TIMEOUT_MS = 5 * 60 * 1000;
     return new Promise((resolve) => {
+      const timeoutHandle = setTimeout(() => {
+        if (this._pending.has(request.id)) {
+          this._pending.delete(request.id);
+          this._audit({
+            nodeId: request.nodeId,
+            agentId: request.agentId,
+            permissionType: request.permissionType,
+            action: request.action,
+            decision: PERMISSION_DECISION.DENIED,
+            reason: "Permission request timed out (5 min)",
+          });
+          resolve({
+            decision: PERMISSION_DECISION.DENIED,
+            reason: "Permission request timed out (5 min)",
+          });
+        }
+      }, PERMISSION_TIMEOUT_MS);
+      // Don't block Node exit
+      if (timeoutHandle.unref) timeoutHandle.unref();
+
       this._pending.set(request.id, {
         request,
         resolve,
+        timeoutHandle,
         createdAt: Date.now(),
       });
     });
@@ -298,7 +324,8 @@ class PermissionGate {
     }
 
     this._pending.delete(requestId);
-    const { request, resolve } = entry;
+    const { request, resolve, timeoutHandle } = entry;
+    if (timeoutHandle) clearTimeout(timeoutHandle);
 
     let decision;
     let reason;
@@ -364,15 +391,15 @@ class PermissionGate {
       decision === PERMISSION_DECISION.APPROVED &&
       request.permissionType === PERMISSION_TYPE.REMOTE_GPU_SPEND
     ) {
-      this._recordGpuSpend(request.costEstimate);
+      this._recordGpuSpend(request.costEstimateUSD || 0);
 
       // Create GPU pod if API key available
       if (this._runpodApiKey) {
         this._createGpuPod(requestId, request).catch((err) => {
-          console.error(
-            `Failed to create GPU pod for ${requestId}:`,
-            err.message,
-          );
+          log.error("Failed to create GPU pod", {
+            requestId,
+            error: err.message,
+          });
         });
       }
     }
@@ -512,7 +539,7 @@ class PermissionGate {
 
       return provider;
     } catch (error) {
-      console.error("GPU pod creation failed:", error);
+      log.error("GPU pod creation failed", { error: error.message });
       throw error;
     }
   }
@@ -528,7 +555,10 @@ class PermissionGate {
     for (const [requestId, provider] of this._gpuProviders) {
       promises.push(
         provider.stopPod().catch((err) => {
-          console.error(`Failed to stop GPU pod ${requestId}:`, err.message);
+          log.error("Failed to stop GPU pod", {
+            requestId,
+            error: err.message,
+          });
         }),
       );
     }
@@ -539,6 +569,7 @@ class PermissionGate {
   /** Cancel all pending permissions (e.g., on swarm shutdown). */
   cancelAllPending() {
     for (const [, entry] of this._pending) {
+      if (entry.timeoutHandle) clearTimeout(entry.timeoutHandle);
       entry.resolve({
         decision: PERMISSION_DECISION.DENIED,
         reason: "Swarm shutdown — all pending permissions cancelled",

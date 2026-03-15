@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 let outputChannel: vscode.OutputChannel | null = null;
 
 export function initializeLogger() {
-  outputChannel = vscode.window.createOutputChannel("CodIn Agent");
+  outputChannel = vscode.window.createOutputChannel("CodeIn Agent");
 }
 
 export const logger = {

@@ -9,6 +9,8 @@ import PipelinePanel from "./components/PipelinePanel";
 import RepoIntelligencePanel from "./components/RepoIntelligencePanel";
 import ResearchPanel from "./components/ResearchPanel";
 import { SwarmPanel } from "./components/SwarmPanel/SwarmPanel";
+import { AIHubPanel } from "./components/AIHubPanel/AIHubPanel";
+import { ComputerPanel } from "./components/ComputerPanel/ComputerPanel";
 import { MainEditorProvider } from "./components/mainInput/TipTapEditor";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
 import { VscThemeProvider } from "./context/VscTheme";
@@ -36,7 +38,7 @@ const router = createMemoryRouter([
         element: <Chat />,
       },
       {
-        path: "/history",
+        path: ROUTES.HISTORY,
         element: <History />,
       },
       {
@@ -86,6 +88,14 @@ const router = createMemoryRouter([
       {
         path: ROUTES.GPU,
         element: <GpuPanel />,
+      },
+      {
+        path: ROUTES.AI_HUB,
+        element: <AIHubPanel />,
+      },
+      {
+        path: ROUTES.COMPUTER,
+        element: <ComputerPanel />,
       },
     ],
   },

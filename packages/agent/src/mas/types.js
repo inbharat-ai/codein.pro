@@ -1,5 +1,5 @@
 /**
- * CodIn Multi-Agent Swarm — Types & Data Models
+ * CodeIn Multi-Agent Swarm — Types & Data Models
  *
  * All enums, factories, and validators for the MAS subsystem.
  * Follows the same fail-closed, schema-validated pattern as compute/job-model.js.
@@ -44,10 +44,7 @@ const AGENT_TYPE = Object.freeze({
   REVIEWER: "reviewer",
   I18N: "i18n",
   VIBE_BUILDER: "vibe_builder",
-  // Legacy aliases (keep for backward compat)
-  TEST: "test",
-  DEBUG: "debug",
-  INFRA: "infra",
+  BROWSER: "browser",
 });
 
 const AGENT_STATUS = Object.freeze({
@@ -326,6 +323,8 @@ function createTaskGraph({
   executionStrategy = EXECUTION_STRATEGY.ADAPTIVE,
   topology = TOPOLOGY.MESH,
   acceptanceCriteria = null,
+  nodes = [],
+  edges = [],
 }) {
   if (!goal || typeof goal !== "string" || goal.trim().length === 0) {
     throw new Error("TaskGraph goal is required");
@@ -338,8 +337,8 @@ function createTaskGraph({
     executionStrategy,
     topology,
     acceptanceCriteria,
-    nodes: [], // TaskNode[]
-    edges: [], // { from: nodeId, to: nodeId }
+    nodes, // TaskNode[]
+    edges, // { from: nodeId, to: nodeId }
     status: NODE_STATUS.QUEUED,
     iteration: 0, // for ring topology
     maxIterations: 5, // ring topology cap

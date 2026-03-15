@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Agent Registry
+ * CodeIn MAS — Agent Registry
  *
  * Re-exports all agent classes and provides a factory.
  */
@@ -20,6 +20,7 @@ const { DocsAgent } = require("./docs-agent");
 const { ReviewerAgent } = require("./reviewer-agent");
 const { I18nAgent } = require("./i18n-agent");
 const { VibeBuilderAgent } = require("./vibe-builder-agent");
+const { BrowserAgent } = require("./browser-agent");
 
 const AGENT_CLASS_MAP = Object.freeze({
   [AGENT_TYPE.PLANNER]: PlannerAgent,
@@ -34,6 +35,7 @@ const AGENT_CLASS_MAP = Object.freeze({
   [AGENT_TYPE.REVIEWER]: ReviewerAgent,
   [AGENT_TYPE.I18N]: I18nAgent,
   [AGENT_TYPE.VIBE_BUILDER]: VibeBuilderAgent,
+  [AGENT_TYPE.BROWSER]: BrowserAgent,
 });
 
 /**
@@ -67,6 +69,7 @@ module.exports = {
   ReviewerAgent,
   I18nAgent,
   VibeBuilderAgent,
+  BrowserAgent,
   AGENT_CLASS_MAP,
   createAgent,
 };

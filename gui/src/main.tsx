@@ -1,3 +1,4 @@
+import "./i18n/i18n";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ErrorBoundary } from "react-error-boundary";
@@ -25,7 +26,7 @@ function AppCrashFallback({
     >
       <h1 style={{ color: "#dc2626" }}>Something went wrong</h1>
       <p style={{ color: "#666" }}>
-        CodIn encountered an unexpected error. Please try reloading.
+        CodeIn encountered an unexpected error. Please try reloading.
       </p>
       <pre
         style={{

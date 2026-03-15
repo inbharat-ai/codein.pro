@@ -1,4 +1,4 @@
-# CodIn Quick Reference
+# CodeIn Quick Reference
 
 ## Keyboard Shortcuts
 
@@ -22,7 +22,7 @@
 ## File Locations
 
 ```
-~/.codin/                     # CodIn Agent data directory
+~/.codin/                     # CodeIn Agent data directory
 ├── models/                        # Downloaded GGUF models
 └── model-store.json               # Model configuration
 
@@ -33,7 +33,7 @@
         └── *.bak                  # File backups
 ```
 
-## CodIn Agent API
+## CodeIn Agent API
 
 Base URL: `http://localhost:43120`
 
@@ -115,21 +115,21 @@ npm run package
 | VS Code Settings   | `.vscode/settings.json`     | JSON     |
 | Workspace State    | `.vscode/`                  | Internal |
 | Model Config       | `~/.codin/model-store.json` | JSON     |
-| Extension Settings | Settings > CodIn            | UI       |
+| Extension Settings | Settings > CodeIn           | UI       |
 
 ## Troubleshooting
 
 ### Extension won't activate
 
 ```
-Check: Output > CodIn
+Check: Output > CodeIn
 Fix: Reload window (Ctrl+Shift+P > Reload Window)
 ```
 
-### CodIn Agent not starting
+### CodeIn Agent not starting
 
 ```
-Check: Output > CodIn Agent
+Check: Output > CodeIn Agent
 Fix: Ensure port 43120 is available
 ```
 

@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — JSON Patch Engine
+ * CodeIn MAS — JSON Patch Engine
  *
  * Strict JSON patch validation, auto-repair, backup, and rollback.
  * Follows RFC 6902 subset: add, remove, replace, move, copy, test.

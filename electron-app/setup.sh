@@ -1,7 +1,7 @@
 #!/bin/bash
-# CodIn Electron - Quick Setup Script for macOS/Linux
+# CodeIn Electron - Quick Setup Script for macOS/Linux
 
-echo "🚀 CodIn Electron Setup"
+echo "🚀 CodeIn Electron Setup"
 echo "======================"
 echo ""
 

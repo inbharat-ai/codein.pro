@@ -4,7 +4,6 @@
  * and security boundaries.
  */
 
-const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const fs = require("node:fs");
@@ -216,19 +215,19 @@ test("MultiFileReasoningEngine is exported from context index", () => {
   assert.match(source, /MultiFileReasoningEngine/);
 });
 
-// ── GUI Component Tests ──────────────────────────────────────────────────────
+// ── GUI Dead Code Cleanup Verification ──────────────────────────────────────
 
-test("OnboardingWizard component exists (quarantined — dead code)", () => {
+test("OnboardingWizard dead code was removed", () => {
   const wizardPath = path.resolve(__dirname, "../../../gui/src/components/_dead/OnboardingWizard.tsx");
-  assert.ok(fs.existsSync(wizardPath), "OnboardingWizard.tsx should exist in _dead quarantine");
+  assert.ok(!fs.existsSync(wizardPath), "OnboardingWizard.tsx should be deleted (dead code cleanup)");
 });
 
-test("ErrorBoundary component exists (quarantined — dead code)", () => {
+test("ErrorBoundary dead code was removed", () => {
   const errorPath = path.resolve(__dirname, "../../../gui/src/components/_dead/ErrorBoundary.tsx");
-  assert.ok(fs.existsSync(errorPath), "ErrorBoundary.tsx should exist in _dead quarantine");
+  assert.ok(!fs.existsSync(errorPath), "ErrorBoundary.tsx should be deleted (dead code cleanup)");
 });
 
-test("ExternalProviderSettings component exists (quarantined — dead code)", () => {
+test("ExternalProviderSettings dead code was removed", () => {
   const settingsPath = path.resolve(__dirname, "../../../gui/src/components/_dead/ExternalProviderSettings.tsx");
-  assert.ok(fs.existsSync(settingsPath), "ExternalProviderSettings.tsx should exist in _dead quarantine");
+  assert.ok(!fs.existsSync(settingsPath), "ExternalProviderSettings.tsx should be deleted (dead code cleanup)");
 });

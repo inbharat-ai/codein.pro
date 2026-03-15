@@ -3,7 +3,6 @@
  * Node.js built-in test runner format
  */
 
-const test = require('node:test');
 const assert = require('node:assert/strict');
 
 test('Step 3: Agent Registry - initialization', async () => {

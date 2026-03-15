@@ -7,7 +7,7 @@ import { getExtensionVersion, isUnsupportedPlatform } from "../util/util";
 
 import { GlobalContext } from "core/util/GlobalContext";
 import { getAgentServerClient } from "../agent/AgentServerClient";
-import { startCodInAgent } from "../agent/BharatAgentManager";
+import { startCodeInAgent } from "../agent/BharatAgentManager";
 import { initializeLogger, logger } from "../agent/logger";
 import { VsCodeContinueApi } from "./api";
 import setupInlineTips from "./InlineTipManager";
@@ -21,14 +21,14 @@ export async function activateExtension(context: vscode.ExtensionContext) {
 
   // Initialize logger
   initializeLogger();
-  logger.info("Activating CodIn extension");
+  logger.info("Activating CodeIn extension");
 
   if (platformCheck.isUnsupported && !hasShownUnsupportedPlatformWarning) {
     const platformTarget = "windows-arm64";
 
     globalContext.update("hasShownUnsupportedPlatformWarning", true);
     void vscode.window.showInformationMessage(
-      `CodIn detected that you are using ${platformTarget}. Due to native dependencies, CodIn may not be able to start`,
+      `CodeIn detected that you are using ${platformTarget}. Due to native dependencies, CodeIn may not be able to start`,
     );
 
     void Telemetry.capture(
@@ -48,7 +48,7 @@ export async function activateExtension(context: vscode.ExtensionContext) {
 
   // Register commands and providers
   setupInlineTips(context);
-  startCodInAgent(context);
+  startCodeInAgent(context);
 
   // Initialize Agent Server Client
   const agentClient = getAgentServerClient(
@@ -59,7 +59,7 @@ export async function activateExtension(context: vscode.ExtensionContext) {
   agentClient.onConnectionStatusChange((status) => {
     logger.info(`Agent server connection: ${status}`);
     if (status === "connected") {
-      vscode.window.showInformationMessage("CodIn Agent Server connected", {
+      vscode.window.showInformationMessage("CodeIn Agent Server connected", {
         modal: false,
       });
     }
@@ -92,7 +92,7 @@ export async function activateExtension(context: vscode.ExtensionContext) {
 
   const vscodeExtension = new VsCodeExtension(context);
 
-  // Load CodIn configuration
+  // Load CodeIn configuration
   if (!context.globalState.get("hasBeenInstalled")) {
     void context.globalState.update("hasBeenInstalled", true);
     void Telemetry.capture(

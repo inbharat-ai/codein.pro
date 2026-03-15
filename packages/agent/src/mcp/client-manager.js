@@ -181,7 +181,7 @@ class MCPClientManager extends EventEmitter {
           tools: {},
         },
         clientInfo: {
-          name: "CodIn",
+          name: "CodeIn",
           version: "1.0.0",
         },
       },

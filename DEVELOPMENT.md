@@ -1,4 +1,4 @@
-# CodIn Development Guide
+# CodeIn Development Guide
 
 ## Setup
 
@@ -33,7 +33,7 @@ npm run esbuild
 2. Press F5 (or Run > Start Debugging)
 3. A new Extension Development Host window opens
 4. Open Command Palette (Ctrl+Shift+P)
-5. Type "CodIn" to see commands
+5. Type "CodeIn" to see commands
 
 ## Project Structure
 
@@ -43,12 +43,12 @@ Bharta Code/
 │   ├── extension/          # VS Code extension (main package)
 │   │   ├── src/
 │   │   │   ├── activation/  # Extension activation & setup
-│   │   │   ├── agent/       # CodIn Agent manager
+│   │   │   ├── agent/       # CodeIn Agent manager
 │   │   │   ├── contract/    # Edit contract applier
 │   │   │   ├── extension/   # VsCodeExtension + VsCodeMessenger
 │   │   │   └── ...
 │   │   └── package.json
-│   ├── agent/              # CodIn Agent local service
+│   ├── agent/              # CodeIn Agent local service
 │   │   ├── src/
 │   │   │   ├── index.js     # HTTP server
 │   │   │   ├── store.js     # Model store
@@ -80,7 +80,7 @@ Bharta Code/
 │   │           ├── streamNormalInput.ts  # Mode & tool handling
 │   │           └── streamResponse.ts     # Response streaming
 │   └── package.json
-├── core/                   # Core LLM & IDE logic (inherited from CodIn)
+├── core/                   # Core LLM & IDE logic (inherited from CodeIn)
 │   ├── protocol/           # Webview <-> Extension <-> Core messaging
 │   └── ...
 └── .github/
@@ -103,11 +103,11 @@ Bharta Code/
 - Or rebuild with `npm run build`
 - Reload Extension Development Host
 
-### 3. CodIn Agent Development
+### 3. CodeIn Agent Development
 
 - Edit files in `packages/agent/src/`
-- CodIn Agent restarts on extension reload
-- Check logs: Output > CodIn Agent
+- CodeIn Agent restarts on extension reload
+- Check logs: Output > CodeIn Agent
 
 ### 4. Protocol Changes
 
@@ -157,9 +157,9 @@ npm run format:check
 - Console shows GUI logs
 - Sources tab shows webpack bundles
 
-### CodIn Agent Debugging
+### CodeIn Agent Debugging
 
-- Check Output > CodIn Agent for logs
+- Check Output > CodeIn Agent for logs
 - Test endpoints manually: `curl http://localhost:43120/health`
 
 ## Common Tasks
@@ -214,13 +214,13 @@ const response = await ideMessenger.request("myFeature/action", {
 
 **Extension won't activate:**
 
-- Check Output > CodIn for errors
+- Check Output > CodeIn for errors
 - Verify package.json activationEvents
 
-**CodIn Agent not starting:**
+**CodeIn Agent not starting:**
 
 - Check port 43120 is available
-- Check Output > CodIn Agent
+- Check Output > CodeIn Agent
 
 **GUI not loading:**
 

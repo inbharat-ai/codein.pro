@@ -1,9 +1,9 @@
 @echo off
-REM CodIn Agent Setup Script
+REM CodeIn Agent Setup Script
 REM Installs Python dependencies for AI4Bharat multilingual support
 
 echo ========================================
-echo CodIn Agent Setup
+echo CodeIn Agent Setup
 echo ========================================
 echo.
 
@@ -51,7 +51,7 @@ echo ========================================
 echo Setup Complete!
 echo ========================================
 echo.
-echo You can now start CodIn with full multilingual support.
+echo You can now start CodeIn with full multilingual support.
 echo The agent will download translation models on first use.
 echo.
 pause

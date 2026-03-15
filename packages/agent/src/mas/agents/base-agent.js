@@ -1,5 +1,5 @@
 /**
- * CodIn Multi-Agent Swarm — Base Agent
+ * CodeIn Multi-Agent Swarm — Base Agent
  *
  * Abstract base class for all specialist agents.
  * Provides: identity, lifecycle, LLM interaction,
@@ -42,6 +42,9 @@ class BaseAgent {
     this._memory = deps.memory;
     this._emitEvent = deps.emitEvent || null;
     this._runLLM = deps.runLLM;
+    this._persistence = deps.persistence || null;
+    this._sessionId = null; // Set by swarm-manager when task starts
+    this._taskStream = null; // Set per-task for real-time streaming
 
     this.descriptor.status = AGENT_STATUS.IDLE;
 
@@ -147,6 +150,31 @@ class BaseAgent {
       this.descriptor.metrics.tasksCompleted++;
       this.descriptor.metrics.toolCalls++;
       this.descriptor.metrics.totalTimeMs += elapsed;
+
+      // Track cost if result includes usage metadata
+      this._trackLLMCost(result, elapsed, opts);
+
+      // Stream thinking/cost events to UI
+      if (this._taskStream) {
+        try {
+          if (this._taskStream.emitCostUpdate) {
+            this._taskStream.emitCostUpdate({
+              agentId: this.id,
+              agentType: this.type,
+              durationMs: elapsed,
+              tokensUsed: this.descriptor.metrics.tokensUsed,
+              costUSD: this.descriptor.metrics.costUSD,
+            });
+          }
+        } catch {
+          /* non-fatal stream error */
+        }
+      }
+
+      // If runLLM returns {text, usage}, extract the text
+      if (result && typeof result === "object" && result.text !== undefined) {
+        return result.text;
+      }
       return result;
     } catch (err) {
       this.descriptor.metrics.toolCalls++;
@@ -236,12 +264,17 @@ Always respond with ONLY valid JSON.`;
         iterationTimeout,
       );
 
+      // Guard against null/undefined LLM responses
+      if (raw == null) {
+        return { answer: "LLM returned no response", toolLog };
+      }
+
       let parsed;
       try {
         parsed = this._extractJson(raw);
       } catch {
         // LLM returned non-JSON — treat as final answer
-        return { answer: raw, toolLog };
+        return { answer: String(raw), toolLog };
       }
 
       // Final answer
@@ -258,12 +291,31 @@ Always respond with ONLY valid JSON.`;
         const callCount = (toolCallCounts.get(toolName) || 0) + 1;
         toolCallCounts.set(toolName, callCount);
 
-        // Detect infinite loop: same tool called 3+ times
-        if (callCount >= 3) {
+        // Detect infinite loop: same tool called 6+ times with identical args
+        // Higher threshold for read_file/write_file which are legitimately called multiple times
+        const loopThreshold = ["read_file", "write_file", "run_bash"].includes(
+          toolName,
+        )
+          ? 8
+          : 6;
+        if (callCount >= loopThreshold) {
           return {
             answer: `Error: Tool "${toolName}" called ${callCount} times. Possible infinite loop detected. Aborting.`,
             toolLog,
           };
+        }
+
+        // Stream tool call event
+        if (this._taskStream && this._taskStream.emitToolCall) {
+          try {
+            this._taskStream.emitToolCall({
+              tool: toolName,
+              args,
+              agentId: this.id,
+            });
+          } catch {
+            /* non-fatal */
+          }
         }
 
         try {
@@ -272,10 +324,56 @@ Always respond with ONLY valid JSON.`;
             iterationTimeout,
           );
           toolLog.push({ tool: toolName, args, result });
+
+          // Stream tool result event
+          if (this._taskStream && this._taskStream.emitToolResult) {
+            try {
+              this._taskStream.emitToolResult({
+                tool: toolName,
+                success: true,
+                resultPreview: String(result).slice(0, 500),
+                agentId: this.id,
+              });
+            } catch {
+              /* non-fatal */
+            }
+          }
+
+          // Stream code write event for write_file calls
+          if (
+            toolName === "write_file" &&
+            this._taskStream &&
+            this._taskStream.emitCodeWrite
+          ) {
+            try {
+              this._taskStream.emitCodeWrite({
+                filePath: args.path || args.filePath,
+                agentId: this.id,
+              });
+            } catch {
+              /* non-fatal */
+            }
+          }
+
           conversation = `Tool "${toolName}" returned:\n${result}\n\nContinue with the task. Use another tool or provide your final answer as {"answer": "..."}`;
         } catch (err) {
           const errMsg = err.message || String(err);
           toolLog.push({ tool: toolName, args, result: `ERROR: ${errMsg}` });
+
+          // Stream tool error
+          if (this._taskStream && this._taskStream.emitToolResult) {
+            try {
+              this._taskStream.emitToolResult({
+                tool: toolName,
+                success: false,
+                error: errMsg,
+                agentId: this.id,
+              });
+            } catch {
+              /* non-fatal */
+            }
+          }
+
           conversation = `Tool "${toolName}" failed with error: ${errMsg}\n\nContinue with the task. Try a different approach or provide your final answer as {"answer": "..."}`;
         }
       } else if (parsed.tool) {
@@ -383,12 +481,118 @@ Always respond with ONLY valid JSON.`;
     return [];
   }
 
+  // ─── Session & Cost Tracking ────────────────────────────
+
+  /** Set the active session ID for cost attribution. */
+  setSessionId(sessionId) {
+    this._sessionId = sessionId;
+  }
+
+  /** Set the TaskStream for real-time event streaming to UI. */
+  setTaskStream(taskStream) {
+    this._taskStream = taskStream;
+  }
+
+  /**
+   * Record LLM call cost to persistence layer and agent metrics.
+   * Handles both string results and {text, usage} objects from runLLM.
+   * @private
+   */
+  _trackLLMCost(result, durationMs, opts = {}) {
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let model = opts.model || this.descriptor.modelHint || "unknown";
+
+    // If runLLM returns usage metadata
+    if (result && typeof result === "object" && result.usage) {
+      inputTokens =
+        result.usage.input_tokens || result.usage.prompt_tokens || 0;
+      outputTokens =
+        result.usage.output_tokens || result.usage.completion_tokens || 0;
+      if (result.model) model = result.model;
+    }
+
+    const totalTokens = inputTokens + outputTokens;
+
+    // Estimate cost based on model (rough pricing per 1M tokens)
+    const costPerMillion = this._getModelCost(model);
+    const costUSD =
+      (inputTokens * costPerMillion.input +
+        outputTokens * costPerMillion.output) /
+      1_000_000;
+
+    // Update agent metrics
+    this.descriptor.metrics.tokensUsed += totalTokens;
+    this.descriptor.metrics.costUSD += costUSD;
+
+    // Record to persistence
+    if (this._persistence && totalTokens > 0) {
+      try {
+        this._persistence.recordCost({
+          sessionId: this._sessionId,
+          agentId: this.id,
+          agentType: this.type,
+          model,
+          inputTokens,
+          outputTokens,
+          totalTokens,
+          costUSD,
+          durationMs,
+          purpose: `${this.type}:callLLM`,
+        });
+      } catch {
+        // Non-critical — don't fail the agent if persistence is down
+      }
+    }
+  }
+
+  /**
+   * Get cost per million tokens for a model.
+   * @private
+   */
+  _getModelCost(model) {
+    const m = (model || "").toLowerCase();
+    // Claude models
+    if (m.includes("opus")) return { input: 15, output: 75 };
+    if (m.includes("sonnet")) return { input: 3, output: 15 };
+    if (m.includes("haiku")) return { input: 0.25, output: 1.25 };
+    // OpenAI models
+    if (m.includes("gpt-4o")) return { input: 2.5, output: 10 };
+    if (m.includes("gpt-4")) return { input: 10, output: 30 };
+    if (m.includes("gpt-3.5")) return { input: 0.5, output: 1.5 };
+    // Gemini
+    if (m.includes("gemini-pro")) return { input: 1.25, output: 5 };
+    if (m.includes("gemini-flash")) return { input: 0.075, output: 0.3 };
+    // Default: assume mid-range
+    return { input: 3, output: 15 };
+  }
+
   // ─── Event Emission ──────────────────────────────────────
 
   _emit(type, data) {
     if (this._emitEvent) {
       this._emitEvent(createSwarmEvent({ type, data }));
     }
+  }
+
+  // ─── Confidence Scoring ─────────────────────────────────
+
+  /**
+   * Compute a dynamic confidence score based on result quality.
+   * @param {any} result — The result from LLM or tool-use loop
+   * @param {object} [context={}] — Execution context hints
+   * @returns {number} Confidence between 0.7 and 0.95
+   */
+  computeConfidence(result, context = {}) {
+    let score = 0.7; // base
+    // Boost if LLM returned structured data
+    if (result && typeof result === "object") score += 0.05;
+    // Boost if tool calls succeeded (no errors in result)
+    if (!result?.error && !result?.errors) score += 0.05;
+    // Boost if context had relevant files
+    if (context.filesRead > 0) score += 0.05;
+    // Cap at 0.95
+    return Math.min(score, 0.95);
   }
 
   // ─── Abstract Methods (must override) ────────────────────
@@ -398,7 +602,7 @@ Always respond with ONLY valid JSON.`;
    * @returns {string}
    */
   getSystemPrompt() {
-    return "You are a CodIn specialist agent. Follow instructions precisely.";
+    return "You are a CodeIn specialist agent. Follow instructions precisely.";
   }
 
   /**

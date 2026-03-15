@@ -19,6 +19,8 @@ import sessionReducer, {
   INITIAL_SESSION_STATE,
 } from "../../redux/slices/sessionSlice";
 import swarmReducer from "../../redux/slices/swarmSlice";
+import aiHubReducer from "../../redux/slices/aiHubSlice";
+import computerReducer from "../../redux/slices/computerSlice";
 import tabsReducer, { INITIAL_TABS_STATE } from "../../redux/slices/tabsSlice";
 import uiReducer, { DEFAULT_UI_SLICE } from "../../redux/slices/uiSlice";
 import { RootState } from "../../redux/store";
@@ -43,6 +45,40 @@ export const getEmptyRootState: () => RootState = () => {
       loading: false,
       error: null,
       sseConnected: false,
+      budget: null,
+      analytics: null,
+      costSuggestions: [],
+      backgroundTasks: [],
+      plugins: [],
+      skills: [],
+      workspaceProfile: null,
+      conventions: [],
+      terminalSessions: [],
+      gitStatus: null,
+      sandboxAvailable: false,
+      activePlans: [],
+      analyticsLoaded: false,
+      workspaceLoaded: false,
+    },
+    aiHub: {
+      providers: [],
+      models: {},
+      loading: false,
+      testingProvider: null,
+      fetchingModels: null,
+      savingKey: null,
+      removingKey: null,
+      enablingProvider: null,
+      error: null,
+    },
+    computer: {
+      activePlan: null,
+      skills: { items: [], loading: false },
+      workflows: { items: [], loading: false },
+      auditEntries: [],
+      goalInput: "",
+      activeTab: "run",
+      error: null,
     },
   };
   const { streamAborter, ...serializableSession } = INITIAL_SESSION_STATE;
@@ -83,6 +119,8 @@ export const createMockStore = (
       tabs: tabsReducer,
       profiles: profilesReducer,
       swarm: swarmReducer,
+      aiHub: aiHubReducer,
+      computer: computerReducer,
     },
     preloadedState: {
       ...getEmptyRootState(),

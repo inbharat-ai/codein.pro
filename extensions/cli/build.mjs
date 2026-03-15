@@ -79,10 +79,14 @@ try {
       ),
     },
 
-    // Add banner to create require for CommonJS packages
+    // Add banner to create require and __dirname/__filename for CommonJS packages
     banner: {
       js: `import { createRequire as __createRequire } from 'module';
-const require = __createRequire(import.meta.url);`,
+import { fileURLToPath as __fileURLToPath } from 'url';
+import { dirname as __pathDirname } from 'path';
+const require = __createRequire(import.meta.url);
+const __filename = __fileURLToPath(import.meta.url);
+const __dirname = __pathDirname(__filename);`,
     },
   });
 
@@ -93,7 +97,7 @@ const require = __createRequire(import.meta.url);`,
   // Note: We must call runCli(); a plain dynamic import will not execute the CLI.
   writeFileSync(
     "dist/cn.js",
-    "#!/usr/bin/env node\nimport { runCli } from './index.js';\nawait runCli();\n",
+    "#!/usr/bin/env node\nimport { runCli } from './index.js';\nrunCli().catch((err) => { console.error(err); process.exitCode = 1; });\n",
   );
   // Copy worker files needed by JSDOM
   const workerSource = resolve(

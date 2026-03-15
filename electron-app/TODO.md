@@ -1,4 +1,4 @@
-# CodIn Electron - Next Steps & TODO
+# CodeIn Electron - Next Steps & TODO
 
 This file tracks what needs to be implemented next in the transformation from VS Code extension to standalone Electron app.
 

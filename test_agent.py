@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Quick Test Script for CodIn Agent
+Quick Test Script for CodeIn Agent
 Tests all endpoints to verify functionality
 """
 
@@ -81,7 +81,7 @@ def test_completion():
 
 def main():
     print("=" * 60)
-    print("🚀 CodIn Agent Test Suite")
+    print("🚀 CodeIn Agent Test Suite")
     print("=" * 60)
     
     # Run all tests

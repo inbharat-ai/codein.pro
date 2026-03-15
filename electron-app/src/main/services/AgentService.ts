@@ -1,6 +1,6 @@
 /**
  * Agent Service
- * Manages CodIn Agent (i18n, voice, local LLM) integration
+ * Manages CodeIn Agent (i18n, voice, local LLM) integration
  */
 
 import { ChildProcess, spawn } from "child_process";
@@ -22,7 +22,7 @@ export class AgentService {
   }
 
   /**
-   * Start the CodIn Agent service
+   * Start the CodeIn Agent service
    */
   public async start(): Promise<void> {
     if (this.agentProcess) {
@@ -30,7 +30,7 @@ export class AgentService {
       return;
     }
 
-    console.log("Starting CodIn Agent...");
+    console.log("Starting CodeIn Agent...");
 
     try {
       // Get agent path
@@ -85,7 +85,7 @@ export class AgentService {
       await this.waitForAgent();
       this.isAgentReady = true;
 
-      console.log("CodIn Agent started successfully");
+      console.log("CodeIn Agent started successfully");
     } catch (error) {
       console.error("Failed to start agent:", error);
       throw error;
@@ -93,14 +93,14 @@ export class AgentService {
   }
 
   /**
-   * Stop the CodIn Agent service
+   * Stop the CodeIn Agent service
    */
   public async stop(): Promise<void> {
     if (!this.agentProcess) {
       return;
     }
 
-    console.log("Stopping CodIn Agent...");
+    console.log("Stopping CodeIn Agent...");
     this.agentProcess.kill();
     this.agentProcess = null;
     this.isAgentReady = false;

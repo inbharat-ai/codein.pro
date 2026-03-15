@@ -1,4 +1,4 @@
-# 🚀 CodIn - Setup Complete!
+# 🚀 CodeIn - Setup Complete!
 
 ## ✅ What Has Been Completed
 
@@ -78,7 +78,7 @@ python server.py --port 43120
 **Expected output:**
 
 ```
-Starting CodIn Agent Server on 127.0.0.1:43120
+Starting CodeIn Agent Server on 127.0.0.1:43120
  * Running on http://127.0.0.1:43120
 ```
 
@@ -270,7 +270,7 @@ This will:
 
 ## 🎉 You're All Set!
 
-**CodIn ELITE** is now fully operational with:
+**CodeIn ELITE** is now fully operational with:
 
 - ✅ AI-powered coding assistance
 - ✅ Multilingual support for Indian languages

@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Topology Index
+ * CodeIn MAS — Topology Index
  *
  * Exports all topology schedulers and provides a factory.
  */

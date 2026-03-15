@@ -2,7 +2,7 @@
 
 ## Overview
 
-CodIn includes a **complete local model runtime system** that eliminates the need for external dependencies like Ollama. Everything is managed automatically by CodIn Agent.
+CodeIn includes a **complete local model runtime system** that eliminates the need for external dependencies like Ollama. Everything is managed automatically by CodeIn Agent.
 
 ## Architecture
 
@@ -15,7 +15,7 @@ CodIn includes a **complete local model runtime system** that eliminates the nee
 └──────────────┬──────────────────────────┘
                │ HTTP/REST
 ┌──────────────▼──────────────────────────┐
-│   CodIn Agent (localhost:43120)         │
+│   CodeIn Agent (localhost:43120)         │
 │   - Model Runtime Manager                │
 │   - Auto Model Router                    │
 │   - Inference Engine                     │
@@ -34,7 +34,7 @@ CodIn includes a **complete local model runtime system** that eliminates the nee
 
 ### 1. Automatic Runtime Bootstrap
 
-**No manual installation required.** On first use, CodIn automatically:
+**No manual installation required.** On first use, CodeIn automatically:
 
 1. Detects your operating system (Windows/macOS/Linux)
 2. Downloads the appropriate llama.cpp binary
@@ -116,7 +116,7 @@ Powered by llama.cpp with:
 
 #### System Requirements Check
 
-Before loading a model, CodIn checks:
+Before loading a model, CodeIn checks:
 
 - Available RAM vs. recommended RAM
 - CPU cores
@@ -309,7 +309,7 @@ Response:
 
 ### First Time Setup
 
-1. **Install CodIn** (no additional setup needed)
+1. **Install CodeIn** (no additional setup needed)
 2. **Open Model Manager** (Settings → Models)
 3. **Download a model** (e.g., Qwen2.5 Coder 1.5B for low RAM)
 4. **Start coding** (model loads automatically on first chat)
@@ -388,10 +388,10 @@ All default models use **Q4 or Q8 quantization**:
 
 **Solutions**:
 
-1. Ensure CodIn Agent is running
+1. Ensure CodeIn Agent is running
 2. Check `~/.codin/runtime/` directory
 3. Manually install `llama-server` and add to PATH
-4. Restart CodIn Agent
+4. Restart CodeIn Agent
 
 ### Model Not Loading
 
@@ -402,7 +402,7 @@ All default models use **Q4 or Q8 quantization**:
 1. Check model file integrity (re-download if corrupted)
 2. Ensure model file is valid GGUF format
 3. Verify sufficient RAM available
-4. Check CodIn Agent logs for errors
+4. Check CodeIn Agent logs for errors
 
 ## Advanced Configuration
 

@@ -16,10 +16,10 @@ export function SwarmMemory() {
   if (!memory) {
     return (
       <div>
-        <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+        <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
           Memory
         </h3>
-        <p className="text-vsc-foreground/40 text-[10px]">No data</p>
+        <p className="text-codin-fg-muted text-[10px]">No data</p>
       </div>
     );
   }
@@ -47,27 +47,27 @@ export function SwarmMemory() {
 
   return (
     <div>
-      <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+      <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
         Memory
       </h3>
       <div className="space-y-1">
         {tiers.map((t) => (
           <div key={t.label} className="flex items-center gap-2 text-[10px]">
-            <span className="text-vsc-foreground/60 w-16">{t.label}</span>
-            <div className="bg-vsc-background h-1.5 flex-1 overflow-hidden rounded">
+            <span className="text-codin-fg-secondary w-16">{t.label}</span>
+            <div className="bg-codin-bg h-1.5 flex-1 overflow-hidden rounded-md">
               <div
-                className={`${t.color} h-full rounded transition-all`}
+                className={`${t.color} h-full rounded-md transition-all`}
                 style={{
                   width: `${Math.min(100, (t.entries / maxEntries) * 100)}%`,
                 }}
               />
             </div>
-            <span className="text-vsc-foreground/40 w-14 text-right">
+            <span className="text-codin-fg-muted w-14 text-right">
               {t.entries}
             </span>
           </div>
         ))}
-        <div className="text-vsc-foreground/40 text-right text-[10px]">
+        <div className="text-codin-fg-muted text-right text-[10px]">
           Total: {totalEntries} entries
         </div>
       </div>

@@ -1,21 +1,21 @@
 /**
- * CodIn IDE Shell Styles
- * Cursor/Copilot-grade layout: Activity Bar | Content | Status Bar
+ * CodeIn IDE Shell Styles
+ * Premium dark IDE layout with indigo/saffron design system
  */
 
 /* ── Shell Grid ── */
 .ide-shell {
   display: grid;
   grid-template-columns: 48px 1fr;
-  grid-template-rows: 1fr 24px;
+  grid-template-rows: 1fr 26px;
   grid-template-areas:
     "actbar  main"
     "status  status";
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background: var(--vscode-editor-background, #1e1e1e);
-  color: var(--vscode-editor-foreground, #cccccc);
+  background: var(--codin-bg-primary, #0f0e17);
+  color: var(--codin-fg-primary, #e8e6f0);
 }
 
 /* ── Activity Bar ── */
@@ -25,8 +25,8 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  background: var(--vscode-activityBar-background, #181818);
-  border-right: 1px solid var(--vscode-activityBar-border, #2b2b2b);
+  background: var(--codin-bg-secondary, #141320);
+  border-right: 1px solid var(--codin-border, rgba(99, 102, 241, 0.12));
   padding: 0;
   width: 48px;
   user-select: none;
@@ -42,7 +42,7 @@
 }
 
 .ide-activity-top {
-  padding-top: 4px;
+  padding-top: 6px;
 }
 
 .ide-activity-bottom {
@@ -55,22 +55,24 @@
   align-items: center;
   justify-content: center;
   width: 48px;
-  height: 40px;
-  margin-bottom: 4px;
+  height: 42px;
+  margin-bottom: 6px;
   cursor: default;
 }
 
 .ide-logo-svg {
   width: 22px;
   height: 22px;
-  color: var(--vscode-activityBar-foreground, #858585);
-  opacity: 0.8;
-  transition: opacity 0.15s ease;
+  color: var(--codin-fg-muted, #8b88ad);
+  opacity: 0.9;
+  transition: all var(--codin-transition-normal, 200ms ease);
+  filter: drop-shadow(0 0 0px transparent);
 }
 
 .ide-logo:hover .ide-logo-svg {
   opacity: 1;
-  color: #ff9933; /* Saffron accent */
+  color: var(--codin-accent-saffron, #f59e0b);
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
 }
 
 /* Activity Buttons */
@@ -80,36 +82,37 @@
   align-items: center;
   justify-content: center;
   width: 48px;
-  height: 48px;
+  height: 44px;
   padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
-  transition: background 0.1s ease;
+  transition: all var(--codin-transition-fast, 120ms ease);
   border-left: 2px solid transparent;
 }
 
 .ide-activity-btn:hover {
-  background: var(
-    --vscode-activityBar-activeBackground,
-    rgba(255, 255, 255, 0.06)
-  );
+  background: var(--codin-bg-hover, #262450);
 }
 
 .ide-activity-btn.active {
-  border-left-color: var(--vscode-activityBar-activeBorder, #ffffff);
+  border-left-color: var(--codin-accent-saffron, #f59e0b);
+  background: rgba(99, 102, 241, 0.08);
 }
 
 .ide-activity-icon {
-  width: 22px;
-  height: 22px;
-  color: var(--vscode-activityBar-inactiveForeground, #858585);
-  transition: color 0.1s ease;
+  width: 20px;
+  height: 20px;
+  color: var(--codin-fg-muted, #8b88ad);
+  transition: all var(--codin-transition-fast, 120ms ease);
 }
 
-.ide-activity-btn:hover .ide-activity-icon,
+.ide-activity-btn:hover .ide-activity-icon {
+  color: var(--codin-fg-primary, #e8e6f0);
+}
+
 .ide-activity-btn.active .ide-activity-icon {
-  color: var(--vscode-activityBar-foreground, #ffffff);
+  color: var(--codin-accent-primary-hover, #818cf8);
 }
 
 /* Tooltip */
@@ -118,23 +121,27 @@
   left: 54px;
   top: 50%;
   transform: translateY(-50%);
-  background: var(--vscode-editorHoverWidget-background, #2d2d30);
-  border: 1px solid var(--vscode-editorHoverWidget-border, #454545);
-  color: var(--vscode-editorHoverWidget-foreground, #cccccc);
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 12px;
+  background: var(--codin-bg-tertiary, #1a1832);
+  border: 1px solid var(--codin-border-strong, rgba(99, 102, 241, 0.25));
+  color: var(--codin-fg-primary, #e8e6f0);
+  padding: 5px 12px;
+  border-radius: var(--codin-radius-sm, 4px);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
   white-space: nowrap;
   pointer-events: none;
   z-index: 999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  animation: tooltipFade 0.1s ease-in;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(99, 102, 241, 0.08);
+  animation: tooltipFade 0.12s ease-out;
 }
 
 @keyframes tooltipFade {
   from {
     opacity: 0;
-    transform: translateY(-50%) translateX(-4px);
+    transform: translateY(-50%) translateX(-6px);
   }
   to {
     opacity: 1;
@@ -150,6 +157,16 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  animation: codin-fade-in 0.18s ease-out;
+}
+
+@keyframes codin-fade-in {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ── Status Bar ── */
@@ -158,14 +175,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 24px;
-  padding: 0 10px;
-  background: var(--vscode-statusBar-background, #007acc);
-  color: var(--vscode-statusBar-foreground, #ffffff);
-  font-size: 12px;
-  line-height: 24px;
+  height: 26px;
+  padding: 0 12px;
+  background: var(--codin-indigo-900, #312e81);
+  color: var(--codin-indigo-100, #e0e7ff);
+  font-size: 11px;
+  line-height: 26px;
   user-select: none;
-  border-top: 1px solid var(--vscode-statusBar-border, transparent);
+  border-top: 1px solid rgba(99, 102, 241, 0.2);
   z-index: 10;
 }
 
@@ -178,27 +195,28 @@
 }
 
 .ide-status-center {
-  font-size: 11px;
-  opacity: 0.85;
+  font-size: 10px;
+  opacity: 0.7;
+  letter-spacing: 0.3px;
 }
 
 .ide-status-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 0 4px;
+  padding: 0 6px;
   border-radius: 3px;
   cursor: default;
-  transition: background 0.1s ease;
+  transition: background var(--codin-transition-fast, 120ms ease);
 }
 
 .ide-status-item:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .ide-status-icon {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
 }
 
@@ -208,8 +226,10 @@
 
 .ide-status-lang {
   text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.3px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--codin-saffron-300, #fcd34d);
+  font-weight: 500;
 }
 
 /* ── Responsive ── */
@@ -222,7 +242,7 @@
   }
   .ide-activity-btn {
     width: 40px;
-    height: 40px;
+    height: 38px;
   }
   .ide-activity-icon {
     width: 18px;

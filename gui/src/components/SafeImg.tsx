@@ -22,7 +22,6 @@ const SafeImg: React.FC<SafeImg> = ({
   useEffect(() => {
     const cachedImage = localStorage.getItem(src);
     if (cachedImage) {
-      console.log("Using cached image");
       setCachedSrc(cachedImage);
     } else {
       fetch(src)

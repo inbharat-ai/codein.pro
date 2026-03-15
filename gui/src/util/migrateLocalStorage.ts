@@ -54,9 +54,7 @@ function migrateToolPolicies(dispatch: AppDispatch) {
           }
         });
         if (migratedToolSettings > 0) {
-          console.log(
-            `Migrated ${migratedToolSettings} tool policies successfully.`,
-          );
+          // Migration complete
         }
       }
     }

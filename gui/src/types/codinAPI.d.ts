@@ -1,5 +1,5 @@
 /**
- * Global type declarations for the CodIn API bridge
+ * Global type declarations for the CodeIn API bridge
  * exposed to the webview by the host (VS Code extension / Electron shell).
  *
  * Must stay in sync with electron-app/src/preload/preload.ts

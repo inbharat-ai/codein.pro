@@ -4,7 +4,6 @@
  * Covers enums, ID generators, factories, and validators.
  */
 const assert = require("node:assert/strict");
-const test = require("node:test");
 
 const {
   TOPOLOGY,
@@ -48,9 +47,9 @@ test("TOPOLOGY enum is frozen with 4 values", () => {
   assert.equal(TOPOLOGY.STAR, "star");
 });
 
-test("AGENT_TYPE enum is frozen with 15 values", () => {
+test("AGENT_TYPE enum is frozen with 13 values", () => {
   assert.ok(Object.isFrozen(AGENT_TYPE));
-  assert.equal(Object.keys(AGENT_TYPE).length, 15);
+  assert.equal(Object.keys(AGENT_TYPE).length, 13);
   assert.equal(AGENT_TYPE.PLANNER, "planner");
   assert.equal(AGENT_TYPE.CODER, "coder");
   assert.equal(AGENT_TYPE.DEBUGGER, "debugger");
@@ -60,9 +59,10 @@ test("AGENT_TYPE enum is frozen with 15 values", () => {
   assert.equal(AGENT_TYPE.DEVOPS, "devops");
   assert.equal(AGENT_TYPE.I18N, "i18n");
   assert.equal(AGENT_TYPE.VIBE_BUILDER, "vibe_builder");
-  // Legacy aliases
-  assert.equal(AGENT_TYPE.TEST, "test");
-  assert.equal(AGENT_TYPE.DEBUG, "debug");
+  assert.equal(AGENT_TYPE.BROWSER, "browser");
+  assert.equal(AGENT_TYPE.SECURITY, "security");
+  assert.equal(AGENT_TYPE.DOCS, "docs");
+  assert.equal(AGENT_TYPE.REVIEWER, "reviewer");
 });
 
 test("AGENT_STATUS enum is frozen", () => {

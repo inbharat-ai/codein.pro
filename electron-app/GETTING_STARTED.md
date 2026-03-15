@@ -1,6 +1,6 @@
-# Getting Started with CodIn Electron Development
+# Getting Started with CodeIn Electron Development
 
-This guide will help you start working on the CodIn standalone Electron application.
+This guide will help you start working on the CodeIn standalone Electron application.
 
 ## Quick Start
 
@@ -28,7 +28,7 @@ npm run dev
 This will:
 
 - Build the main process
-- Launch Electron with the CodIn application
+- Launch Electron with the CodeIn application
 - Open DevTools automatically (in development mode)
 
 ## Development Workflow
@@ -184,7 +184,7 @@ The GUI is in `gui/` and will be served:
 The ElectronIde.ts imports from `../../core/protocol`. This assumes the core package is at:
 
 ```
-CodIn/
+CodeIn/
 ├── core/
 ├── electron-app/
 └── gui/
@@ -194,7 +194,7 @@ You may need to adjust import paths or use TypeScript path mapping.
 
 ### Python Dependency
 
-The AgentService requires Python 3.8+ and the CodIn Agent to be installed:
+The AgentService requires Python 3.8+ and the CodeIn Agent to be installed:
 
 ```bash
 cd packages/agent
@@ -268,7 +268,7 @@ npm install
 
 ### "Port 43120 already in use"
 
-The CodIn Agent is already running. Kill it:
+The CodeIn Agent is already running. Kill it:
 
 ```bash
 # Windows

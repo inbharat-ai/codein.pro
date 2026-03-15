@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Star Topology
+ * CodeIn MAS — Star Topology
  *
  * Broadcast task to all agents, compare outputs, select best by scoring.
  *

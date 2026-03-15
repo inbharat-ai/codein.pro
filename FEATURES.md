@@ -1,10 +1,10 @@
-# CodIn Features Showcase
+# CodeIn Features Showcase
 
-This document showcases all features of CodIn with examples and screenshots.
+This document showcases all features of CodeIn with examples and screenshots.
 
 ## 🎭 Mode Selector
 
-CodIn offers **4 distinct modes** for different coding workflows:
+CodeIn offers **4 distinct modes** for different coding workflows:
 
 ### Ask Mode (Default)
 
@@ -124,9 +124,9 @@ Response (JSON):
 - Rollback restores from backup
 - Backup ID stored in workspace state
 
-## 🤖 CodIn Agent & Model Manager
+## 🤖 CodeIn Agent & Model Manager
 
-### CodIn Agent Service
+### CodeIn Agent Service
 
 - Auto-starts on extension activation
 - HTTP server on `localhost:43120`
@@ -184,7 +184,7 @@ Location: **Below chat input (microphone icon)**
 
 - Browser Web Speech API (Chrome, Edge)
 - OS TTS for responses
-- Translation via CodIn Agent when available
+- Translation via CodeIn Agent when available
 
 ## 🏃 Run Panel
 
@@ -397,7 +397,7 @@ GitHub Actions workflow: `.github/workflows/codin-tests.yml`
 
 ## 📊 Performance
 
-### CodIn Agent
+### CodeIn Agent
 
 - Lightweight HTTP service (~10MB memory)
 - Fast startup (<1s)

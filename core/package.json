@@ -1,7 +1,7 @@
 {
   "name": "@continuedev/core",
   "version": "1.1.0",
-  "description": "The CodIn Core contains AI code generation and agent logic for local inference, offline-first design",
+  "description": "The CodeIn Core contains AI code generation and agent logic for local inference, offline-first design",
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "vitest": "vitest run",

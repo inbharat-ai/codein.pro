@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Mesh Topology
+ * CodeIn MAS — Mesh Topology
  *
  * All agents work in parallel on independent nodes.
  * Synthesis merge at the end combines all results.

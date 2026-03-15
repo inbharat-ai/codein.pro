@@ -1,5 +1,5 @@
 /**
- * CodIn MAS — Planner Agent
+ * CodeIn MAS — Planner Agent
  *
  * Decomposes high-level goals into task graphs.
  * Uses LLM to break goals into steps, estimate dependencies, and choose topology.
@@ -15,7 +15,7 @@ const {
   createTaskGraph,
 } = require("../types");
 
-const SYSTEM_PROMPT = `You are the CodIn Planner Agent. Your job is to decompose a coding goal into concrete, actionable task nodes.
+const SYSTEM_PROMPT = `You are the CodeIn Planner Agent. Your job is to decompose a coding goal into concrete, actionable task nodes.
 
 RULES:
 1. Each node must be a single, well-defined action (e.g., "Create auth middleware", "Write unit tests for UserService")
@@ -130,7 +130,7 @@ ${context.workspaceSummary || "No workspace context available."}`;
     return {
       result: `Decomposed into ${nodes.length} nodes with ${edges.length} edges`,
       taskGraph,
-      confidence: 0.85,
+      confidence: this.computeConfidence(plan, context),
     };
   }
 }

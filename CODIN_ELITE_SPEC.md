@@ -1,4 +1,4 @@
-# CodIn ELITE - Complete Feature Specification
+# CodeIn ELITE - Complete Feature Specification
 
 ## Cursor + Copilot Merged | Offline-First AI | Production Grade
 

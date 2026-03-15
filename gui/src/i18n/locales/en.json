@@ -1,0 +1,88 @@
+{
+  "activityBar": {
+    "chat": "AI Chat",
+    "history": "History",
+    "search": "Search",
+    "gpu": "GPU Panel",
+    "docs": "Docs & Rules",
+    "swarm": "Swarm",
+    "git": "Git",
+    "aiHub": "AI Hub",
+    "computer": "Computer",
+    "settings": "Settings"
+  },
+  "statusBar": {
+    "ready": "Ready",
+    "branch": "main",
+    "language": "TypeScript",
+    "tagline": "CodeIn — AI-Powered Code Editor for Bharat",
+    "version": "v1.0.0"
+  },
+  "modes": {
+    "chat": "Chat",
+    "plan": "Plan",
+    "agent": "Agent",
+    "background": "Background",
+    "vibe": "Vibe"
+  },
+  "swarm": {
+    "title": "Multi-Agent Swarm",
+    "initialize": "Initialize Swarm",
+    "shutdown": "Shutdown",
+    "notActive": "Swarm not active. Initialize to begin."
+  },
+  "sovereign": {
+    "title": "Sovereign Mode",
+    "offlineReady": "Offline Ready"
+  },
+  "computer": {
+    "title": "Computer Panel",
+    "subtitle": "Autonomous task execution",
+    "tabs": {
+      "run": "Run",
+      "skills": "Skills",
+      "workflows": "Workflows",
+      "audit": "Audit"
+    },
+    "run": {
+      "placeholder": "Describe what you want to build...",
+      "hint": "Ctrl+Enter to submit",
+      "submit": "Run",
+      "steps": "steps",
+      "pause": "Pause",
+      "resume": "Resume",
+      "clear": "Clear",
+      "empty": "No active plan. Enter a goal above to start."
+    },
+    "skills": {
+      "searchPlaceholder": "Search skills...",
+      "empty": "No skills available",
+      "uses": "uses",
+      "permissions": "Required Permissions",
+      "estimatedCost": "Est. Cost:",
+      "inputSchema": "Input Schema",
+      "outputSchema": "Output Schema"
+    },
+    "workflows": {
+      "title": "Workflow Templates",
+      "empty": "No workflows available",
+      "steps": "steps",
+      "vars": "variables",
+      "run": "Run",
+      "execute": "Execute",
+      "noVars": "No variables required"
+    },
+    "audit": {
+      "title": "Audit Log",
+      "empty": "No audit entries",
+      "allActions": "All Actions"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "error": "Error",
+    "loading": "Loading...",
+    "retry": "Retry"
+  }
+}

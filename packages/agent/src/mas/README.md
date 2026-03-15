@@ -1,6 +1,6 @@
-# CodIn Multi-Agent Swarm (MAS)
+# CodeIn Multi-Agent Swarm (MAS)
 
-Production-grade multi-agent orchestration for CodIn — autonomous task decomposition,
+Production-grade multi-agent orchestration for CodeIn — autonomous task decomposition,
 specialist routing, topology-aware execution, and real-time event streaming.
 
 ## Architecture
