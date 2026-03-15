@@ -27,10 +27,10 @@ outputs:
     value: ${{ steps.set-target.outputs.target }}
   vsix-path:
     description: 'Path to the generated VSIX file'
-    value: 'extensions/vscode/*.vsix'
+    value: 'packages/extension/*.vsix'
   build-path:
     description: 'Path to the build artifacts'
-    value: 'extensions/vscode/build'
+    value: 'packages/extension/build'
 
 runs:
   using: 'composite'
@@ -53,8 +53,8 @@ runs:
     - name: Cache extension node_modules
       uses: actions/cache@v4
       with:
-        path: extensions/vscode/node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('extensions/vscode/package-lock.json') }}
+        path: packages/extension/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('packages/extension/package-lock.json') }}
 
     - name: Cache core node_modules
       uses: actions/cache@v4
@@ -82,7 +82,7 @@ runs:
     - name: Install extension dependencies
       shell: bash
       run: |
-        cd extensions/vscode
+        cd packages/extension
         npm ci
       env:
         # https://github.com/microsoft/vscode-ripgrep/issues/9#issuecomment-643965333
@@ -114,21 +114,21 @@ runs:
       env:
         CONTINUE_VSCODE_TARGET: ${{ steps.set-target.outputs.target }}
       run: |
-        cd extensions/vscode
+        cd packages/extension
         export CONTINUE_VSCODE_TARGET="${{ steps.set-target.outputs.target }}"
         npm run prepackage -- --target ${{ steps.set-target.outputs.target }}
 
     - name: Re-install esbuild
       shell: bash
       run: |
-        cd extensions/vscode
+        cd packages/extension
         npm install -f esbuild
 
     - name: Modify package.json version with commit SHA
       if: inputs.commit-sha != ''
       shell: bash
       run: |
-        cd extensions/vscode
+        cd packages/extension
         # Get current version from package.json
         CURRENT_VERSION=$(node -p "require('./package.json').version")
 
@@ -152,7 +152,7 @@ runs:
       env:
         CONTINUE_VSCODE_TARGET: ${{ steps.set-target.outputs.target }}
       run: |
-        cd extensions/vscode
+        cd packages/extension
         export CONTINUE_VSCODE_TARGET="${{ steps.set-target.outputs.target }}"
         npm run package -- --target ${{ steps.set-target.outputs.target }}
 
@@ -161,7 +161,7 @@ runs:
       env:
         CONTINUE_VSCODE_TARGET: ${{ steps.set-target.outputs.target }}
       run: |
-        cd extensions/vscode
+        cd packages/extension
         export CONTINUE_VSCODE_TARGET="${{ steps.set-target.outputs.target }}"
         if [ "${{ inputs.pre-release }}" = "true" ]; then
           npx vsce package --pre-release --no-dependencies --target ${{ steps.set-target.outputs.target }}

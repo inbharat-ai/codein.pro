@@ -93,7 +93,7 @@ const require = __createRequire(import.meta.url);`,
   // Note: We must call runCli(); a plain dynamic import will not execute the CLI.
   writeFileSync(
     "dist/cn.js",
-    "#!/usr/bin/env node\nimport { runCli } from './index.js';\nawait runCli();\n",
+    "#!/usr/bin/env node\nimport { runCli } from './index.js';\nrunCli().catch((err) => { console.error(err); process.exitCode = 1; });\n",
   );
   // Copy worker files needed by JSDOM
   const workerSource = resolve(
