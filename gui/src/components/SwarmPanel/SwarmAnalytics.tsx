@@ -22,10 +22,10 @@ export function SwarmAnalytics() {
   if (!analytics) {
     return (
       <div>
-        <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+        <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
           Analytics
         </h3>
-        <p className="text-vsc-foreground/40 text-[10px]">
+        <p className="text-codin-fg-muted text-[10px]">
           {loaded ? "Analytics not available" : "Loading..."}
         </p>
       </div>
@@ -37,22 +37,22 @@ export function SwarmAnalytics() {
 
   return (
     <div>
-      <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+      <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
         Analytics
       </h3>
       <div className="space-y-2">
         {/* Summary */}
-        <div className="bg-vsc-input-background rounded p-2">
+        <div className="bg-codin-bg-surface rounded-md p-2">
           <div className="grid grid-cols-2 gap-2 text-[10px]">
             <div>
-              <span className="text-vsc-foreground/50">Total Cost</span>
+              <span className="text-codin-fg-secondary">Total Cost</span>
               <div className="text-sm font-medium text-green-400">
                 ${(analytics.totalCost || 0).toFixed(4)}
               </div>
             </div>
             <div>
-              <span className="text-vsc-foreground/50">Total Tokens</span>
-              <div className="text-sm font-medium text-blue-400">
+              <span className="text-codin-fg-secondary">Total Tokens</span>
+              <div className="text-codin-indigo-400 text-sm font-medium">
                 {(analytics.totalTokens || 0).toLocaleString()}
               </div>
             </div>
@@ -62,7 +62,7 @@ export function SwarmAnalytics() {
         {/* Cost by Agent */}
         {Object.keys(costByAgent).length > 0 && (
           <div>
-            <h4 className="text-vsc-foreground/50 mb-0.5 text-[10px] font-medium">
+            <h4 className="text-codin-fg-secondary mb-0.5 text-[10px] font-medium">
               Cost by Agent
             </h4>
             <div className="space-y-0.5">
@@ -73,7 +73,7 @@ export function SwarmAnalytics() {
                     key={agent}
                     className="flex items-center justify-between text-[10px]"
                   >
-                    <span className="text-vsc-foreground/60">{agent}</span>
+                    <span className="text-codin-fg-secondary">{agent}</span>
                     <span className="font-mono text-green-400">
                       ${(cost as number).toFixed(4)}
                     </span>
@@ -86,7 +86,7 @@ export function SwarmAnalytics() {
         {/* Cost by Model */}
         {Object.keys(costByModel).length > 0 && (
           <div>
-            <h4 className="text-vsc-foreground/50 mb-0.5 text-[10px] font-medium">
+            <h4 className="text-codin-fg-secondary mb-0.5 text-[10px] font-medium">
               Cost by Model
             </h4>
             <div className="space-y-0.5">
@@ -97,7 +97,7 @@ export function SwarmAnalytics() {
                     key={model}
                     className="flex items-center justify-between text-[10px]"
                   >
-                    <span className="text-vsc-foreground/60 max-w-[150px] truncate">
+                    <span className="text-codin-fg-secondary max-w-[150px] truncate">
                       {model}
                     </span>
                     <span className="font-mono text-green-400">
@@ -112,18 +112,18 @@ export function SwarmAnalytics() {
         {/* Cost Suggestions */}
         {suggestions.length > 0 && (
           <div>
-            <h4 className="text-vsc-foreground/50 mb-0.5 text-[10px] font-medium">
+            <h4 className="text-codin-fg-secondary mb-0.5 text-[10px] font-medium">
               Optimization Tips
             </h4>
             <div className="space-y-1">
               {suggestions.map((s, i) => (
                 <div
                   key={i}
-                  className="bg-vsc-input-background rounded p-1.5 text-[10px]"
+                  className="bg-codin-bg-surface rounded-md p-1.5 text-[10px]"
                 >
                   <div className="flex items-start gap-1">
                     <span
-                      className={`shrink-0 ${s.priority === "high" ? "text-red-400" : s.priority === "medium" ? "text-yellow-400" : "text-blue-400"}`}
+                      className={`shrink-0 ${s.priority === "high" ? "text-red-400" : s.priority === "medium" ? "text-codin-saffron-400" : "text-codin-indigo-400"}`}
                     >
                       {s.priority === "high"
                         ? "!"
@@ -131,7 +131,7 @@ export function SwarmAnalytics() {
                           ? "*"
                           : "-"}
                     </span>
-                    <span className="text-vsc-foreground/60">
+                    <span className="text-codin-fg-secondary">
                       {s.suggestion}
                     </span>
                   </div>

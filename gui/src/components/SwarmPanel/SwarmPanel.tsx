@@ -73,20 +73,20 @@ export function SwarmPanel() {
   ];
 
   return (
-    <div className="bg-vsc-background flex h-full flex-col overflow-hidden">
+    <div className="bg-codin-bg flex h-full flex-col overflow-hidden">
       <SwarmHeader />
       {isActive ? (
         <>
           {/* Tab bar */}
-          <div className="border-vsc-input-border flex gap-0.5 border-b px-2 py-1">
+          <div className="border-codin-border flex gap-1 border-b px-3 py-1.5">
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`rounded px-2 py-0.5 text-[10px] transition-colors ${
+                className={`rounded-md px-2.5 py-1 text-[10px] font-medium transition-all ${
                   tab === t.key
-                    ? "bg-blue-600 text-white"
-                    : "text-vsc-foreground/50 hover:text-vsc-foreground/70 hover:bg-vsc-input-background"
+                    ? "bg-codin-indigo-600 shadow-codin-indigo-600/25 text-white shadow-sm"
+                    : "text-codin-fg-muted hover:text-codin-fg-secondary hover:bg-codin-bg-hover"
                 }`}
               >
                 {t.label}
@@ -94,7 +94,7 @@ export function SwarmPanel() {
             ))}
           </div>
 
-          <div className="flex-1 space-y-3 overflow-y-auto p-2">
+          <div className="flex-1 space-y-3 overflow-y-auto p-3">
             {tab === "overview" && (
               <>
                 <SwarmAgents />
@@ -115,15 +115,28 @@ export function SwarmPanel() {
             {tab === "workspace" && <SwarmWorkspaceIntel />}
 
             {!sseConnected && (
-              <div className="px-2 text-xs text-yellow-500">
+              <div className="bg-codin-saffron-500/10 text-codin-saffron-400 rounded-md px-2.5 py-1.5 text-xs">
                 SSE disconnected — events may be delayed
               </div>
             )}
           </div>
         </>
       ) : (
-        <div className="text-vsc-foreground/60 flex flex-1 items-center justify-center text-sm">
-          Swarm not active. Initialize to begin.
+        <div className="text-codin-fg-muted flex flex-1 flex-col items-center justify-center gap-2 text-sm">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-codin-indigo-400/40 h-10 w-10"
+          >
+            <path
+              d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>Swarm not active. Initialize to begin.</span>
         </div>
       )}
     </div>

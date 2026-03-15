@@ -28,7 +28,6 @@ export function ComputerWorkflows() {
       setVariableValues({});
       return;
     }
-    // Pre-populate defaults
     const defaults: Record<string, unknown> = {};
     workflow.variables.forEach((v) => {
       if (v.defaultValue !== undefined) {
@@ -63,39 +62,33 @@ export function ComputerWorkflows() {
 
   return (
     <div className="space-y-2">
-      <h3 className="text-vsc-foreground/70 text-xs font-semibold">
+      <h3 className="text-codin-fg-secondary text-xs font-semibold">
         {t("computer.workflows.title")}
       </h3>
 
-      {/* Loading */}
       {loading && (
-        <p className="text-vsc-foreground/40 text-[10px]">
-          {t("common.loading")}
-        </p>
+        <p className="text-codin-fg-muted text-[10px]">{t("common.loading")}</p>
       )}
 
-      {/* Empty */}
       {!loading && workflows.length === 0 && (
-        <p className="text-vsc-foreground/40 py-4 text-center text-[10px]">
+        <p className="text-codin-fg-muted py-4 text-center text-[10px]">
           {t("computer.workflows.empty")}
         </p>
       )}
 
-      {/* Workflow list */}
       {workflows.length > 0 && (
         <div className="space-y-1.5">
           {workflows.map((wf) => (
-            <div key={wf.name} className="bg-vsc-input-background rounded p-2">
-              {/* Workflow header */}
+            <div key={wf.name} className="bg-codin-bg-surface rounded-md p-2.5">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <span className="text-vsc-foreground text-xs font-medium">
+                  <span className="text-codin-fg text-xs font-medium">
                     {wf.name}
                   </span>
-                  <p className="text-vsc-foreground/50 mt-0.5 text-[10px] leading-tight">
+                  <p className="text-codin-fg-muted mt-0.5 text-[10px] leading-tight">
                     {wf.description}
                   </p>
-                  <div className="text-vsc-foreground/30 mt-1 flex gap-3 text-[9px]">
+                  <div className="text-codin-fg-muted mt-1 flex gap-3 text-[9px]">
                     <span>
                       {wf.stepCount} {t("computer.workflows.steps")}
                     </span>
@@ -109,7 +102,7 @@ export function ComputerWorkflows() {
                 </div>
                 <button
                   onClick={() => handleOpenRun(wf)}
-                  className="shrink-0 rounded bg-blue-600 px-2 py-0.5 text-[10px] text-white hover:bg-blue-700"
+                  className="bg-codin-indigo-600 hover:bg-codin-indigo-500 shrink-0 rounded-md px-2.5 py-1 text-[10px] font-medium text-white transition-colors"
                 >
                   {runningWorkflow === wf.name
                     ? t("common.cancel")
@@ -117,11 +110,10 @@ export function ComputerWorkflows() {
                 </button>
               </div>
 
-              {/* Variable input form */}
               {runningWorkflow === wf.name && (
-                <div className="mt-2 space-y-1.5 border-t border-zinc-700 pt-2">
+                <div className="border-codin-border mt-2 space-y-1.5 border-t pt-2">
                   {wf.variables.length === 0 ? (
-                    <p className="text-vsc-foreground/40 text-[10px]">
+                    <p className="text-codin-fg-muted text-[10px]">
                       {t("computer.workflows.noVars")}
                     </p>
                   ) : (
@@ -136,7 +128,7 @@ export function ComputerWorkflows() {
                   )}
                   <button
                     onClick={() => handleRun(wf.name)}
-                    className="rounded bg-green-600 px-2 py-0.5 text-[10px] text-white hover:bg-green-700"
+                    className="rounded-md bg-emerald-600 px-2.5 py-1 text-[10px] font-medium text-white transition-colors hover:bg-emerald-500"
                   >
                     {t("computer.workflows.execute")}
                   </button>
@@ -166,22 +158,22 @@ function VariableInput({
           type="checkbox"
           checked={Boolean(value)}
           onChange={(e) => onChange(e.target.checked)}
-          className="rounded"
+          className="accent-codin-indigo-500 rounded"
         />
-        <span className="text-vsc-foreground/70">{variable.name}</span>
+        <span className="text-codin-fg-secondary">{variable.name}</span>
         {variable.required && <span className="text-red-400">*</span>}
-        <span className="text-vsc-foreground/30">{variable.description}</span>
+        <span className="text-codin-fg-muted">{variable.description}</span>
       </label>
     );
   }
 
   return (
     <div>
-      <label className="text-vsc-foreground/50 mb-0.5 block text-[9px]">
+      <label className="text-codin-fg-muted mb-0.5 block text-[9px]">
         {variable.name}
         {variable.required && <span className="text-red-400"> *</span>}
         {variable.description && (
-          <span className="text-vsc-foreground/30 ml-1">
+          <span className="text-codin-fg-muted ml-1">
             {variable.description}
           </span>
         )}
@@ -196,7 +188,7 @@ function VariableInput({
               : e.target.value,
           )
         }
-        className="bg-vsc-input-background border-vsc-input-border text-vsc-foreground w-full rounded border px-2 py-0.5 text-[10px] focus:border-blue-500 focus:outline-none"
+        className="bg-codin-bg-surface border-codin-border text-codin-fg focus:border-codin-indigo-500 w-full rounded border px-2 py-1 text-[10px] focus:outline-none"
       />
     </div>
   );

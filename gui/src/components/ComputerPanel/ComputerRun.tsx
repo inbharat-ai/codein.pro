@@ -15,19 +15,19 @@ import {
   clearActivePlan,
 } from "../../redux/slices/computerSlice";
 
-const STATUS_COLORS: Record<string, string> = {
-  planning: "bg-yellow-600",
-  running: "bg-blue-600 animate-pulse",
-  paused: "bg-orange-600",
-  completed: "bg-green-600",
-  failed: "bg-red-600",
-  cancelled: "bg-zinc-600",
+const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
+  planning: { bg: "bg-codin-saffron-500/20", text: "text-codin-saffron-400" },
+  running: { bg: "bg-codin-indigo-500/20", text: "text-codin-indigo-300" },
+  paused: { bg: "bg-orange-500/20", text: "text-orange-400" },
+  completed: { bg: "bg-emerald-500/15", text: "text-emerald-400" },
+  failed: { bg: "bg-red-500/15", text: "text-red-400" },
+  cancelled: { bg: "bg-zinc-500/15", text: "text-zinc-400" },
 };
 
 const STEP_ICONS: Record<string, { icon: string; color: string }> = {
-  pending: { icon: "\u25CB", color: "text-zinc-400" },
-  running: { icon: "\u25CF", color: "text-blue-400 animate-pulse" },
-  completed: { icon: "\u2713", color: "text-green-400" },
+  pending: { icon: "\u25CB", color: "text-codin-fg-muted" },
+  running: { icon: "\u25CF", color: "text-codin-indigo-400 animate-pulse" },
+  completed: { icon: "\u2713", color: "text-emerald-400" },
   failed: { icon: "\u2717", color: "text-red-400" },
 };
 
@@ -74,16 +74,16 @@ export function ComputerRun() {
           }}
           placeholder={t("computer.run.placeholder")}
           rows={4}
-          className="bg-vsc-input-background border-vsc-input-border text-vsc-foreground w-full resize-none rounded border p-2 text-xs placeholder:text-zinc-500 focus:border-blue-500 focus:outline-none"
+          className="bg-codin-bg-surface border-codin-border text-codin-fg placeholder:text-codin-fg-muted focus:border-codin-indigo-500 focus:ring-codin-indigo-500/30 w-full resize-none rounded-md border p-2.5 text-xs leading-relaxed focus:outline-none focus:ring-1"
         />
-        <div className="mt-1 flex items-center justify-between">
-          <span className="text-vsc-foreground/30 text-[10px]">
+        <div className="mt-1.5 flex items-center justify-between">
+          <span className="text-codin-fg-muted text-[10px]">
             {t("computer.run.hint")}
           </span>
           <button
             onClick={handleSubmit}
             disabled={!goalInput.trim() || isActive}
-            className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            className="bg-codin-indigo-600 shadow-codin-indigo-600/25 hover:bg-codin-indigo-500 hover:shadow-codin-indigo-500/30 rounded-md px-4 py-1.5 text-xs font-medium text-white shadow-sm transition-all disabled:opacity-50 disabled:shadow-none"
           >
             {t("computer.run.submit")}
           </button>
@@ -92,32 +92,38 @@ export function ComputerRun() {
 
       {/* Error display */}
       {error && (
-        <div className="rounded bg-red-900/30 px-2 py-1.5 text-xs text-red-400">
+        <div className="rounded-md border border-red-500/20 bg-red-900/20 px-2.5 py-2 text-xs text-red-400">
           {error}
         </div>
       )}
 
       {/* Active plan display */}
       {plan && (
-        <div className="bg-vsc-input-background rounded p-2">
+        <div className="bg-codin-bg-surface rounded-md p-3">
           {/* Plan header */}
-          <div className="mb-2 flex items-start justify-between gap-2">
+          <div className="mb-2.5 flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <p className="text-vsc-foreground truncate text-xs font-medium">
+              <p className="text-codin-fg truncate text-xs font-medium">
                 {plan.goal}
               </p>
-              <div className="mt-0.5 flex items-center gap-2">
-                <span
-                  className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium text-white ${STATUS_COLORS[plan.status] || "bg-zinc-600"}`}
-                >
-                  {plan.status.toUpperCase()}
-                </span>
-                <span className="text-vsc-foreground/40 text-[10px]">
+              <div className="mt-1 flex items-center gap-2">
+                {(() => {
+                  const style =
+                    STATUS_STYLES[plan.status] || STATUS_STYLES.cancelled;
+                  return (
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-wide ${style.bg} ${style.text}`}
+                    >
+                      {plan.status.toUpperCase()}
+                    </span>
+                  );
+                })()}
+                <span className="text-codin-fg-muted text-[10px]">
                   {plan.progress.completed}/{plan.progress.total}{" "}
                   {t("computer.run.steps")}
                 </span>
                 {plan.progress.costUSD > 0 && (
-                  <span className="font-mono text-[10px] text-green-400">
+                  <span className="font-mono text-[10px] text-emerald-400">
                     ${plan.progress.costUSD.toFixed(4)}
                   </span>
                 )}
@@ -126,14 +132,14 @@ export function ComputerRun() {
           </div>
 
           {/* Progress bar */}
-          <div className="mb-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-700">
+          <div className="bg-codin-bg mb-2.5 h-1.5 w-full overflow-hidden rounded-full">
             <div
-              className={`h-full rounded-full transition-all duration-300 ${
+              className={`h-full rounded-full transition-all duration-500 ease-out ${
                 plan.status === "failed"
                   ? "bg-red-500"
                   : plan.status === "completed"
-                    ? "bg-green-500"
-                    : "bg-blue-500"
+                    ? "bg-emerald-500"
+                    : "bg-codin-indigo-500"
               }`}
               style={{ width: `${progressPercent}%` }}
             />
@@ -141,23 +147,23 @@ export function ComputerRun() {
 
           {/* Steps list */}
           {plan.steps.length > 0 && (
-            <div className="scrollbar-thin mb-2 max-h-48 space-y-0.5 overflow-y-auto">
+            <div className="mb-2.5 max-h-48 space-y-0.5 overflow-y-auto">
               {plan.steps.map((step) => {
                 const stepStyle = STEP_ICONS[step.status] || STEP_ICONS.pending;
                 return (
                   <div
                     key={step.id}
-                    className="flex items-center gap-2 rounded px-1 py-0.5 text-[10px]"
+                    className="hover:bg-codin-bg-hover flex items-center gap-2 rounded px-1.5 py-1 text-[10px] transition-colors"
                   >
                     <span className={`shrink-0 ${stepStyle.color}`}>
                       {stepStyle.icon}
                     </span>
-                    <span className="text-vsc-foreground/70 min-w-0 flex-1 truncate">
+                    <span className="text-codin-fg-secondary min-w-0 flex-1 truncate">
                       {step.description}
                     </span>
                     {step.durationMs !== undefined &&
                       step.status === "completed" && (
-                        <span className="text-vsc-foreground/30 shrink-0 font-mono">
+                        <span className="text-codin-fg-muted shrink-0 font-mono">
                           {step.durationMs < 1000
                             ? `${step.durationMs}ms`
                             : `${(step.durationMs / 1000).toFixed(1)}s`}
@@ -178,11 +184,11 @@ export function ComputerRun() {
           )}
 
           {/* Action buttons */}
-          <div className="flex gap-1">
+          <div className="flex gap-1.5">
             {plan.status === "running" && (
               <button
                 onClick={() => dispatch(pausePlan(plan.id))}
-                className="rounded bg-orange-600 px-2 py-0.5 text-[10px] text-white hover:bg-orange-700"
+                className="bg-codin-saffron-600/80 hover:bg-codin-saffron-500/80 rounded-md px-2.5 py-1 text-[10px] font-medium text-white transition-colors"
               >
                 {t("computer.run.pause")}
               </button>
@@ -190,7 +196,7 @@ export function ComputerRun() {
             {plan.status === "paused" && (
               <button
                 onClick={() => dispatch(resumePlan(plan.id))}
-                className="rounded bg-blue-600 px-2 py-0.5 text-[10px] text-white hover:bg-blue-700"
+                className="bg-codin-indigo-600 hover:bg-codin-indigo-500 rounded-md px-2.5 py-1 text-[10px] font-medium text-white transition-colors"
               >
                 {t("computer.run.resume")}
               </button>
@@ -200,7 +206,7 @@ export function ComputerRun() {
               plan.status === "planning") && (
               <button
                 onClick={() => dispatch(cancelPlan(plan.id))}
-                className="rounded bg-red-600 px-2 py-0.5 text-[10px] text-white hover:bg-red-700"
+                className="rounded-md bg-red-600/60 px-2.5 py-1 text-[10px] font-medium text-red-200 transition-colors hover:bg-red-500/60"
               >
                 {t("common.cancel")}
               </button>
@@ -210,7 +216,7 @@ export function ComputerRun() {
               plan.status === "cancelled") && (
               <button
                 onClick={() => dispatch(clearActivePlan())}
-                className="text-vsc-foreground/40 hover:text-vsc-foreground/60 rounded px-2 py-0.5 text-[10px]"
+                className="text-codin-fg-muted hover:text-codin-fg-secondary rounded-md px-2.5 py-1 text-[10px] transition-colors"
               >
                 {t("computer.run.clear")}
               </button>
@@ -221,7 +227,20 @@ export function ComputerRun() {
 
       {/* Empty state */}
       {!plan && !error && (
-        <div className="text-vsc-foreground/30 py-4 text-center text-[10px]">
+        <div className="text-codin-fg-muted flex flex-col items-center gap-2 py-6 text-center text-[10px]">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-codin-indigo-400/30 h-8 w-8"
+          >
+            <path
+              d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
           {t("computer.run.empty")}
         </div>
       )}

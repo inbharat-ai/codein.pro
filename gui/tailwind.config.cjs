@@ -100,6 +100,51 @@ module.exports = {
           },
         },
 
+        // ── CodeIn Design System ──────────────────────────────────────
+        codin: {
+          bg: {
+            DEFAULT: "var(--codin-bg-primary, #0f0e17)",
+            secondary: "var(--codin-bg-secondary, #141320)",
+            tertiary: "var(--codin-bg-tertiary, #1a1832)",
+            surface: "var(--codin-bg-surface, #201e3a)",
+            hover: "var(--codin-bg-hover, #262450)",
+            active: "var(--codin-bg-active, #312e81)",
+          },
+          fg: {
+            DEFAULT: "var(--codin-fg-primary, #e8e6f0)",
+            secondary: "var(--codin-fg-secondary, #a8a5c0)",
+            muted: "var(--codin-fg-muted, #8b88ad)",
+          },
+          indigo: {
+            50: "#eef2ff",
+            100: "#e0e7ff",
+            200: "#c7d2fe",
+            300: "#a5b4fc",
+            400: "#818cf8",
+            500: "#6366f1",
+            600: "#4f46e5",
+            700: "#4338ca",
+            800: "#3730a3",
+            900: "#312e81",
+            950: "#1e1b4b",
+          },
+          saffron: {
+            50: "#fffbeb",
+            100: "#fef3c7",
+            200: "#fde68a",
+            300: "#fcd34d",
+            400: "#fbbf24",
+            500: "#f59e0b",
+            600: "#d97706",
+            700: "#b45309",
+          },
+          border: {
+            DEFAULT: "var(--codin-border, rgba(99, 102, 241, 0.12))",
+            strong: "var(--codin-border-strong, rgba(99, 102, 241, 0.25))",
+            focus: "var(--codin-border-focus, rgba(245, 158, 11, 0.5))",
+          },
+        },
+
         // DEPRECATED, slowly remove usages of these ide-named or explicit colors
         lightgray: "#999998", // use border, description, or description-muted instead - AVOID
         "vsc-input-background": varWithFallback("input-background"), // use "input-background" instead

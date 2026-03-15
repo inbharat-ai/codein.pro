@@ -7,17 +7,17 @@ import {
 } from "../../redux/slices/swarmSlice";
 
 const STATUS_BADGES: Record<string, string> = {
-  queued: "bg-zinc-600",
-  running: "bg-blue-600 animate-pulse",
-  completed: "bg-green-600",
+  queued: "bg-codin-bg-surface",
+  running: "bg-codin-indigo-600 animate-pulse",
+  completed: "bg-emerald-500/20 text-emerald-400",
   failed: "bg-red-600",
-  cancelled: "bg-zinc-800",
+  cancelled: "bg-codin-bg",
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
   high: "text-red-400",
-  normal: "text-vsc-foreground/60",
-  low: "text-vsc-foreground/40",
+  normal: "text-codin-fg-secondary",
+  low: "text-codin-fg-muted",
 };
 
 export function SwarmBackgroundTasks() {
@@ -43,7 +43,7 @@ export function SwarmBackgroundTasks() {
 
   return (
     <div>
-      <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+      <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
         Background Tasks ({tasks.length})
       </h3>
 
@@ -55,12 +55,12 @@ export function SwarmBackgroundTasks() {
           onChange={(e) => setGoal(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           placeholder="Background task goal..."
-          className="bg-vsc-input-background border-vsc-input-border flex-1 rounded border px-2 py-1 text-xs"
+          className="bg-codin-bg-surface border-codin-border focus:border-codin-border-focus flex-1 rounded-md border px-2 py-1 text-xs focus:outline-none"
         />
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="bg-vsc-input-background border-vsc-input-border rounded border px-1 text-[10px]"
+          className="bg-codin-bg-surface border-codin-border focus:border-codin-border-focus rounded-md border px-1 text-[10px] focus:outline-none"
         >
           <option value="high">High</option>
           <option value="normal">Normal</option>
@@ -69,7 +69,7 @@ export function SwarmBackgroundTasks() {
         <button
           onClick={handleSubmit}
           disabled={!goal.trim()}
-          className="rounded bg-purple-600 px-2 py-1 text-xs text-white hover:bg-purple-700 disabled:opacity-50"
+          className="rounded-md bg-purple-600 px-2 py-1 text-xs text-white hover:bg-purple-700 disabled:opacity-50"
         >
           Queue
         </button>
@@ -77,7 +77,7 @@ export function SwarmBackgroundTasks() {
 
       {/* Task list */}
       {tasks.length === 0 && (
-        <p className="text-vsc-foreground/40 text-[10px]">
+        <p className="text-codin-fg-muted text-[10px]">
           No background tasks queued. Enter a goal above to queue one.
         </p>
       )}
@@ -86,22 +86,20 @@ export function SwarmBackgroundTasks() {
           {tasks.map((t) => (
             <div
               key={t.id}
-              className="bg-vsc-input-background flex items-center gap-2 rounded px-2 py-1 text-[10px]"
+              className="bg-codin-bg-surface flex items-center gap-2 rounded-md px-2 py-1 text-[10px]"
             >
               <span
-                className={`h-2 w-2 shrink-0 rounded-full ${STATUS_BADGES[t.status] || "bg-zinc-600"}`}
+                className={`h-2 w-2 shrink-0 rounded-full ${STATUS_BADGES[t.status] || "bg-codin-bg-surface"}`}
               />
               <span className="flex-1 truncate">{t.goal}</span>
               <span
-                className={
-                  PRIORITY_LABELS[t.priority] || "text-vsc-foreground/40"
-                }
+                className={PRIORITY_LABELS[t.priority] || "text-codin-fg-muted"}
               >
                 {t.priority}
               </span>
-              <span className="text-vsc-foreground/30">{t.status}</span>
+              <span className="text-codin-fg-muted">{t.status}</span>
               {t.progress !== undefined && t.progress > 0 && (
-                <span className="text-blue-400">{t.progress}%</span>
+                <span className="text-codin-indigo-400">{t.progress}%</span>
               )}
             </div>
           ))}

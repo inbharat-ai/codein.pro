@@ -18,10 +18,10 @@ export function SwarmBudget() {
   if (!budget) {
     return (
       <div>
-        <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+        <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
           Budget
         </h3>
-        <p className="text-vsc-foreground/40 text-[10px]">
+        <p className="text-codin-fg-muted text-[10px]">
           Loading budget data...
         </p>
       </div>
@@ -38,34 +38,34 @@ export function SwarmBudget() {
 
   return (
     <div>
-      <h3 className="text-vsc-foreground/70 mb-1 text-xs font-semibold">
+      <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
         Budget
       </h3>
-      <div className="bg-vsc-input-background space-y-1.5 rounded p-2">
+      <div className="bg-codin-bg-surface space-y-1.5 rounded-md p-2">
         <div className="flex items-center gap-2 text-[10px]">
-          <div className="bg-vsc-background h-2.5 flex-1 overflow-hidden rounded">
+          <div className="bg-codin-bg h-2.5 flex-1 overflow-hidden rounded-md">
             <div
-              className={`${barColor} h-full rounded transition-all`}
+              className={`${barColor} h-full rounded-md transition-all`}
               style={{ width: `${Math.min(100, pct)}%` }}
             />
           </div>
-          <span className="text-vsc-foreground/60 w-16 text-right font-mono">
+          <span className="text-codin-fg-secondary w-16 text-right font-mono">
             {pct.toFixed(1)}%
           </span>
         </div>
         <div className="grid grid-cols-3 gap-1 text-[10px]">
           <div>
-            <span className="text-vsc-foreground/40">Spent</span>
+            <span className="text-codin-fg-muted">Spent</span>
             <div className="font-mono text-green-400">
               ${budget.totalSpent.toFixed(2)}
             </div>
           </div>
           <div>
-            <span className="text-vsc-foreground/40">Budget</span>
+            <span className="text-codin-fg-muted">Budget</span>
             <div className="font-mono">${budget.budgetUSD.toFixed(2)}</div>
           </div>
           <div>
-            <span className="text-vsc-foreground/40">Left</span>
+            <span className="text-codin-fg-muted">Left</span>
             <div
               className={`font-mono ${budget.remaining < 1 ? "text-red-400" : ""}`}
             >

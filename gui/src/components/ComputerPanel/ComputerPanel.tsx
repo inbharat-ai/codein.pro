@@ -23,27 +23,27 @@ export function ComputerPanel() {
   const activeTab = useAppSelector(selectActiveTab);
 
   return (
-    <div className="bg-vsc-background flex h-full flex-col overflow-hidden">
+    <div className="bg-codin-bg flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-vsc-input-border flex items-center justify-between border-b px-3 py-2">
-        <h2 className="text-vsc-foreground text-sm font-semibold">
+      <div className="border-codin-border flex items-center justify-between border-b px-3 py-2.5">
+        <h2 className="text-codin-fg text-sm font-semibold">
           {t("computer.title")}
         </h2>
-        <span className="text-vsc-foreground/40 text-[10px]">
+        <span className="text-codin-fg-muted text-[10px] tracking-wide">
           {t("computer.subtitle")}
         </span>
       </div>
 
       {/* Tab bar */}
-      <div className="border-vsc-input-border flex gap-0.5 border-b px-2 py-1">
+      <div className="border-codin-border flex gap-1 border-b px-3 py-1.5">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => dispatch(setActiveTab(tab.key))}
-            className={`rounded px-2 py-0.5 text-[10px] transition-colors ${
+            className={`rounded-md px-2.5 py-1 text-[10px] font-medium transition-all ${
               activeTab === tab.key
-                ? "bg-blue-600 text-white"
-                : "text-vsc-foreground/50 hover:text-vsc-foreground/70 hover:bg-vsc-input-background"
+                ? "bg-codin-indigo-600 shadow-codin-indigo-600/25 text-white shadow-sm"
+                : "text-codin-fg-muted hover:text-codin-fg-secondary hover:bg-codin-bg-hover"
             }`}
           >
             {t(tab.i18nKey)}
@@ -52,7 +52,7 @@ export function ComputerPanel() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 space-y-3 overflow-y-auto p-2">
+      <div className="flex-1 space-y-3 overflow-y-auto p-3">
         {activeTab === "run" && <ComputerRun />}
         {activeTab === "skills" && <ComputerSkills />}
         {activeTab === "workflows" && <ComputerWorkflows />}

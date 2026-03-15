@@ -7,13 +7,13 @@ import {
   type AuditEntry,
 } from "../../redux/slices/computerSlice";
 
-const ACTION_BADGES: Record<string, string> = {
-  execute: "bg-blue-600",
-  approve: "bg-green-600",
-  deny: "bg-red-600",
-  error: "bg-red-800",
-  cost: "bg-yellow-600",
-  plan: "bg-purple-600",
+const ACTION_STYLES: Record<string, string> = {
+  execute: "bg-codin-indigo-500/20 text-codin-indigo-300",
+  approve: "bg-emerald-500/20 text-emerald-400",
+  deny: "bg-red-500/20 text-red-400",
+  error: "bg-red-600/20 text-red-300",
+  cost: "bg-codin-saffron-500/20 text-codin-saffron-400",
+  plan: "bg-purple-500/20 text-purple-300",
 };
 
 const ACTION_OPTIONS = [
@@ -61,13 +61,16 @@ export function ComputerAudit() {
     <div className="space-y-2">
       {/* Header + filter */}
       <div className="flex items-center justify-between">
-        <h3 className="text-vsc-foreground/70 text-xs font-semibold">
-          {t("computer.audit.title")} ({entries.length})
+        <h3 className="text-codin-fg-secondary text-xs font-semibold">
+          {t("computer.audit.title")}{" "}
+          <span className="text-codin-fg-muted font-normal">
+            ({entries.length})
+          </span>
         </h3>
         <select
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
-          className="bg-vsc-input-background border-vsc-input-border rounded border px-1 py-0.5 text-[10px]"
+          className="bg-codin-bg-surface border-codin-border text-codin-fg focus:border-codin-border-focus rounded border px-1.5 py-0.5 text-[10px] focus:outline-none"
         >
           {ACTION_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>
@@ -77,16 +80,14 @@ export function ComputerAudit() {
         </select>
       </div>
 
-      {/* Empty state */}
       {entries.length === 0 && (
-        <p className="text-vsc-foreground/40 py-4 text-center text-[10px]">
+        <p className="text-codin-fg-muted py-4 text-center text-[10px]">
           {t("computer.audit.empty")}
         </p>
       )}
 
-      {/* Audit entries */}
       {entries.length > 0 && (
-        <div className="scrollbar-thin max-h-[60vh] space-y-0.5 overflow-y-auto">
+        <div className="max-h-[60vh] space-y-0.5 overflow-y-auto">
           {entries.map((entry) => (
             <AuditRow
               key={entry.id}
@@ -111,43 +112,37 @@ function AuditRow({
   formatDuration: (ms: number) => string;
 }) {
   return (
-    <div className="bg-vsc-input-background flex items-center gap-2 rounded px-2 py-1 text-[10px]">
-      {/* Timestamp */}
-      <span className="text-vsc-foreground/30 shrink-0 font-mono">
+    <div className="bg-codin-bg-surface hover:bg-codin-bg-hover flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[10px] transition-colors">
+      <span className="text-codin-fg-muted shrink-0 font-mono">
         {formatTimestamp(entry.timestamp)}
       </span>
 
-      {/* Action badge */}
       <span
-        className={`shrink-0 rounded px-1 py-0.5 text-[8px] font-medium text-white ${ACTION_BADGES[entry.action] || "bg-zinc-600"}`}
+        className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${ACTION_STYLES[entry.action] || "bg-codin-bg-hover text-codin-fg-muted"}`}
       >
         {entry.action}
       </span>
 
-      {/* Skill */}
       <span
-        className="text-vsc-foreground/60 min-w-0 shrink truncate"
+        className="text-codin-fg-secondary min-w-0 shrink truncate"
         title={entry.skill}
       >
         {entry.skill}
       </span>
 
-      {/* Agent */}
       <span
-        className="text-vsc-foreground/40 max-w-[60px] shrink-0 truncate"
+        className="text-codin-fg-muted max-w-[60px] shrink-0 truncate font-mono"
         title={entry.agent}
       >
         {entry.agent}
       </span>
 
-      {/* Duration */}
-      <span className="text-vsc-foreground/30 shrink-0 font-mono">
+      <span className="text-codin-fg-muted shrink-0 font-mono">
         {formatDuration(entry.durationMs)}
       </span>
 
-      {/* Cost */}
       {entry.costUSD > 0 && (
-        <span className="shrink-0 font-mono text-green-400">
+        <span className="shrink-0 font-mono text-emerald-400">
           ${entry.costUSD.toFixed(4)}
         </span>
       )}
