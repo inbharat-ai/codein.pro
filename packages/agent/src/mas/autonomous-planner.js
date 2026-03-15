@@ -50,6 +50,12 @@ class AutonomousPlanner extends EventEmitter {
     this._executeStep = opts.executeStep;
     this._runTests = opts.runTests;
     this._activePlans = new Map();
+
+    // Autonomous computer subsystem integrations (optional)
+    this._skillRegistry = opts.skillRegistry || null;
+    this._executionEngine = opts.executionEngine || null;
+    this._contextualMemory = opts.contextualMemory || null;
+    this._auditTrail = opts.auditTrail || null;
   }
 
   /**
@@ -173,6 +179,8 @@ class AutonomousPlanner extends EventEmitter {
           error: null,
           retryCount: 0,
           dependsOn: [],
+          skillName: null,
+          skillArgs: null,
         },
       ];
     }
@@ -181,11 +189,37 @@ class AutonomousPlanner extends EventEmitter {
       ? `\nRelevant files: ${context.files.join(", ")}`
       : "";
 
+    // Build skill catalog section if skill registry is available
+    let skillSection = "";
+    if (
+      this._skillRegistry &&
+      typeof this._skillRegistry.listSkills === "function"
+    ) {
+      try {
+        const skills = this._skillRegistry.listSkills();
+        if (skills && skills.length > 0) {
+          const skillList = skills
+            .map(
+              (s) =>
+                `  - ${s.name}: ${s.description} (category: ${s.category})`,
+            )
+            .join("\n");
+          skillSection = `\n\nAvailable skills (use skillName + skillArgs when a step maps to a skill):\n${skillList}`;
+        }
+      } catch {
+        // Non-fatal — generate plan without skill info
+      }
+    }
+
+    const stepFormat = skillSection
+      ? `[{"description": "...", "agentType": "coder|tester|debugger|refactorer|architect|docs|security|devops", "dependsOn": [], "skillName": "skill-name-or-null", "skillArgs": {"key": "value"}}]`
+      : `[{"description": "...", "agentType": "coder|tester|debugger|refactorer|architect|docs|security|devops", "dependsOn": []}]`;
+
     const prompt = `Break down this goal into concrete steps. Each step should be a specific, actionable task.
-Goal: ${goal}${contextStr}
+Goal: ${goal}${contextStr}${skillSection}
 
 Return a JSON array of steps:
-[{"description": "...", "agentType": "coder|tester|debugger|refactorer|architect|docs|security|devops", "dependsOn": []}]
+${stepFormat}
 
 Only return the JSON array, no other text.`;
 
@@ -202,7 +236,7 @@ Only return the JSON array, no other text.`;
         throw new Error("Expected array");
       }
 
-      return steps.map((s, i) => ({
+      const mapped = steps.map((s, i) => ({
         id: `step-${crypto.randomUUID().slice(0, 6)}`,
         description: String(s.description || `Step ${i + 1}`),
         agentType: String(s.agentType || "coder"),
@@ -211,7 +245,15 @@ Only return the JSON array, no other text.`;
         error: null,
         retryCount: 0,
         dependsOn: Array.isArray(s.dependsOn) ? s.dependsOn : [],
+        skillName: s.skillName || null,
+        skillArgs:
+          s.skillArgs && typeof s.skillArgs === "object" ? s.skillArgs : null,
       }));
+
+      // Post-process: resolve skills for steps that don't have one
+      await this._resolveSkills(mapped);
+
+      return mapped;
     } catch {
       // Fallback: single step
       return [
@@ -224,15 +266,64 @@ Only return the JSON array, no other text.`;
           error: null,
           retryCount: 0,
           dependsOn: [],
+          skillName: null,
+          skillArgs: null,
         },
       ];
     }
   }
 
   /**
+   * Resolve skills for steps that don't have an explicit skillName.
+   * Uses skillRegistry.findSkillsForTask() for best-effort matching.
+   * @param {PlanStep[]} steps
+   */
+  async _resolveSkills(steps) {
+    if (
+      !this._skillRegistry ||
+      typeof this._skillRegistry.findSkillsForTask !== "function"
+    ) {
+      return;
+    }
+    for (const step of steps) {
+      if (step.skillName) continue;
+      try {
+        const matches = await this._skillRegistry.findSkillsForTask(
+          step.description,
+        );
+        if (matches && matches.length > 0) {
+          step.skillName = matches[0].name;
+        }
+      } catch {
+        // Non-fatal — step will use fallback execution
+      }
+    }
+  }
+
+  /**
    * Execute all pending steps in order, respecting dependencies.
+   * If an ExecutionEngine is available, delegate to it for DAG-based
+   * parallel execution. Otherwise fall back to the original sequential logic.
    */
   async _executePlan(plan, context) {
+    // Delegate to ExecutionEngine if available (supports parallel DAG, pause/resume/cancel)
+    if (
+      this._executionEngine &&
+      typeof this._executionEngine.executePlan === "function"
+    ) {
+      try {
+        await this._executionEngine.executePlan(plan, context);
+        // Sync step statuses back: ExecutionEngine uses "completed"/"failed"/"skipped",
+        // but AutonomousPlanner expects "passed"/"failed"/"skipped"
+        for (const step of plan.steps) {
+          if (step.status === "completed") step.status = "passed";
+        }
+        return;
+      } catch {
+        // If execution engine fails entirely, fall back to legacy execution
+      }
+    }
+
     const completed = new Set();
 
     // Topological execution

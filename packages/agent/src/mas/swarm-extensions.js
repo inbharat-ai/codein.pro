@@ -221,6 +221,192 @@ function applyExtensionMethods(SwarmManager) {
     }
     return this._smartApply.applyEdit(filePath, patch, opts);
   };
+  // ════════════════════════════════════════════════════════════
+  // Computer API — Autonomous Computer Subsystem Delegation
+  // ════════════════════════════════════════════════════════════
+
+  /**
+   * Run an autonomous computer goal: generate a skill-aware plan, enrich
+   * context from contextual memory, then execute via the execution engine.
+   *
+   * @param {string} goal — Natural language goal
+   * @param {object} [context={}] — Additional context
+   * @returns {Promise<object>}
+   */
+  proto.runComputer = async function runComputer(goal, context = {}) {
+    if (!this._autonomousPlanner) {
+      return { error: "Autonomous planner not available" };
+    }
+    this._requireActive();
+
+    // Enrich context from contextual memory if available
+    let enrichedContext = { ...context };
+    if (this._contextualMemory) {
+      try {
+        const assembled = this._contextualMemory.assembleContext(goal);
+        enrichedContext = { ...enrichedContext, ...assembled };
+      } catch {
+        /* non-fatal */
+      }
+    }
+
+    return this._autonomousPlanner.run(goal, enrichedContext);
+  };
+
+  /**
+   * Get the status of an autonomous plan execution.
+   * @param {string} planId
+   * @returns {object|null}
+   */
+  proto.getComputerPlanStatus = function getComputerPlanStatus(planId) {
+    if (!this._executionEngine) {
+      return { error: "Execution engine not available" };
+    }
+    return this._executionEngine.getExecutionStatus(planId);
+  };
+
+  /**
+   * List all available computer skills.
+   * @param {object} [opts] — { category, trustLevel }
+   * @returns {object[]}
+   */
+  proto.listComputerSkills = function listComputerSkills(opts = {}) {
+    if (!this._enhancedSkillRegistry) {
+      return { error: "Enhanced skill registry not available" };
+    }
+    return this._enhancedSkillRegistry.listSkills(opts);
+  };
+
+  /**
+   * Find skills relevant to a natural-language task description.
+   * @param {string} description
+   * @returns {Promise<object[]>}
+   */
+  proto.findSkillsForTask = async function findSkillsForTask(description) {
+    if (!this._enhancedSkillRegistry) {
+      return { error: "Enhanced skill registry not available" };
+    }
+    return this._enhancedSkillRegistry.findSkillsForTask(description);
+  };
+
+  /**
+   * Execute a specific computer skill by name.
+   * @param {string} name — Skill name
+   * @param {object} [context={}] — Input context
+   * @returns {Promise<object>}
+   */
+  proto.executeComputerSkill = async function executeComputerSkill(
+    name,
+    context = {},
+  ) {
+    if (!this._enhancedSkillRegistry) {
+      return { error: "Enhanced skill registry not available" };
+    }
+    this._requireActive();
+    return this._enhancedSkillRegistry.executeSkill(name, context);
+  };
+
+  /**
+   * Get audit trail entries.
+   * @param {object} [opts] — { planId, action, limit, startMs, endMs }
+   * @returns {object[]|object}
+   */
+  proto.getComputerAudit = function getComputerAudit(opts = {}) {
+    if (!this._auditTrail) {
+      return { error: "Audit trail not available" };
+    }
+    if (opts.planId) {
+      return this._auditTrail.getByPlan(opts.planId);
+    }
+    if (opts.action) {
+      return this._auditTrail.getByAction(opts.action, {
+        limit: opts.limit || 100,
+      });
+    }
+    if (opts.startMs && opts.endMs) {
+      return this._auditTrail.getByTimeRange(opts.startMs, opts.endMs, {
+        limit: opts.limit || 100,
+      });
+    }
+    return this._auditTrail.getRecent(opts.limit || 50);
+  };
+
+  /**
+   * List saved workflow templates.
+   * @param {string} [category]
+   * @returns {object[]|object}
+   */
+  proto.listWorkflows = function listWorkflows(category) {
+    if (!this._workflowEngine) {
+      return { error: "Workflow engine not available" };
+    }
+    return this._workflowEngine.listTemplates(category);
+  };
+
+  /**
+   * Save a completed plan as a reusable workflow template.
+   * @param {object} plan
+   * @param {string} name
+   * @param {string} [description]
+   * @returns {object}
+   */
+  proto.saveWorkflow = function saveWorkflow(plan, name, description) {
+    if (!this._workflowEngine) {
+      return { error: "Workflow engine not available" };
+    }
+    return this._workflowEngine.saveAsTemplate(plan, name, description);
+  };
+
+  /**
+   * Instantiate and run a workflow template.
+   * @param {string} name — Template name
+   * @param {object} [vars={}] — Variable substitutions
+   * @param {object} [ctx={}] — Execution context
+   * @returns {Promise<object>}
+   */
+  proto.runWorkflow = async function runWorkflow(name, vars = {}, ctx = {}) {
+    if (!this._workflowEngine) {
+      return { error: "Workflow engine not available" };
+    }
+    this._requireActive();
+    return this._workflowEngine.runTemplate(name, vars, ctx);
+  };
+
+  /**
+   * Pause a running computer plan execution.
+   * @param {string} planId
+   * @returns {object}
+   */
+  proto.pauseComputer = function pauseComputer(planId) {
+    if (!this._executionEngine) {
+      return { error: "Execution engine not available" };
+    }
+    return this._executionEngine.pauseExecution(planId);
+  };
+
+  /**
+   * Resume a paused computer plan execution.
+   * @param {string} planId
+   * @returns {object}
+   */
+  proto.resumeComputer = function resumeComputer(planId) {
+    if (!this._executionEngine) {
+      return { error: "Execution engine not available" };
+    }
+    return this._executionEngine.resumeExecution(planId);
+  };
+
+  /**
+   * Cancel a running or paused computer plan execution.
+   * @param {string} planId
+   * @returns {Promise<object>}
+   */
+  proto.cancelComputer = async function cancelComputer(planId) {
+    if (!this._executionEngine) {
+      return { error: "Execution engine not available" };
+    }
+    return this._executionEngine.cancelExecution(planId);
+  };
 }
 
 module.exports = { applyExtensionMethods };

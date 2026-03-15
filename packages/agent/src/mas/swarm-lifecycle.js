@@ -107,6 +107,38 @@ try {
   SmartApply = null;
 }
 
+// Autonomous computer subsystem modules (optional)
+let AuditTrail,
+  EnhancedSkillRegistry,
+  ExecutionEngine,
+  ContextualMemory,
+  WorkflowEngine;
+try {
+  ({ AuditTrail } = require("./audit-trail"));
+} catch {
+  AuditTrail = null;
+}
+try {
+  ({ EnhancedSkillRegistry } = require("./skill-registry"));
+} catch {
+  EnhancedSkillRegistry = null;
+}
+try {
+  ({ ExecutionEngine } = require("./execution-engine"));
+} catch {
+  ExecutionEngine = null;
+}
+try {
+  ({ ContextualMemory } = require("./contextual-memory"));
+} catch {
+  ContextualMemory = null;
+}
+try {
+  ({ WorkflowEngine } = require("./workflow-engine"));
+} catch {
+  WorkflowEngine = null;
+}
+
 const log = createLogger("SwarmManager");
 
 // ─── Swarm States ────────────────────────────────────────────
@@ -153,6 +185,13 @@ function initFields(mgr, deps) {
   mgr._sqliteTaskQueue = null;
   mgr._pluginHooks = null;
   mgr._smartApply = null;
+
+  // Autonomous computer subsystems (optional)
+  mgr._auditTrail = null;
+  mgr._enhancedSkillRegistry = null;
+  mgr._executionEngine = null;
+  mgr._contextualMemory = null;
+  mgr._workflowEngine = null;
 
   // Active task graphs
   /** @type {Map<string, object>} taskId → TaskGraph */
@@ -507,6 +546,92 @@ function applyLifecycleMethods(SwarmManager) {
       }
     }
 
+    // ── Autonomous computer subsystems (optional — fail gracefully) ──
+
+    // Store tier-aware LLM reference for subsystem use
+    this._tierAwareRunLLM = this._agentRouter
+      ? this._createTierAwareRunLLM()
+      : this._deps.runLLM;
+
+    if (AuditTrail) {
+      try {
+        this._auditTrail = new AuditTrail({ persistence: this._persistence });
+        log.info("Audit trail initialized");
+      } catch (err) {
+        log.warn("Audit trail init failed", { error: err.message });
+      }
+    }
+
+    if (EnhancedSkillRegistry) {
+      try {
+        this._enhancedSkillRegistry = new EnhancedSkillRegistry({
+          persistence: this._persistence,
+          runLLM: this._tierAwareRunLLM || this._deps.runLLM,
+          sandbox: this._dockerSandbox,
+        });
+        this._enhancedSkillRegistry.registerBuiltinSkills();
+        log.info("Enhanced skill registry initialized");
+      } catch (err) {
+        log.warn("Enhanced skill registry init failed", { error: err.message });
+      }
+    }
+
+    if (ExecutionEngine) {
+      try {
+        this._executionEngine = new ExecutionEngine({
+          skillRegistry: this._enhancedSkillRegistry,
+          permissionGate: this._permissionGate,
+          memory: this._memory,
+          auditTrail: this._auditTrail,
+          runLLM: this._tierAwareRunLLM || this._deps.runLLM,
+        });
+        log.info("Execution engine initialized");
+      } catch (err) {
+        log.warn("Execution engine init failed", { error: err.message });
+      }
+    }
+
+    if (ContextualMemory) {
+      try {
+        this._contextualMemory = new ContextualMemory({
+          memoryManager: this._memory,
+          persistence: this._persistence,
+        });
+        log.info("Contextual memory initialized");
+      } catch (err) {
+        log.warn("Contextual memory init failed", { error: err.message });
+      }
+    }
+
+    if (WorkflowEngine) {
+      try {
+        this._workflowEngine = new WorkflowEngine({
+          persistence: this._persistence,
+          skillRegistry: this._enhancedSkillRegistry,
+          executionEngine: this._executionEngine,
+        });
+        log.info("Workflow engine initialized");
+      } catch (err) {
+        log.warn("Workflow engine init failed", { error: err.message });
+      }
+    }
+
+    // Wire new subsystems into the autonomous planner if both exist
+    if (this._autonomousPlanner) {
+      if (this._enhancedSkillRegistry) {
+        this._autonomousPlanner._skillRegistry = this._enhancedSkillRegistry;
+      }
+      if (this._executionEngine) {
+        this._autonomousPlanner._executionEngine = this._executionEngine;
+      }
+      if (this._contextualMemory) {
+        this._autonomousPlanner._contextualMemory = this._contextualMemory;
+      }
+      if (this._auditTrail) {
+        this._autonomousPlanner._auditTrail = this._auditTrail;
+      }
+    }
+
     this._state = SWARM_STATE.ACTIVE;
     this._memory.onSwarmInit(this._config);
 
@@ -667,6 +792,16 @@ function applyLifecycleMethods(SwarmManager) {
         /* non-fatal */
       }
     }
+    // Shutdown autonomous computer subsystems
+    if (this._auditTrail) {
+      try {
+        this._auditTrail.flush();
+        this._auditTrail.destroy();
+      } catch {
+        /* non-fatal */
+      }
+    }
+
     this._persistence = null;
     this._workspaceIndexer = null;
     this._costRouter = null;
@@ -683,6 +818,12 @@ function applyLifecycleMethods(SwarmManager) {
     this._sqliteTaskQueue = null;
     this._pluginHooks = null;
     this._smartApply = null;
+    this._auditTrail = null;
+    this._enhancedSkillRegistry = null;
+    this._executionEngine = null;
+    this._contextualMemory = null;
+    this._workflowEngine = null;
+    this._tierAwareRunLLM = null;
 
     // Close SSE subscribers
     for (const sub of this._subscribers) {
