@@ -256,10 +256,20 @@ test("DAST: path traversal characters rejected", () => {
 test("DAST: readBody enforces size limit (logic check)", () => {
   // The 10MB limit is in readBody — verify the constant exists in source
   const fs = require("fs");
-  const source = fs.readFileSync(
+  // readBody lives in http-helpers (or index.js) — check both
+  const indexSource = fs.readFileSync(
     path.join(__dirname, "..", "src", "index.js"),
     "utf8",
   );
+  // Check both possible locations
+  let helpersPath = path.join(__dirname, "..", "src", "http-helpers.js");
+  if (!fs.existsSync(helpersPath)) {
+    helpersPath = path.join(__dirname, "..", "src", "utils", "http-helpers.js");
+  }
+  const helpersSource = fs.existsSync(helpersPath)
+    ? fs.readFileSync(helpersPath, "utf8")
+    : "";
+  const source = indexSource + helpersSource;
   assert.ok(
     source.includes("MAX_BODY_SIZE"),
     "readBody should define MAX_BODY_SIZE constant",
@@ -329,10 +339,16 @@ test("DAST: JWT manager rejects expired tokens", () => {
 
 test("DAST: only health/login/refresh are public", () => {
   const fs = require("fs");
-  const source = fs.readFileSync(
+  // PUBLIC_ROUTES may be in index.js or auth-middleware.js
+  const indexSource = fs.readFileSync(
     path.join(__dirname, "..", "src", "index.js"),
     "utf8",
   );
+  const authMwPath = path.join(__dirname, "..", "src", "auth-middleware.js");
+  const authMwSource = fs.existsSync(authMwPath)
+    ? fs.readFileSync(authMwPath, "utf8")
+    : "";
+  const source = indexSource + authMwSource;
 
   // Extract PUBLIC_ROUTES set entries
   const match = source.match(/PUBLIC_ROUTES\s*=\s*new\s+Set\(\[([\s\S]*?)\]\)/);

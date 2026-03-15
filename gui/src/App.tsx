@@ -1,4 +1,5 @@
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import ComputePanel from "./components/ComputePanel";
 import GitPanel from "./components/GitPanel";
 import GpuPanel from "./components/GpuPanel";
@@ -107,14 +108,16 @@ const router = createMemoryRouter([
 */
 function App() {
   return (
-    <VscThemeProvider>
-      <MainEditorProvider>
-        <SubmenuContextProvidersProvider>
-          <RouterProvider router={router} />
-        </SubmenuContextProvidersProvider>
-      </MainEditorProvider>
-      <ParallelListeners />
-    </VscThemeProvider>
+    <ErrorBoundary>
+      <VscThemeProvider>
+        <MainEditorProvider>
+          <SubmenuContextProvidersProvider>
+            <RouterProvider router={router} />
+          </SubmenuContextProvidersProvider>
+        </MainEditorProvider>
+        <ParallelListeners />
+      </VscThemeProvider>
+    </ErrorBoundary>
   );
 }
 

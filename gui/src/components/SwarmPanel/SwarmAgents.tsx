@@ -1,5 +1,9 @@
 import { useAppSelector } from "../../redux/hooks";
-import { selectSwarmAgents } from "../../redux/slices/swarmSlice";
+import {
+  selectSwarmAgents,
+  selectSwarmLoading,
+} from "../../redux/slices/swarmSlice";
+import { LoadingSkeleton } from "../ui/LoadingState";
 
 const STATUS_STYLES: Record<string, { dot: string; ring: string }> = {
   idle: { dot: "bg-codin-fg-muted", ring: "" },
@@ -13,6 +17,18 @@ const STATUS_STYLES: Record<string, { dot: string; ring: string }> = {
 
 export function SwarmAgents() {
   const agents = useAppSelector(selectSwarmAgents);
+  const loading = useAppSelector(selectSwarmLoading);
+
+  if (loading && agents.length === 0) {
+    return (
+      <div>
+        <h3 className="text-codin-fg-secondary mb-1.5 text-xs font-semibold">
+          Agents
+        </h3>
+        <LoadingSkeleton lines={3} />
+      </div>
+    );
+  }
 
   if (agents.length === 0) {
     return (

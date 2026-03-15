@@ -7,6 +7,7 @@ import {
   selectCostSuggestions,
   selectAnalyticsLoaded,
 } from "../../redux/slices/swarmSlice";
+import { LoadingSkeleton } from "../ui/LoadingState";
 
 export function SwarmAnalytics() {
   const dispatch = useAppDispatch();
@@ -25,9 +26,13 @@ export function SwarmAnalytics() {
         <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
           Analytics
         </h3>
-        <p className="text-codin-fg-muted text-[10px]">
-          {loaded ? "Analytics not available" : "Loading..."}
-        </p>
+        {loaded ? (
+          <p className="text-codin-fg-muted text-[10px]">
+            Analytics not available
+          </p>
+        ) : (
+          <LoadingSkeleton lines={4} />
+        )}
       </div>
     );
   }

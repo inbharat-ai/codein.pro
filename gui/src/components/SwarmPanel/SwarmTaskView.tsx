@@ -8,6 +8,7 @@ import {
   selectActiveTaskId,
   selectSwarmLoading,
 } from "../../redux/slices/swarmSlice";
+import { LoadingPanel } from "../ui/LoadingState";
 
 const NODE_STATUS_STYLES: Record<string, { dot: string; text: string }> = {
   queued: { dot: "bg-codin-fg-muted", text: "text-codin-fg-muted" },
@@ -71,10 +72,7 @@ export function SwarmTaskView() {
         </p>
       )}
       {loading && !activeTask && (
-        <div className="text-codin-fg-secondary flex items-center gap-2 py-2 text-[10px]">
-          <span className="border-codin-indigo-400 h-3 w-3 animate-spin rounded-full border-2 border-t-transparent" />
-          Orchestrating task...
-        </div>
+        <LoadingPanel message="Orchestrating task..." />
       )}
       {activeTask && (
         <div className="bg-codin-bg-surface space-y-1.5 rounded-md p-2.5">

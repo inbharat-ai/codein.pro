@@ -9,6 +9,7 @@ import {
   setSseConnected,
   type SwarmEvent,
 } from "../../redux/slices/swarmSlice";
+import { ErrorBoundary } from "../ErrorBoundary";
 import { getAgentBaseUrl } from "../../util/agentConfig";
 import { SwarmAgents } from "./SwarmAgents";
 import { SwarmAnalytics } from "./SwarmAnalytics";
@@ -95,24 +96,26 @@ export function SwarmPanel() {
           </div>
 
           <div className="flex-1 space-y-3 overflow-y-auto p-3">
-            {tab === "overview" && (
-              <>
-                <SwarmAgents />
-                <SwarmTaskView />
-                <SwarmPermissions />
-                <SwarmBudget />
-                <SwarmGpu />
-                <SwarmBackgroundTasks />
-                <SwarmTimeline />
-                <SwarmMemory />
-              </>
-            )}
+            <ErrorBoundary>
+              {tab === "overview" && (
+                <>
+                  <SwarmAgents />
+                  <SwarmTaskView />
+                  <SwarmPermissions />
+                  <SwarmBudget />
+                  <SwarmGpu />
+                  <SwarmBackgroundTasks />
+                  <SwarmTimeline />
+                  <SwarmMemory />
+                </>
+              )}
 
-            {tab === "analytics" && <SwarmAnalytics />}
+              {tab === "analytics" && <SwarmAnalytics />}
 
-            {tab === "extensions" && <SwarmPlugins />}
+              {tab === "extensions" && <SwarmPlugins />}
 
-            {tab === "workspace" && <SwarmWorkspaceIntel />}
+              {tab === "workspace" && <SwarmWorkspaceIntel />}
+            </ErrorBoundary>
 
             {!sseConnected && (
               <div className="bg-codin-saffron-500/10 text-codin-saffron-400 rounded-md px-2.5 py-1.5 text-xs">
