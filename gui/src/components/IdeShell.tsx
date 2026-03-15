@@ -20,6 +20,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "../util/navigation";
+import { ErrorBoundary } from "./ErrorBoundary";
 import "./IdeShell.css";
 
 interface ActivityItem {
@@ -120,94 +121,104 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
   return (
     <div className="ide-shell">
       {/* Activity Bar */}
-      <div className="ide-activity-bar">
-        <div className="ide-activity-top">
-          {/* CodeIn Logo */}
-          <div className="ide-logo" title="CodeIn">
-            <svg viewBox="0 0 24 24" fill="none" className="ide-logo-svg">
-              <path
-                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+      <ErrorBoundary>
+        <div className="ide-activity-bar">
+          <div className="ide-activity-top">
+            {/* CodeIn Logo */}
+            <div className="ide-logo" title="CodeIn">
+              <svg viewBox="0 0 24 24" fill="none" className="ide-logo-svg">
+                <path
+                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            {topActivities.map((item) => (
+              <button
+                key={item.id}
+                className={`ide-activity-btn ${activeId === item.id ? "active" : ""}`}
+                onClick={() => handleNavClick(item)}
+                onMouseEnter={() => setHoveredItem(item.id)}
+                onMouseLeave={() => setHoveredItem(null)}
+                title={t(item.i18nKey)}
+                aria-label={t(item.i18nKey)}
+              >
+                <item.icon className="ide-activity-icon" />
+                {hoveredItem === item.id && (
+                  <span className="ide-activity-tooltip">
+                    {t(item.i18nKey)}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
-          {topActivities.map((item) => (
-            <button
-              key={item.id}
-              className={`ide-activity-btn ${activeId === item.id ? "active" : ""}`}
-              onClick={() => handleNavClick(item)}
-              onMouseEnter={() => setHoveredItem(item.id)}
-              onMouseLeave={() => setHoveredItem(null)}
-              title={t(item.i18nKey)}
-              aria-label={t(item.i18nKey)}
-            >
-              <item.icon className="ide-activity-icon" />
-              {hoveredItem === item.id && (
-                <span className="ide-activity-tooltip">{t(item.i18nKey)}</span>
-              )}
-            </button>
-          ))}
+          <div className="ide-activity-bottom">
+            {bottomActivities.map((item) => (
+              <button
+                key={item.id}
+                className={`ide-activity-btn ${activeId === item.id ? "active" : ""}`}
+                onClick={() => handleNavClick(item)}
+                onMouseEnter={() => setHoveredItem(item.id)}
+                onMouseLeave={() => setHoveredItem(null)}
+                title={t(item.i18nKey)}
+                aria-label={t(item.i18nKey)}
+              >
+                <item.icon className="ide-activity-icon" />
+                {hoveredItem === item.id && (
+                  <span className="ide-activity-tooltip">
+                    {t(item.i18nKey)}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="ide-activity-bottom">
-          {bottomActivities.map((item) => (
-            <button
-              key={item.id}
-              className={`ide-activity-btn ${activeId === item.id ? "active" : ""}`}
-              onClick={() => handleNavClick(item)}
-              onMouseEnter={() => setHoveredItem(item.id)}
-              onMouseLeave={() => setHoveredItem(null)}
-              title={t(item.i18nKey)}
-              aria-label={t(item.i18nKey)}
-            >
-              <item.icon className="ide-activity-icon" />
-              {hoveredItem === item.id && (
-                <span className="ide-activity-tooltip">{t(item.i18nKey)}</span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
+      </ErrorBoundary>
 
       {/* Main Content Area */}
-      <div className="ide-main">{children}</div>
+      <ErrorBoundary>
+        <div className="ide-main">{children}</div>
+      </ErrorBoundary>
 
       {/* Status Bar */}
-      <div className="ide-status-bar">
-        <div className="ide-status-left">
-          <span className="ide-status-item">
-            <svg
-              viewBox="0 0 16 16"
-              className="ide-status-icon"
-              fill="currentColor"
-            >
-              <path d="M14.85 3.29l-1.14-1.14a.5.5 0 00-.71 0L5 10.15l-2-2a.5.5 0 00-.71 0L1.15 9.29a.5.5 0 000 .71L5 14l9.85-9.85a.5.5 0 000-.71z" />
-            </svg>
-            {t("statusBar.ready")}
-          </span>
-          <span className="ide-status-item ide-status-branch">
-            <svg
-              viewBox="0 0 16 16"
-              className="ide-status-icon"
-              fill="currentColor"
-            >
-              <path d="M14 4.5V14a2 2 0 01-2 2H4a2 2 0 01-2-2V2a2 2 0 012-2h5.5L14 4.5zM13 4.5L9.5 1H4a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V4.5z" />
-            </svg>
-            {t("statusBar.branch")}
-          </span>
+      <ErrorBoundary>
+        <div className="ide-status-bar">
+          <div className="ide-status-left">
+            <span className="ide-status-item">
+              <svg
+                viewBox="0 0 16 16"
+                className="ide-status-icon"
+                fill="currentColor"
+              >
+                <path d="M14.85 3.29l-1.14-1.14a.5.5 0 00-.71 0L5 10.15l-2-2a.5.5 0 00-.71 0L1.15 9.29a.5.5 0 000 .71L5 14l9.85-9.85a.5.5 0 000-.71z" />
+              </svg>
+              {t("statusBar.ready")}
+            </span>
+            <span className="ide-status-item ide-status-branch">
+              <svg
+                viewBox="0 0 16 16"
+                className="ide-status-icon"
+                fill="currentColor"
+              >
+                <path d="M14 4.5V14a2 2 0 01-2 2H4a2 2 0 01-2-2V2a2 2 0 012-2h5.5L14 4.5zM13 4.5L9.5 1H4a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V4.5z" />
+              </svg>
+              {t("statusBar.branch")}
+            </span>
+          </div>
+          <div className="ide-status-center">
+            <span className="ide-status-item">{t("statusBar.tagline")}</span>
+          </div>
+          <div className="ide-status-right">
+            <span className="ide-status-item">{t("statusBar.version")}</span>
+            <span className="ide-status-item ide-status-lang">
+              {t("statusBar.language")}
+            </span>
+          </div>
         </div>
-        <div className="ide-status-center">
-          <span className="ide-status-item">{t("statusBar.tagline")}</span>
-        </div>
-        <div className="ide-status-right">
-          <span className="ide-status-item">{t("statusBar.version")}</span>
-          <span className="ide-status-item ide-status-lang">
-            {t("statusBar.language")}
-          </span>
-        </div>
-      </div>
+      </ErrorBoundary>
     </div>
   );
 };

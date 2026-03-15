@@ -7,6 +7,7 @@ import {
   selectConventions,
   selectWorkspaceLoaded,
 } from "../../redux/slices/swarmSlice";
+import { LoadingSkeleton } from "../ui/LoadingState";
 
 const LANG_COLORS: Record<string, string> = {
   typescript: "bg-blue-500",
@@ -36,9 +37,13 @@ export function SwarmWorkspaceIntel() {
         <h3 className="text-codin-fg-secondary mb-1 text-xs font-semibold">
           Workspace
         </h3>
-        <p className="text-codin-fg-muted text-[10px]">
-          {loaded ? "Workspace analysis unavailable" : "Analyzing workspace..."}
-        </p>
+        {loaded ? (
+          <p className="text-codin-fg-muted text-[10px]">
+            Workspace analysis unavailable
+          </p>
+        ) : (
+          <LoadingSkeleton lines={5} />
+        )}
       </div>
     );
   }

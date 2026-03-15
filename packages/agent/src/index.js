@@ -3,12 +3,11 @@ const https = require("node:https");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { spawn } = require("node:child_process");
 const { URL } = require("node:url");
 const { config } = require("./config");
 const { logger, createRequestLogger } = require("./logger");
 
-// Import existing modules
+// Core store & routing
 const {
   ensureDirs,
   getDataDir,
@@ -20,12 +19,12 @@ const { getRouterDecision } = require("./router");
 const { webResearchService } = require("./research/web-research");
 const { TaskManager } = require("./run/task-manager");
 
-// Import security modules
+// Security
 const { Sanitizer } = require("./security/sanitizer");
 const { Validator } = require("./security/validator");
 const { Sandbox } = require("./security/sandbox");
 
-// Import middleware modules
+// Middleware
 const {
   RateLimiter,
   createRateLimiterMiddleware,
@@ -34,18 +33,33 @@ const {
   createSecurityHeadersMiddleware,
 } = require("./middleware/security-headers");
 
-// Import performance modules
+// Performance
 const { CacheManager } = require("./cache/cache-manager");
 const { HTTPPoolManager } = require("./cache/http-pool");
 
-// Import enterprise modules
+// Enterprise
 const { AuditLogger } = require("./audit/audit-logger");
 const { JWTManager } = require("./auth/jwt-manager");
 
-// Import modular route registry
+// Extracted modules
 const { createAppRouter } = require("./routes/registry");
+const { loadSubsystems } = require("./subsystem-loader");
+const { appendAgentActivity, readAgentActivity } = require("./activity-log");
+const { createAuthMiddleware } = require("./auth-middleware");
+const { configureTaskManager } = require("./task-handlers");
+const { createShutdownHandler } = require("./shutdown");
+const {
+  jsonResponse,
+  readBody,
+  parseJsonBody,
+  validateAndSanitizeInput,
+  safeFilename,
+  handleRoute,
+} = require("./utils/http-helpers");
+const { IdempotencyCache, ConcurrencyLimiter } = require("./utils/concurrency");
 
-// Initialize security and performance systems
+// ── Instantiate singletons ──────────────────────────────────────
+
 const sanitizer = new Sanitizer();
 const validator = new Validator({
   allowedDirs: [
@@ -56,8 +70,8 @@ const validator = new Validator({
   ],
 });
 const sandbox = new Sandbox({ timeout: 30000, maxWorkers: 5 });
-const cache = new CacheManager({ maxSize: 5000, defaultTTL: 3600000 }); // 1 hour TTL
-const httpPool = new HTTPPoolManager({ maxSockets: 10, timeout: 30000 }); // connection pooling for outbound requests
+const cache = new CacheManager({ maxSize: 5000, defaultTTL: 3600000 });
+const httpPool = new HTTPPoolManager({ maxSockets: 10, timeout: 30000 });
 const auditLogger = new AuditLogger({
   logDir: path.join(getDataDir(), "audit-logs"),
   logLevel: "info",
@@ -66,559 +80,57 @@ const jwtManager = new JWTManager({
   secret: config.jwtSecret || undefined,
   issuer: "codin-agent",
 });
-
-// Import new systems
-let modelRuntime, modelRouter, i18nOrchestrator, ai4bharatProvider;
-let mcpClientManager, projectDetector, processManager, permissionManager;
-let externalProviders;
-let intelligence; // Hybrid Intelligence Orchestrator
-let appRouter = null; // Built after all subsystems load
 const taskManager = new TaskManager();
+const idempotencyCache = new IdempotencyCache({
+  maxEntries: 5000,
+  ttlMs: 5 * 60 * 1000,
+});
+const concurrencyLimiter = new ConcurrencyLimiter(200);
 
-// Load subsystem modules (all now CJS)
-try {
-  ({ modelRuntime } = require("./model-runtime/index.js"));
-} catch (err) {
-  logger.warn({ error: err.message }, "Model runtime failed to load");
-}
+// ── Load optional subsystems ────────────────────────────────────
 
-try {
-  ({ modelRouter } = require("./model-runtime/router.js"));
-} catch (err) {
-  logger.warn({ error: err.message }, "Model router failed to load");
-}
+const subsystems = loadSubsystems();
+const {
+  modelRuntime,
+  modelRouter,
+  i18nOrchestrator,
+  externalProviders,
+  intelligence,
+  mcpClientManager,
+  projectDetector,
+  processManager,
+  permissionManager,
+} = subsystems;
 
-try {
-  ({ i18nOrchestrator } = require("./i18n/orchestrator.js"));
-} catch (err) {
-  logger.warn({ error: err.message }, "i18n orchestrator failed to load");
-}
+// ── Auth middleware ──────────────────────────────────────────────
 
-try {
-  ({ ai4bharatProvider } = require("./i18n/ai4bharat-provider.js"));
-} catch (err) {
-  logger.warn({ error: err.message }, "AI4Bharat provider failed to load");
-}
+const auth = createAuthMiddleware({ jwtManager, auditLogger, jsonResponse });
+const {
+  isPublicRoute,
+  authenticateJWTRequest,
+  requirePermission,
+  auditedAction,
+} = auth;
 
-try {
-  ({ mcpClientManager } = require("./mcp/client-manager.js"));
-} catch (err) {
-  logger.warn({ error: err.message }, "MCP client manager failed to load");
-}
+// ── Configure task manager ──────────────────────────────────────
 
-try {
-  ({ projectDetector } = require("./run/project-detector.js"));
-} catch (err) {
-  logger.warn({ error: err.message }, "Project detector failed to load");
-}
-
-try {
-  ({ processManager } = require("./run/process-manager.js"));
-} catch (err) {
-  logger.warn({ error: err.message }, "Process manager failed to load");
-}
-
-// Permission manager is in shared package
-try {
-  ({ permissionManager } = require("codin-shared/permissions/manager"));
-} catch (err) {
-  logger.warn({ error: err.message }, "Permission manager failed to load");
-}
-
-// External API provider manager (GPT-4, Claude, Gemini)
-try {
-  ({ externalProviders } = require("./model-runtime/external-providers.js"));
-} catch (err) {
-  logger.warn({ error: err.message }, "External providers failed to load");
-}
-
-// Hybrid Intelligence Orchestrator (classify → verify → escalate → confidence)
-try {
-  const {
-    HybridIntelligenceOrchestrator,
-  } = require("./intelligence/hybrid-orchestrator");
-  intelligence = new HybridIntelligenceOrchestrator({
-    modelRouter,
-    externalProviders,
-    modelRuntime,
-    autoEscalate: true,
-  });
-  logger.info("Hybrid Intelligence Orchestrator initialized");
-} catch (err) {
-  logger.warn(
-    { error: err.message },
-    "Intelligence orchestrator failed to load",
-  );
-}
-
-taskManager.setHandlers({
-  "web-search": async (step) => {
-    // Sanitize query
-    const sanitized = sanitizer.sanitizePrompt(step.query || "", {
-      mode: "moderate",
-    });
-    return await webResearchService.searchWeb(
-      sanitized.sanitized,
-      step.limit || 5,
-    );
-  },
-  "fetch-url": async (step) => {
-    // Validate URL
-    const urlValidation = validateAndSanitizeInput(
-      { url: step.url },
-      {
-        url: {
-          required: true,
-          type: "string",
-          format: "url",
-          allowedProtocols: ["http", "https"],
-        },
-      },
-    );
-    if (!urlValidation.valid) {
-      throw new Error(`Invalid URL: ${urlValidation.errors.join(", ")}`);
-    }
-    return await webResearchService.fetchUrl(urlValidation.data.url);
-  },
-  "run-command": async (step) => {
-    // Validate command
-    const cmdValidation = validator.isValidCommand(step.command, {
-      allowChaining: false,
-      strict: true,
-    });
-    if (!cmdValidation.valid) {
-      throw new Error(`Invalid command: ${cmdValidation.errors.join(", ")}`);
-    }
-
-    const profile = {
-      runCmd: step.command,
-      cwd: step.cwd || process.cwd(),
-      env: step.env || {},
-      port: step.port,
-    };
-    const result = await processManager.start(profile, {
-      approved: !!step.approved,
-    });
-    return result;
-  },
-  "read-file": async (step) => {
-    // Validate file path
-    const pathValidation = validator.isValidFilePath(step.path, {
-      mustExist: true,
-      checkReadable: true,
-    });
-    if (!pathValidation.valid) {
-      throw new Error(`Invalid file path: ${pathValidation.errors.join(", ")}`);
-    }
-    const content = fs.readFileSync(pathValidation.path, "utf8");
-    return { path: pathValidation.path, content };
-  },
-  "write-file": async (step) => {
-    // Validate file path
-    const pathValidation = validator.isValidFilePath(step.path, {
-      mustExist: false,
-      checkReadable: false,
-    });
-    if (!pathValidation.valid) {
-      throw new Error(`Invalid file path: ${pathValidation.errors.join(", ")}`);
-    }
-    // Sanitize content if it's a string
-    let content = step.content || "";
-    if (typeof content === "string") {
-      const sanitized = sanitizer.sanitizePrompt(content, { mode: "moderate" });
-      content = sanitized.sanitized;
-    }
-    fs.writeFileSync(pathValidation.path, content, "utf8");
-    return { path: step.path, bytes: (step.content || "").length };
-  },
-  "system-open": async (step) => {
-    openSystemTarget(step.target);
-    return { target: step.target };
-  },
+configureTaskManager(taskManager, {
+  sanitizer,
+  validator,
+  validateAndSanitizeInput,
+  webResearchService,
+  processManager,
+  appendAgentActivity,
 });
 
-taskManager.on("task-created", (task) => {
-  appendAgentActivity({
-    type: "task",
-    action: "created",
-    taskId: task.id,
-    title: task.title,
-  });
-});
-
-taskManager.on("task-started", (task) => {
-  appendAgentActivity({
-    type: "task",
-    action: "started",
-    taskId: task.id,
-  });
-});
-
-taskManager.on("task-log", ({ taskId, entry }) => {
-  appendAgentActivity({
-    type: "task-log",
-    taskId,
-    level: entry.level,
-    message: entry.message,
-  });
-});
-
-taskManager.on("task-completed", (task) => {
-  appendAgentActivity({
-    type: "task",
-    action: "completed",
-    taskId: task.id,
-  });
-});
-
-taskManager.on("task-failed", ({ task, error }) => {
-  appendAgentActivity({
-    type: "task",
-    action: "failed",
-    taskId: task.id,
-    error: error.message || String(error),
-  });
-});
-
-// Build the modular router now that all subsystems are available
-buildRouter();
-logger.info("All subsystems loaded — modular router ready");
-
-const DEFAULT_PORT = config.port;
-
-function ensureAgentLogDir() {
-  const logDir = path.join(getDataDir(), "logs");
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-  }
-  return logDir;
-}
-
-function appendAgentActivity(entry) {
-  const logDir = ensureAgentLogDir();
-  const logPath = path.join(logDir, "agent_activity.jsonl");
-  const safeEntry = {
-    timestamp: new Date().toISOString(),
-    ...entry,
-  };
-  fs.appendFileSync(logPath, JSON.stringify(safeEntry) + "\n", "utf8");
-}
-
-function readAgentActivity(limit = 100) {
-  const logDir = ensureAgentLogDir();
-  const logPath = path.join(logDir, "agent_activity.jsonl");
-  if (!fs.existsSync(logPath)) {
-    return [];
-  }
-  const lines = fs.readFileSync(logPath, "utf8").split("\n").filter(Boolean);
-  const sliced = lines.slice(-limit);
-  return sliced.map((line) => {
-    try {
-      return JSON.parse(line);
-    } catch {
-      return { raw: line };
-    }
-  });
-}
-
-function openSystemTarget(target) {
-  if (!target) {
-    throw new Error("Target is required");
-  }
-
-  // SECURITY: Only allow http/https URLs — no arbitrary file paths via shell
-  let sanitized;
-  try {
-    const parsed = new URL(target);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      throw new Error(`Disallowed protocol: ${parsed.protocol}`);
-    }
-    // Prevent URL-encoded shell metacharacters
-    sanitized = parsed.href;
-  } catch (urlErr) {
-    // Not a valid URL — reject. Only URLs are allowed for safety.
-    throw new Error(
-      "Invalid target: only http/https URLs are allowed for system-open",
-    );
-  }
-
-  if (process.platform === "win32") {
-    spawn("cmd", ["/c", "start", "", sanitized], {
-      detached: true,
-      stdio: "ignore",
-      windowsHide: true,
-    }).unref();
-    return;
-  }
-
-  if (process.platform === "darwin") {
-    spawn("open", [sanitized], { detached: true, stdio: "ignore" }).unref();
-    return;
-  }
-
-  spawn("xdg-open", [sanitized], { detached: true, stdio: "ignore" }).unref();
-}
+// ── Build modular router ────────────────────────────────────────
 
 function getAgentPaths() {
   const dataDir = getDataDir();
-  return {
-    dataDir,
-    modelsDir: getModelsDir(dataDir),
-  };
+  return { dataDir, modelsDir: getModelsDir(dataDir) };
 }
 
-function jsonResponse(res, status, payload) {
-  res.writeHead(status, {
-    "Content-Type": "application/json",
-  });
-  res.end(JSON.stringify(payload));
-}
-
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10 MB
-    const chunks = [];
-    let totalSize = 0;
-    req.on("data", (chunk) => {
-      totalSize += chunk.length;
-      if (totalSize > MAX_BODY_SIZE) {
-        req.destroy(new Error("Request body too large"));
-        reject(new Error("Request body exceeds 10 MB limit"));
-        return;
-      }
-      chunks.push(chunk);
-    });
-    req.on("end", () => {
-      if (!chunks.length) {
-        resolve("");
-        return;
-      }
-      const raw = Buffer.concat(chunks).toString("utf8");
-      resolve(raw);
-    });
-    req.on("error", reject);
-  });
-}
-
-function parseJsonBody(raw) {
-  if (!raw || raw.trim() === "") {
-    return { ok: false, error: "Empty request body" };
-  }
-  try {
-    const parsed = JSON.parse(raw);
-    return { ok: true, value: parsed };
-  } catch (error) {
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : "Invalid JSON",
-    };
-  }
-}
-
-// Security middleware
-function validateAndSanitizeInput(body, schema) {
-  const errors = [];
-  const sanitized = {};
-
-  for (const [key, rules] of Object.entries(schema)) {
-    const value = body[key];
-
-    // Required check
-    if (
-      rules.required &&
-      (value === undefined || value === null || value === "")
-    ) {
-      errors.push(`${key} is required`);
-      continue;
-    }
-
-    // Skip validation if optional and not provided
-    if (!rules.required && (value === undefined || value === null)) {
-      continue;
-    }
-
-    // Type validation
-    if (rules.type === "string" && typeof value !== "string") {
-      errors.push(`${key} must be a string`);
-      continue;
-    }
-
-    if (rules.type === "number" && typeof value !== "number") {
-      errors.push(`${key} must be a number`);
-      continue;
-    }
-
-    if (rules.type === "boolean" && typeof value !== "boolean") {
-      errors.push(`${key} must be a boolean`);
-      continue;
-    }
-
-    // String validation
-    if (typeof value === "string") {
-      if (rules.minLength && value.length < rules.minLength) {
-        errors.push(`${key} must be at least ${rules.minLength} characters`);
-        continue;
-      }
-      if (rules.maxLength && value.length > rules.maxLength) {
-        errors.push(`${key} must be at most ${rules.maxLength} characters`);
-        continue;
-      }
-
-      // Sanitize text inputs
-      if (rules.sanitize !== false) {
-        const result = sanitizer.sanitizePrompt(value, {
-          mode: rules.sanitizeMode || "moderate",
-        });
-        if (result.hasThreats && rules.rejectThreats) {
-          errors.push(
-            `${key} contains potential security threats: ${result.threats.join(", ")}`,
-          );
-          continue;
-        }
-        sanitized[key] = result.sanitized;
-      } else {
-        sanitized[key] = value;
-      }
-
-      // URL validation
-      if (rules.format === "url") {
-        try {
-          const url = new URL(value);
-          if (
-            rules.allowedProtocols &&
-            !rules.allowedProtocols.includes(url.protocol.replace(":", ""))
-          ) {
-            errors.push(
-              `${key} protocol must be one of: ${rules.allowedProtocols.join(", ")}`,
-            );
-            continue;
-          }
-          sanitized[key] = value;
-        } catch {
-          errors.push(`${key} must be a valid URL`);
-          continue;
-        }
-      }
-
-      // Path validation
-      if (rules.format === "path") {
-        const pathValidation = validator.isValidFilePath(value, {
-          mustExist: rules.mustExist,
-          checkReadable: rules.checkReadable,
-        });
-        if (!pathValidation.valid) {
-          errors.push(`${key}: ${pathValidation.errors.join(", ")}`);
-          continue;
-        }
-        sanitized[key] = pathValidation.path;
-      }
-    } else {
-      sanitized[key] = value;
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-    data: sanitized,
-  };
-}
-
-function safeFilename(name) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, "_");
-}
-
-const PUBLIC_ROUTES = new Set([
-  "GET /health",
-  "POST /auth/login",
-  "POST /auth/refresh",
-]);
-
-function isPublicRoute(method, pathname) {
-  return PUBLIC_ROUTES.has(`${method} ${pathname}`);
-}
-
-function getBearerToken(req) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || typeof authHeader !== "string") return null;
-  if (!authHeader.startsWith("Bearer ")) return null;
-  return authHeader.slice(7).trim();
-}
-
-function authenticateJWTRequest(req, res, requestLogger) {
-  const token = getBearerToken(req);
-  if (!token) {
-    requestLogger.warn("auth.missing_token");
-    jsonResponse(res, 401, { error: "Unauthorized" });
-    return null;
-  }
-
-  const verification = jwtManager.verifyToken(token);
-  if (!verification.valid) {
-    requestLogger.warn({ reason: verification.error }, "auth.invalid_token");
-    jsonResponse(res, 401, { error: "Unauthorized" });
-    return null;
-  }
-
-  return verification.payload;
-}
-
-// Permission check wrapper
-async function requirePermission(permissionName, context, permissionManager) {
-  if (!permissionManager) {
-    // Local-only agent: allow by default when no permission manager is loaded.
-    // In production multi-tenant deployments, set up a real permission manager.
-    return {
-      allowed: true,
-      reason: "No permission manager — local mode (allow)",
-    };
-  }
-
-  const decision = await permissionManager.checkPermission(
-    permissionName,
-    context,
-  );
-  return decision;
-}
-
-// Audit logging wrapper
-async function auditedAction(action, metadata, handler) {
-  const startTime = Date.now();
-  try {
-    const result = await handler();
-    auditLogger.log("info", action, {
-      ...metadata,
-      status: "success",
-      duration: Date.now() - startTime,
-    });
-    return result;
-  } catch (error) {
-    auditLogger.log("error", action, {
-      ...metadata,
-      status: "error",
-      error: error.message,
-      duration: Date.now() - startTime,
-    });
-    throw error;
-  }
-}
-
-// Helper to handle async route errors
-async function handleRoute(res, handler) {
-  try {
-    await handler();
-  } catch (error) {
-    logger.error(
-      { error: error.message, stack: error.stack },
-      "Route handling failed",
-    );
-    jsonResponse(res, 500, {
-      error: error.message || "Internal server error",
-    });
-  }
-}
-
-async function downloadFile(url, destPath) {
+function downloadFile(url, destPath) {
   return new Promise((resolve, reject) => {
     const parsed = new URL(url);
     const client = parsed.protocol === "https:" ? https : http;
@@ -647,94 +159,69 @@ async function downloadFile(url, destPath) {
   });
 }
 
-// ========================================
-//  MODULAR ROUTE SETUP
-// ========================================
-
-// The app router is created lazily after all subsystems load.
-// Until then, requests get 503.
-
-function buildRouter() {
-  // Bridge function: agents call runLLM(systemPrompt, userPrompt, opts)
-  // and we translate to the externalProviders message-array format.
-  const runLLM = async (systemPrompt, userPrompt, opts = {}) => {
-    const messages = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ];
-    try {
-      const result = await externalProviders.completeWithFallback(messages, {
-        model: opts.model,
-        maxTokens: opts.maxTokens || 4096,
-        temperature: opts.temperature ?? 0.7,
-      });
-      return result.content;
-    } catch {
-      // No providers configured — fall back to modelRuntime if available
-      if (modelRuntime && typeof modelRuntime.complete === "function") {
-        return modelRuntime.complete(systemPrompt, userPrompt, opts);
-      }
-      throw new Error(
-        "No LLM provider available. Configure an external provider via POST /external-providers/configure",
-      );
+// Bridge function: agents call runLLM(systemPrompt, userPrompt, opts)
+const runLLM = async (systemPrompt, userPrompt, opts = {}) => {
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt },
+  ];
+  try {
+    const result = await externalProviders.completeWithFallback(messages, {
+      model: opts.model,
+      maxTokens: opts.maxTokens || 4096,
+      temperature: opts.temperature ?? 0.7,
+    });
+    return result.content;
+  } catch {
+    if (modelRuntime && typeof modelRuntime.complete === "function") {
+      return modelRuntime.complete(systemPrompt, userPrompt, opts);
     }
-  };
+    throw new Error(
+      "No LLM provider available. Configure an external provider via POST /external-providers/configure",
+    );
+  }
+};
 
-  appRouter = createAppRouter({
-    // Auth
-    jwtManager,
-    crypto,
-
-    // Store / paths
-    loadStore,
-    saveStore,
-    getAgentPaths,
-    ensureDirs,
-    downloadFile,
-    safeFilename,
-
-    // Security & permissions
-    sanitizer,
-    validator,
-    sandbox,
-    permissionManager,
-    requirePermission,
-    auditedAction,
-
-    // Logging
-    logger,
-    appendAgentActivity,
-    readAgentActivity,
-    auditLogger,
-
-    // Subsystems (may be null if dynamic import failed)
-    modelRuntime,
-    modelRouter,
-    i18nOrchestrator,
-    externalProviders,
-    intelligence,
-    cache,
-    httpPool,
-    webResearchService,
-    mcpClientManager,
-    taskManager,
-    projectDetector,
-    processManager,
-
-    // LLM bridge for MAS agents
-    runLLM,
-
-    // Legacy router
-    getRouterDecision,
-  });
-}
-
-const { IdempotencyCache, ConcurrencyLimiter } = require("./utils/concurrency");
-const idempotencyCache = new IdempotencyCache({
-  maxEntries: 5000,
-  ttlMs: 5 * 60 * 1000,
+const appRouter = createAppRouter({
+  jwtManager,
+  crypto,
+  loadStore,
+  saveStore,
+  getAgentPaths,
+  ensureDirs,
+  downloadFile,
+  safeFilename,
+  sanitizer,
+  validator,
+  sandbox,
+  permissionManager,
+  requirePermission,
+  auditedAction,
+  logger,
+  appendAgentActivity,
+  readAgentActivity,
+  auditLogger,
+  modelRuntime,
+  modelRouter,
+  i18nOrchestrator,
+  externalProviders,
+  intelligence,
+  cache,
+  httpPool,
+  webResearchService,
+  mcpClientManager,
+  taskManager,
+  projectDetector,
+  processManager,
+  runLLM,
+  getRouterDecision,
 });
-const concurrencyLimiter = new ConcurrencyLimiter(200); // max 200 in-flight requests
+
+logger.info("All subsystems loaded — modular router ready");
+
+// ── HTTP server ─────────────────────────────────────────────────
+
+const DEFAULT_PORT = config.port;
 
 function shouldCaptureIdempotency(statusCode, body) {
   if (!Number.isInteger(statusCode) || statusCode >= 500 || statusCode < 200) {
@@ -830,7 +317,7 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    // Health check â€” always available
+    // Health check — always available
     if (req.method === "GET" && url.pathname === "/health") {
       jsonResponse(res, 200, {
         status: "ok",
@@ -872,7 +359,6 @@ const server = http.createServer(async (req, res) => {
       }
 
       const username = validation.data.username;
-      // Role is always "developer" for local agent — ignore client-supplied role
       const role = "developer";
       const userId = crypto
         .createHash("sha256")
@@ -923,20 +409,17 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // ─── JWT VERIFICATION FOR ALL PROTECTED ROUTES ─────────────────────────────────
-    // Any non-public route requires a valid bearer token
+    // ─── JWT VERIFICATION FOR ALL PROTECTED ROUTES ──────────────
     const authPayload = authenticateJWTRequest(req, res, requestLogger);
     if (!authPayload && !isPublicRoute(req.method, url.pathname)) {
-      // authenticateJWTRequest already sent 401 response
       return;
     }
 
-    // Attach auth context to request for downstream route handlers
     if (authPayload) {
       req.user = authPayload;
     }
 
-    // ─── PROTECTED ROUTE HANDLING ───────────────────────────────────────────────────
+    // ─── PROTECTED ROUTE HANDLING ───────────────────────────────
     const idempotencyCapture =
       idempotencyKey && isMutatingRequest ? attachResponseCapture(res) : null;
 
@@ -949,44 +432,49 @@ const server = http.createServer(async (req, res) => {
 
       // Legacy /router endpoint (kept inline — thin shim)
       if (req.method === "POST" && url.pathname === "/router") {
-        await handleRoute(res, async () => {
-          const raw = await readBody(req);
-          const parsed = parseJsonBody(raw);
-          if (!parsed.ok) {
-            jsonResponse(res, 400, { error: parsed.error });
-            return;
-          }
-          const validation = validateAndSanitizeInput(parsed.value, {
-            prompt: {
-              required: false,
-              type: "string",
-              maxLength: 100000,
-              sanitize: true,
-            },
-            contextChars: {
-              required: false,
-              type: "number",
-              min: 0,
-              max: 1000000,
-            },
-            deepPlanning: { required: false, type: "boolean" },
-            preferAccuracy: { required: false, type: "boolean" },
-          });
-          if (!validation.valid) {
-            jsonResponse(res, 400, { error: validation.errors.join(", ") });
-            return;
-          }
-          const store = loadStore();
-          const hasLocalModel = !!store.active.coder || !!store.active.reasoner;
-          const decision = getRouterDecision({
-            prompt: validation.data.prompt || "",
-            contextChars: validation.data.contextChars || 0,
-            deepPlanning: validation.data.deepPlanning || false,
-            preferAccuracy: validation.data.preferAccuracy || false,
-            hasLocalModel,
-          });
-          jsonResponse(res, 200, { decision });
-        });
+        await handleRoute(
+          res,
+          async () => {
+            const raw = await readBody(req);
+            const parsed = parseJsonBody(raw);
+            if (!parsed.ok) {
+              jsonResponse(res, 400, { error: parsed.error });
+              return;
+            }
+            const validation = validateAndSanitizeInput(parsed.value, {
+              prompt: {
+                required: false,
+                type: "string",
+                maxLength: 100000,
+                sanitize: true,
+              },
+              contextChars: {
+                required: false,
+                type: "number",
+                min: 0,
+                max: 1000000,
+              },
+              deepPlanning: { required: false, type: "boolean" },
+              preferAccuracy: { required: false, type: "boolean" },
+            });
+            if (!validation.valid) {
+              jsonResponse(res, 400, { error: validation.errors.join(", ") });
+              return;
+            }
+            const store = loadStore();
+            const hasLocalModel =
+              !!store.active.coder || !!store.active.reasoner;
+            const decision = getRouterDecision({
+              prompt: validation.data.prompt || "",
+              contextChars: validation.data.contextChars || 0,
+              deepPlanning: validation.data.deepPlanning || false,
+              preferAccuracy: validation.data.preferAccuracy || false,
+              hasLocalModel,
+            });
+            jsonResponse(res, 200, { decision });
+          },
+          logger,
+        );
         return;
       }
 
@@ -1022,13 +510,13 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-// Initialize middleware
+// ── Middleware wiring ────────────────────────────────────────────
+
 const rateLimiter = new RateLimiter({
   requestsPerMinute: config.rateLimitPerMinute,
   requestsPerHour: config.rateLimitPerHour,
 });
 
-// Late-bind observability deps into the router
 if (appRouter && appRouter._deps) {
   appRouter._deps.concurrencyLimiter = concurrencyLimiter;
   appRouter._deps.rateLimiter = rateLimiter;
@@ -1045,19 +533,17 @@ const securityHeadersMiddleware = createSecurityHeadersMiddleware({
   hstsMaxAge: config.hstsMaxAge,
 });
 
-// Wrap server request handler with middleware
 const originalHandler = server.listeners("request")[0];
 server.removeAllListeners("request");
 server.on("request", (req, res) => {
-  // Apply security headers first
   securityHeadersMiddleware(req, res, () => {
-    // Then apply rate limiting
     rateLimiterMiddleware(req, res, () => {
-      // Finally, run the main request handler
       originalHandler(req, res);
     });
   });
 });
+
+// ── Start listening ─────────────────────────────────────────────
 
 server.listen(DEFAULT_PORT, "127.0.0.1", () => {
   logger.info(
@@ -1066,71 +552,14 @@ server.listen(DEFAULT_PORT, "127.0.0.1", () => {
   );
 });
 
-// ─── Graceful Shutdown ─────────────────────────────────────────
-let _shutdownStarted = false;
-async function gracefulShutdown(signal) {
-  if (_shutdownStarted) return;
-  _shutdownStarted = true;
-  logger.info({ signal }, "Graceful shutdown initiated");
+// ── Graceful shutdown ───────────────────────────────────────────
 
-  // 1. Stop accepting new connections
-  server.close(() => {
-    logger.info("HTTP server closed");
-  });
-
-  // 2. Force-close after 30 seconds
-  const forceTimer = setTimeout(() => {
-    logger.warn("Forced exit after 30s shutdown timeout");
-    process.exit(1);
-  }, 30_000);
-  forceTimer.unref();
-
-  // 3. Shutdown subsystems with individual timeouts
-  const withTimeout = (promise, ms, name) =>
-    Promise.race([
-      promise,
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error(`${name} shutdown timeout`)), ms),
-      ),
-    ]).catch((err) =>
-      logger.warn({ error: err.message }, `${name} shutdown failed`),
-    );
-
-  const shutdownTasks = [];
-
-  if (typeof swarmManager?.swarmShutdown === "function") {
-    shutdownTasks.push(
-      withTimeout(
-        Promise.resolve(swarmManager.swarmShutdown()),
-        10_000,
-        "SwarmManager",
-      ),
-    );
-  }
-  if (typeof processManager?.destroy === "function") {
-    shutdownTasks.push(
-      withTimeout(
-        Promise.resolve(processManager.destroy()),
-        5_000,
-        "ProcessManager",
-      ),
-    );
-  }
-  if (typeof rateLimiter?.destroy === "function") {
-    rateLimiter.destroy();
-  }
-  if (typeof sandbox?.terminateAll === "function") {
-    shutdownTasks.push(
-      withTimeout(Promise.resolve(sandbox.terminateAll()), 5_000, "Sandbox"),
-    );
-  }
-
-  await Promise.allSettled(shutdownTasks);
-
-  clearTimeout(forceTimer);
-  logger.info("Shutdown complete");
-  process.exit(0);
-}
-
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+createShutdownHandler(server, {
+  // Getter resolves swarmManager lazily — it's created inside the swarm
+  // route module after /swarm/init is called, so it's undefined at boot.
+  getSwarmManager: () =>
+    appRouter && appRouter._deps ? appRouter._deps.swarmManager : null,
+  processManager,
+  rateLimiter,
+  sandbox,
+});

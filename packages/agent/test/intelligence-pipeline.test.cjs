@@ -408,7 +408,12 @@ test("Registry: imports and registers intelligence routes", () => {
 });
 
 test("Index: declares and initializes intelligence orchestrator", () => {
-  const source = readSource("src/index.js");
+  // HybridIntelligenceOrchestrator may be in index.js or subsystem-loader.js
+  const indexSource = readSource("src/index.js");
+  let source = indexSource;
+  try {
+    source += readSource("src/subsystem-loader.js");
+  } catch { /* may not exist */ }
   assert.match(source, /HybridIntelligenceOrchestrator/);
   assert.match(source, /intelligence/);
 });
