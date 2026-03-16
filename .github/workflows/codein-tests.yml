@@ -44,6 +44,11 @@ jobs:
           rm -f package-lock.json
           npm install --no-audit --no-fund
         working-directory: gui
+      - name: Install core dependencies (required by GUI tests that import from core/)
+        run: |
+          rm -f package-lock.json
+          npm install --no-audit --no-fund
+        working-directory: core
       - name: Run GUI unit tests
         run: npx vitest run --reporter=verbose
         working-directory: gui
