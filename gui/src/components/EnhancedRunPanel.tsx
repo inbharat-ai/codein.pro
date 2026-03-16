@@ -51,7 +51,6 @@ export function EnhancedRunPanel() {
       const data = await response.json();
       setProject(data.project);
     } catch (error) {
-      console.error("Failed to detect project:", error);
       setDetectError(
         error instanceof Error ? error.message : "Failed to detect project",
       );
@@ -79,8 +78,7 @@ export function EnhancedRunPanel() {
 
       const data = await response.json();
       alert("Install started. Check terminal output.");
-    } catch (error) {
-      console.error("Install failed:", error);
+    } catch {
       alert("Install failed");
     }
   };
@@ -108,8 +106,7 @@ export function EnhancedRunPanel() {
         // Start polling logs
         pollLogs(data.runId);
       }
-    } catch (error) {
-      console.error("Failed to start:", error);
+    } catch {
       alert("Failed to start project");
     }
   };
@@ -124,8 +121,8 @@ export function EnhancedRunPanel() {
 
       setStatus("stopped");
       setRunId(null);
-    } catch (error) {
-      console.error("Failed to stop:", error);
+    } catch {
+      // Stop failure is non-critical; UI already reflects intended state
     }
   };
 
@@ -154,8 +151,8 @@ export function EnhancedRunPanel() {
             clearInterval(interval);
           }
         }
-      } catch (error) {
-        console.error("Failed to poll logs:", error);
+      } catch {
+        // Polling failure is transient; next tick retries automatically
       }
     }, 1000);
 

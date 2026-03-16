@@ -89,8 +89,7 @@ export function OnboardingLocalTab({ isDialog }: OnboardingLocalTabProps) {
         } else {
           throw new Error("Failed to fetch models");
         }
-      } catch (error) {
-        console.error("Error fetching models:", error);
+      } catch {
         setIsOllamaConnected(false);
       }
     };

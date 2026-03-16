@@ -84,8 +84,7 @@ export function VoicePanel() {
       setInterimTranscript(interim);
     };
 
-    recognition.onerror = (event: any) => {
-      console.error("Speech recognition error:", event.error);
+    recognition.onerror = () => {
       setIsRecording(false);
     };
 

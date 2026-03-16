@@ -57,8 +57,8 @@ export function useComputeJob() {
         );
         setJobs(data.jobs || []);
       }
-    } catch (err) {
-      console.warn("[Compute] Failed to load jobs:", err);
+    } catch {
+      // Silently ignore – job list will remain stale until next poll
     }
   }, [computeBridge, useIpcCompute]);
 

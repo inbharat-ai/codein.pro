@@ -2694,7 +2694,7 @@ export const models: { [key: string]: ModelPackage } = {
       "Automatically populate the model list by calling the /models endpoint of the server",
     params: {
       model: "AUTODETECT",
-    } as any,
+    } as ModelPackage["params"],
     providerOptions: [],
     isOpenSource: false,
   },

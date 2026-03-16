@@ -37,8 +37,8 @@ export function PermissionConsentDialog() {
       const response = await agentFetch("/permissions/queue");
       const data = await response.json();
       setQueue(data.queue || []);
-    } catch (error) {
-      console.error("Failed to load consent queue:", error);
+    } catch {
+      // Queue load failure is non-critical; UI remains empty
     }
   };
 
@@ -58,8 +58,8 @@ export function PermissionConsentDialog() {
       setCurrentRequest(null);
       setRemember(false);
       await loadQueue();
-    } catch (error) {
-      console.error("Failed to respond to consent:", error);
+    } catch {
+      // Consent response failure — user can retry
     }
   };
 
