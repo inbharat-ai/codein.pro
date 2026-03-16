@@ -32,7 +32,6 @@ const getSpecialKeyMap = (platform: string): Record<string, string> => ({
 
 const parseShortcut = (shortcut: string, platform: string) => {
   if (!shortcut || typeof shortcut !== "string") {
-    console.warn("Invalid shortcut provided:", shortcut);
     return [];
   }
 

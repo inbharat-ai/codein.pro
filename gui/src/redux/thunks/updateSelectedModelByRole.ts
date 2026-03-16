@@ -33,9 +33,6 @@ export const updateSelectedModelByRole = createAsyncThunk<
     );
 
     if (!model) {
-      console.error(
-        `Model with title "${modelTitle}" not found for role "${role}"`,
-      );
       return;
     }
 

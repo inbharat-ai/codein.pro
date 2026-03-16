@@ -117,7 +117,7 @@ function ModelCard(props: ModelCardProps) {
           props.disabled
             ? undefined
             : (e) => {
-                if ((e.target as any).closest("a")) {
+                if ((e.target as HTMLElement).closest("a")) {
                   return;
                 }
                 props.onClick?.(e, dimensionChoices, selectedProvider);

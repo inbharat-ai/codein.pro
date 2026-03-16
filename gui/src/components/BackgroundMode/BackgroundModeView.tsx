@@ -29,7 +29,7 @@ export function BackgroundModeView({
     try {
       await login(false);
     } catch (error) {
-      console.error("Login failed:", error);
+      // Login failed
     } finally {
       setIsLoggingIn(false);
     }

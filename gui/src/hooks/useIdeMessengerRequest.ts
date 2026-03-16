@@ -28,7 +28,7 @@ export function useIdeMessengerRequest<T extends keyof FromWebviewProtocol>(
       if (response.status === "success") {
         setResult(response.content);
       } else {
-        console.error(`Error in ${messageType} request:`, response.error);
+        // Request error handled via state update
         setResult(null);
       }
     } finally {

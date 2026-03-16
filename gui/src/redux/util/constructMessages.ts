@@ -159,18 +159,7 @@ export function constructMessages(
           });
         }
       } else if (item.toolCallStates && item.toolCallStates.length > 0) {
-        // This case indicates a potential mismatch - we have tool call states but no message.toolCalls
-        console.error(
-          "ERROR constructMessages: Assistant message has toolCallStates but no message.toolCalls:",
-          {
-            toolCallStates: item.toolCallStates.length,
-            toolCallIds: item.toolCallStates.map((s) => s.toolCallId),
-            messageContent:
-              typeof item.message.content === "string"
-                ? item.message.content?.substring(0, 50) + "..."
-                : "Non-string content",
-          },
-        );
+        // Mismatch: toolCallStates present but no message.toolCalls — skip silently
       }
     }
   }

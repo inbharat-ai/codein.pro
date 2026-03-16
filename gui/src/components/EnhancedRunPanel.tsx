@@ -1,6 +1,8 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { IdeMessengerContext } from "../context/IdeMessenger";
 import { agentFetch } from "../util/agentConfig";
+import { EmptyState } from "./ui/EmptyState";
+import { LoadingPanel } from "./ui/LoadingState";
 
 interface Project {
   root: string;
@@ -17,6 +19,8 @@ interface Project {
 export function EnhancedRunPanel() {
   const ideMessenger = useContext(IdeMessengerContext);
   const [project, setProject] = useState<Project | null>(null);
+  const [detecting, setDetecting] = useState(true);
+  const [detectError, setDetectError] = useState<string | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
   const [status, setStatus] = useState<"stopped" | "running" | "failed">(
     "stopped",
@@ -34,6 +38,8 @@ export function EnhancedRunPanel() {
   }, [logs]);
 
   const detectProject = async () => {
+    setDetecting(true);
+    setDetectError(null);
     try {
       const workspacePath = (ideMessenger as any).workspacePath || ".";
       const response = await agentFetch("/run/detect", {
@@ -46,6 +52,11 @@ export function EnhancedRunPanel() {
       setProject(data.project);
     } catch (error) {
       console.error("Failed to detect project:", error);
+      setDetectError(
+        error instanceof Error ? error.message : "Failed to detect project",
+      );
+    } finally {
+      setDetecting(false);
     }
   };
 
@@ -157,10 +168,67 @@ export function EnhancedRunPanel() {
     }
   };
 
+  if (detecting) {
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <LoadingPanel message="Detecting project..." />
+      </div>
+    );
+  }
+
+  if (detectError) {
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <div className="flex items-center justify-between rounded-lg border border-red-800/50 bg-red-900/20 px-3 py-2 text-xs text-red-400">
+          <span>{detectError}</span>
+        </div>
+        <EmptyState
+          icon={
+            <svg
+              className="h-10 w-10"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          }
+          title="Detection Failed"
+          message="Could not detect a runnable project in the workspace."
+          action={{ label: "Retry Detection", onClick: detectProject }}
+        />
+      </div>
+    );
+  }
+
   if (!project) {
     return (
       <div className="flex flex-col gap-4 p-4">
-        <div className="text-sm opacity-70">Detecting project...</div>
+        <EmptyState
+          icon={
+            <svg
+              className="h-10 w-10"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+              />
+            </svg>
+          }
+          title="No Runs Yet"
+          message="No runnable project detected. Execute a command to see results here."
+          action={{ label: "Retry Detection", onClick: detectProject }}
+        />
       </div>
     );
   }

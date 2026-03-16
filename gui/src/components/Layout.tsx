@@ -1,8 +1,6 @@
 import { OnboardingModes } from "core/protocol/core";
 import { useContext, useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import styled from "styled-components";
-import { CustomScrollbarDiv } from ".";
 import { AuthProvider } from "../context/Auth";
 import { IdeMessengerContext } from "../context/IdeMessenger";
 import { LocalStorageProvider } from "../context/LocalStorage";
@@ -27,24 +25,6 @@ import {
 } from "./OnboardingCard";
 import OSRContextMenu from "./OSRContextMenu";
 import PostHogPageView from "./PosthogPageView";
-
-const LayoutTopDiv = styled(CustomScrollbarDiv)`
-  height: 100%;
-  position: relative;
-  overflow-x: hidden;
-`;
-
-/* India-tech geometric background wrapper (kolam/rangoli pattern at 0.025 opacity) */
-const GeoBackgroundDiv = styled.div.attrs({ className: "codin-geo-bg" })`
-  height: 100%;
-`;
-
-const GridDiv = styled.div`
-  display: grid;
-  grid-template-rows: 1fr auto;
-  height: 100%;
-  overflow-x: visible;
-`;
 
 function useLayoutWebviewListeners() {
   const navigate = useNavigate();
@@ -217,14 +197,19 @@ const Layout = () => {
   const { onboardingCard } = useLayoutWebviewListeners();
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       const response = await ideMessenger.request(
         "controlPlane/getEnvironment",
         undefined,
       );
-      response.status === "success" &&
+      if (!cancelled && response.status === "success") {
         setShowStagingIndicator(response.content.AUTH_TYPE.includes("staging"));
+      }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -257,8 +242,8 @@ const Layout = () => {
       <AuthProvider>
         <TelemetryProviders>
           <IdeShell>
-            <GeoBackgroundDiv>
-              <LayoutTopDiv>
+            <div className="codin-geo-bg">
+              <div className="codin-layout-top">
                 {showStagingIndicator && (
                   <span
                     title="Staging environment"
@@ -288,7 +273,7 @@ const Layout = () => {
                     message={dialogMessage}
                   />
 
-                  <GridDiv>
+                  <div className="codin-grid-div">
                     <PostHogPageView />
                     <div
                       key={location.pathname}
@@ -298,14 +283,14 @@ const Layout = () => {
                     </div>
                     {/* The fatal error for chat is shown below input */}
                     {!isHome && <FatalErrorIndicator />}
-                  </GridDiv>
+                  </div>
                 </div>
                 <div
                   style={{ fontSize: fontSize(-4) }}
                   id="tooltip-portal-div"
                 />
-              </LayoutTopDiv>
-            </GeoBackgroundDiv>
+              </div>
+            </div>
           </IdeShell>
         </TelemetryProviders>
       </AuthProvider>

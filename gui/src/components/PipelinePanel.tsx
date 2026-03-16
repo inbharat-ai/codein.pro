@@ -9,6 +9,8 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { agentFetch } from "../util/agentConfig";
+import { EmptyState } from "./ui/EmptyState";
+import "./panels.css";
 
 interface Pipeline {
   id: string;
@@ -35,6 +37,7 @@ export default function PipelinePanel() {
   const [language, setLanguage] = useState("");
   const [framework, setFramework] = useState("");
   const [creating, setCreating] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadPipelines = useCallback(async () => {
@@ -85,11 +88,14 @@ export default function PipelinePanel() {
 
   const cancelPipeline = useCallback(
     async (id: string) => {
+      setCancellingId(id);
       try {
         await agentFetch(`/pipeline/${id}`, { method: "DELETE" });
         await loadPipelines();
       } catch {
-        // Ignore
+        // Ignore network errors on cancel – list will auto-refresh
+      } finally {
+        setCancellingId(null);
       }
     },
     [loadPipelines],
@@ -115,6 +121,7 @@ export default function PipelinePanel() {
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
           placeholder="Describe what you want to build..."
+          aria-label="Pipeline description"
           rows={3}
           style={{
             width: "100%",
@@ -132,6 +139,7 @@ export default function PipelinePanel() {
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             placeholder="Language (optional)"
+            aria-label="Language"
             style={{
               flex: 1,
               padding: 6,
@@ -145,6 +153,7 @@ export default function PipelinePanel() {
             value={framework}
             onChange={(e) => setFramework(e.target.value)}
             placeholder="Framework (optional)"
+            aria-label="Framework"
             style={{
               flex: 1,
               padding: 6,
@@ -170,14 +179,44 @@ export default function PipelinePanel() {
             {creating ? "Creating..." : "Create"}
           </button>
         </div>
-        {error && <div style={{ color: "#d9534f", fontSize: 12 }}>{error}</div>}
+        {error && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="error-message"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <span>{error}</span>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                onClick={() => setError(null)}
+                className="btn-secondary"
+                style={{ fontSize: "12px", padding: "2px 8px" }}
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={createPipeline}
+                className="btn-primary"
+                style={{ fontSize: "12px", padding: "2px 8px" }}
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Pipeline list */}
       {pipelines.length === 0 ? (
-        <div style={{ color: "#888", textAlign: "center", padding: 24 }}>
-          No pipelines yet. Create one above.
-        </div>
+        <EmptyState
+          title="No pipelines yet"
+          message="Create your first pipeline to automate your workflow."
+        />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {pipelines.map((p) => (
@@ -220,17 +259,19 @@ export default function PipelinePanel() {
                 p.status !== "cancelled" && (
                   <button
                     onClick={() => cancelPipeline(p.id)}
+                    disabled={cancellingId === p.id}
                     style={{
                       padding: "4px 10px",
                       borderRadius: 4,
                       border: "1px solid #d9534f",
                       backgroundColor: "transparent",
                       color: "#d9534f",
-                      cursor: "pointer",
+                      cursor: cancellingId === p.id ? "wait" : "pointer",
+                      opacity: cancellingId === p.id ? 0.5 : 1,
                       fontSize: 12,
                     }}
                   >
-                    Cancel
+                    {cancellingId === p.id ? "Cancelling…" : "Cancel"}
                   </button>
                 )}
             </div>

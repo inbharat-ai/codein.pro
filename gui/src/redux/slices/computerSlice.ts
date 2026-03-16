@@ -5,7 +5,7 @@ import {
   createSlice,
 } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-import { getAgentBaseUrl } from "../../util/agentConfig";
+import { getAgentV1BaseUrl } from "../../util/agentConfig";
 import { ensureAuth } from "../../util/authService";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -80,7 +80,7 @@ export interface AuditEntry {
 // ─── Fetch Helper ────────────────────────────────────────────
 
 async function computerFetch(path: string, opts?: RequestInit) {
-  const base = getAgentBaseUrl();
+  const base = getAgentV1BaseUrl();
 
   let token: string | null = null;
   try {

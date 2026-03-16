@@ -99,9 +99,7 @@ function DocsIndexingStatus({
         }
         setIndexedPages(response.content.sort());
       } catch (ex) {
-        console.error(
-          `Unable to fetch pages list for ${docConfig.startUrl}: ${ex}`,
-        );
+        // Pages list fetch failed for this doc config
       }
     }
 

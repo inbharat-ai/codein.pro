@@ -26,9 +26,7 @@ const chatHistoryReducers = {
     if (state.history.length && index < state.history.length) {
       // Resubmission - update input message, truncate history after resubmit with new empty response message
       if (index % 2 === 1) {
-        console.warn(
-          "Corrupted history: resubmitting at odd index, shouldn't happen",
-        );
+        // Corrupted history: resubmitting at odd index
       }
       const historyItem = state.history[index];
 
@@ -126,10 +124,6 @@ const chatHistoryReducers = {
   ) => {
     const { index, updates } = payload;
     if (index !== 0 && !state.history[index]) {
-      console.error(
-        `attempting to update history item at nonexistent index ${index}`,
-        updates,
-      );
       return;
     }
     state.history[index] = {

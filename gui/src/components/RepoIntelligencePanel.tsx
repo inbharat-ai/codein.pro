@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { agentFetch as baseAgentFetch } from "../util/agentConfig";
+import { EmptyState } from "./ui/EmptyState";
 import "./panels.css";
 
 interface RepoScanResult {
@@ -21,6 +22,7 @@ export default function RepoIntelligencePanel() {
   const [scanResult, setScanResult] = useState<RepoScanResult | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState("");
 
   const handleScanRepo = async () => {
@@ -51,6 +53,7 @@ export default function RepoIntelligencePanel() {
       return;
     }
     setSearching(true);
+    setHasSearched(true);
     setError("");
     try {
       const response = await baseAgentFetch("/repo/search", {
@@ -96,6 +99,7 @@ export default function RepoIntelligencePanel() {
           <input
             type="text"
             placeholder="Search for functions, classes, variables..."
+            aria-label="Search codebase"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -104,7 +108,7 @@ export default function RepoIntelligencePanel() {
             {searching ? "Searching..." : "Search"}
           </button>
         </div>
-        {searchResults.length > 0 && (
+        {searchResults.length > 0 ? (
           <div className="results-list">
             {searchResults.slice(0, 10).map((result, idx) => (
               <div key={idx} className="result-item">
@@ -113,10 +117,44 @@ export default function RepoIntelligencePanel() {
               </div>
             ))}
           </div>
-        )}
+        ) : !hasSearched ? (
+          <EmptyState
+            title="Search your codebase"
+            message="Find functions, classes, and variables across your project."
+          />
+        ) : null}
       </section>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="error-message"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span>{error}</span>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={() => setError("")}
+              className="btn-secondary"
+              style={{ fontSize: "12px", padding: "2px 8px" }}
+            >
+              Dismiss
+            </button>
+            <button
+              onClick={handleScanRepo}
+              className="btn-primary"
+              style={{ fontSize: "12px", padding: "2px 8px" }}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -72,7 +72,9 @@ function Stats() {
           <h2 className="ml-2">Tokens per Day</h2>
           <CopyIconButton
             text={generateTable(
-              ([["Day", "Generated Tokens", "Prompt Tokens"]] as any).concat(
+              (
+                [["Day", "Generated Tokens", "Prompt Tokens"]] as unknown[][]
+              ).concat(
                 days.map((day) => [
                   day.day,
                   day.generatedTokens,
@@ -105,7 +107,9 @@ function Stats() {
           <h2 className="ml-2">Tokens per Model</h2>
           <CopyIconButton
             text={generateTable(
-              ([["Model", "Generated Tokens", "Prompt Tokens"]] as any).concat(
+              (
+                [["Model", "Generated Tokens", "Prompt Tokens"]] as unknown[][]
+              ).concat(
                 models.map((model) => [
                   model.model,
                   model.generatedTokens.toLocaleString(),

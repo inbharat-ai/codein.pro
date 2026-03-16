@@ -145,9 +145,9 @@ export const HeaderButton = styled.button<{
   border-radius: ${defaultBorderRadius};
   cursor: ${({ disabled }) => (disabled ? "default" : "pointer")};
 
-  &:focus {
-    outline: none;
-    border: none;
+  &:focus-visible {
+    outline: 2px solid var(--codin-border-focus, rgba(99, 102, 241, 0.7));
+    outline-offset: 2px;
   }
 
   &:hover {

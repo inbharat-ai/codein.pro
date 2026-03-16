@@ -166,7 +166,7 @@ function handleBackgroundMode({
 
       setIsCreatingAgent(false);
     } catch (error) {
-      console.error("Failed to create background agent:", error);
+      // Background agent creation failed
       setIsCreatingAgent(false);
     }
   })();

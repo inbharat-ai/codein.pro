@@ -54,8 +54,8 @@
 
   /* ── Semantic Foreground ───────────────────────────────────────── */
   --codin-fg-primary: #e8e6f0; /* main text — warm white with indigo tint */
-  --codin-fg-secondary: #a8a5c0; /* secondary text */
-  --codin-fg-muted: #8b88ad; /* muted/subtle text — lightened for WCAG AA 4.5:1 contrast on bg-primary */
+  --codin-fg-secondary: #a8a5c0; /* secondary text — 8.04:1 on bg-primary (WCAG AA ✓) */
+  --codin-fg-muted: #8b88ad; /* muted/subtle text — 5.68:1 on bg-primary (WCAG AA ✓) */
   --codin-fg-inverse: #0f0e17; /* text on light backgrounds */
 
   /* ── Accent Colors ─────────────────────────────────────────────── */
@@ -120,6 +120,54 @@
   --codin-transition-fast: 120ms ease;
   --codin-transition-normal: 200ms ease;
   --codin-transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   1b. LIGHT THEME OVERRIDES
+   ═══════════════════════════════════════════════════════════════════
+   Professional light theme inspired by VS Code Light+.
+   Only semantic tokens are overridden — palette scales, spacing,
+   radius, typography, and transitions remain identical.            */
+
+[data-theme="light"] {
+  /* ── Semantic Background ───────────────────────────────────────── */
+  --codin-bg-primary: #ffffff;
+  --codin-bg-secondary: #f8f8fa;
+  --codin-bg-tertiary: #f0f0f4;
+  --codin-bg-surface: #e8e8ee;
+  --codin-bg-hover: #e0e0e8;
+  --codin-bg-active: #d0cfe6;
+
+  /* ── Semantic Foreground ───────────────────────────────────────── */
+  --codin-fg-primary: #1e1e2e;
+  --codin-fg-secondary: #555570;
+  --codin-fg-muted: #71718a;
+  --codin-fg-inverse: #ffffff;
+
+  /* ── Accent Colors ─────────────────────────────────────────────── */
+  --codin-accent-primary: #4f46e5;
+  --codin-accent-primary-hover: #4338ca;
+  --codin-accent-saffron: #d97706;
+  --codin-accent-saffron-subtle: rgba(217, 119, 6, 0.1);
+  --codin-accent-saffron-hover: rgba(217, 119, 6, 0.18);
+
+  /* ── Border ────────────────────────────────────────────────────── */
+  --codin-border: rgba(79, 70, 229, 0.15);
+  --codin-border-strong: rgba(79, 70, 229, 0.3);
+  --codin-border-focus: rgba(217, 119, 6, 0.6);
+
+  /* ── Status Colors ─────────────────────────────────────────────── */
+  --codin-success: #16a34a;
+  --codin-warning: #d97706;
+  --codin-error: #dc2626;
+  --codin-info: #4f46e5;
+
+  /* ── Shadows ───────────────────────────────────────────────────── */
+  --codin-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --codin-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --codin-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --codin-shadow-glow-indigo: 0 0 20px rgba(79, 70, 229, 0.1);
+  --codin-shadow-glow-saffron: 0 0 16px rgba(217, 119, 6, 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -205,22 +253,24 @@
 }
 .codin-model-badge--local {
   background: rgba(99, 102, 241, 0.1);
-  color: var(--codin-indigo-400);
+  color: var(
+    --codin-indigo-400
+  ); /* #818cf8 — 6.43:1 on bg-primary (WCAG AA ✓) */
   border-color: var(--codin-border);
 }
 .codin-model-badge--openai {
   background: rgba(16, 163, 127, 0.1);
-  color: #10a37f;
+  color: #10a37f; /* 5.99:1 on bg-primary (WCAG AA ✓) */
   border-color: rgba(16, 163, 127, 0.15);
 }
 .codin-model-badge--anthropic {
   background: rgba(204, 153, 88, 0.1);
-  color: #cc9958;
+  color: #cc9958; /* 7.54:1 on bg-primary (WCAG AA ✓) */
   border-color: rgba(204, 153, 88, 0.15);
 }
 .codin-model-badge--gemini {
   background: rgba(66, 133, 244, 0.1);
-  color: #4285f4;
+  color: #4285f4; /* 5.38:1 on bg-primary (WCAG AA ✓) */
   border-color: rgba(66, 133, 244, 0.15);
 }
 .codin-model-badge__icon {

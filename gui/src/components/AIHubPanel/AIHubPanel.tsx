@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { EmptyState } from "../ui/EmptyState";
+import { LoadingPanel } from "../ui/LoadingState";
 import {
   clearAIHubError,
   disableProvider,
@@ -481,33 +483,34 @@ export function AIHubPanel() {
 
         {/* Loading State */}
         {loading && providers.length === 0 && (
-          <div className="text-codin-fg-muted flex flex-col items-center justify-center gap-2 py-12">
-            <Spinner size="h-6 w-6" />
-            <span className="text-xs">Loading providers...</span>
-          </div>
+          <LoadingPanel message="Loading providers..." className="py-12" />
         )}
 
         {/* Empty State */}
         {!loading && providers.length === 0 && !error && (
-          <div className="text-codin-fg-muted flex flex-col items-center justify-center gap-2 py-12">
-            <svg
-              className="h-10 w-10 opacity-30"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-              />
-            </svg>
-            <span className="text-xs">No providers available</span>
-            <span className="text-[10px]">
-              Make sure the agent server is running on port 43120
-            </span>
-          </div>
+          <EmptyState
+            icon={
+              <svg
+                className="h-10 w-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                />
+              </svg>
+            }
+            title="No Providers Available"
+            message="Make sure the agent server is running on port 43120."
+            action={{
+              label: "Refresh",
+              onClick: () => dispatch(fetchProviders()),
+            }}
+          />
         )}
 
         {/* Dashboard + Providers */}

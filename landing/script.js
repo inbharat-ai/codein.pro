@@ -119,26 +119,41 @@ let manifest = null; // populated from JSON/API
 // ─── Fetching ───────────────────────────────────────────────
 async function loadManifest() {
   // Try GitHub Releases API first
-  try {
-    const res = await fetch(GITHUB_API, {
-      headers: { Accept: "application/vnd.github.v3+json" },
-    });
-    if (res.ok) {
-      const data = await res.json();
-      manifest = parseGitHubRelease(data);
-      updateReleaseMeta(data);
-      return;
+  {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch(GITHUB_API, {
+        headers: { Accept: "application/vnd.github.v3+json" },
+        signal: controller.signal,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        manifest = parseGitHubRelease(data);
+        updateReleaseMeta(data);
+        return;
+      }
+    } catch (_) {
+    } finally {
+      clearTimeout(timeoutId);
     }
-  } catch (_) {}
+  }
 
   // Fallback to static manifest
-  try {
-    const res = await fetch(MANIFEST_URL);
-    if (res.ok) {
-      manifest = await res.json();
-      return;
+  {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch(MANIFEST_URL, { signal: controller.signal });
+      if (res.ok) {
+        manifest = await res.json();
+        return;
+      }
+    } catch (_) {
+    } finally {
+      clearTimeout(timeoutId);
     }
-  } catch (_) {}
+  }
 
   // Ultimate fallback — use baked-in data
   manifest = generateFallbackManifest();
@@ -284,7 +299,7 @@ function renderDownloadCards(platform) {
         <div class="flex items-start justify-between mb-4 ${isPrimary ? "mt-2" : ""}">
           <div>
             <h3 class="text-lg font-semibold text-white mb-1">${asset.label}</h3>
-            <p class="text-sm text-gray-500">${data.name} · ${data.size}</p>
+            <p class="text-sm text-gray-400">${data.name} · ${data.size}</p>
           </div>
           <span class="px-2.5 py-1 rounded-lg ${badgeBg} text-xs font-mono">${asset.format}</span>
         </div>
@@ -292,12 +307,12 @@ function renderDownloadCards(platform) {
         <!-- SHA-256 -->
         <div class="mb-5">
           <div class="flex items-center gap-2 mb-1.5">
-            <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            <span class="text-xs text-gray-500">SHA-256</span>
+            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <span class="text-xs text-gray-400">SHA-256</span>
           </div>
           <div class="flex items-center gap-2">
-            <code class="sha-display flex-1 text-xs font-mono text-gray-500 bg-surface-800/80 px-3 py-1.5 rounded-lg truncate">${data.sha256}</code>
-            <button onclick="copySha('${data.sha256}')" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-white transition-colors" title="Copy checksum">
+            <code class="sha-display flex-1 text-xs font-mono text-gray-400 bg-surface-800/80 px-3 py-1.5 rounded-lg truncate">${data.sha256}</code>
+            <button onclick="copySha('${data.sha256}')" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Copy checksum">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             </button>
           </div>
@@ -383,9 +398,11 @@ function showToast(msg) {
 
 // ─── FAQ Toggle ─────────────────────────────────────────────
 function toggleFaq(btn) {
-  const item = btn.closest(".faq-item");
+  const item = btn?.closest(".faq-item");
+  if (!item) return;
   const answer = item.querySelector(".faq-answer");
   const chevron = item.querySelector(".faq-chevron");
+  if (!answer) return;
   const isOpen = !answer.classList.contains("hidden");
 
   // Close all
@@ -436,6 +453,20 @@ function setupMobileMenu() {
   // Close on link click
   menu.querySelectorAll("a").forEach((a) => {
     a.addEventListener("click", () => menu.classList.add("hidden"));
+  });
+
+  // Close on Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !menu.classList.contains("hidden")) {
+      menu.classList.add("hidden");
+    }
+  });
+
+  // Close on resize to desktop
+  window.addEventListener("resize", () => {
+    if (window.innerWidth >= 768 && !menu.classList.contains("hidden")) {
+      menu.classList.add("hidden");
+    }
   });
 }
 

@@ -58,7 +58,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (result.status === "error") {
-        console.error("Login failed:", result.error);
         return false;
       }
 
@@ -67,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return true;
     } catch (error: any) {
-      console.error("Login request failed:", error);
+      // Login request failed, propagate error
       // Let the error propagate so the caller can handle it
       throw error;
     }
@@ -110,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         ideMessenger.post("showToast", ["info", "Config refreshed"]);
       } catch (e) {
-        console.error("Failed to refresh profiles", e);
+        // Refresh failed, toast will show the error
         ideMessenger.post("showToast", ["error", "Failed to refresh config"]);
       } finally {
         dispatch(setConfigLoading(false));

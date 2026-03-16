@@ -8,6 +8,7 @@ import { useContext, useEffect, useState } from "react";
 import { Card, Toggle, useFontSize } from "../../../components/ui";
 import { useAuth } from "../../../context/Auth";
 import { IdeMessengerContext } from "../../../context/IdeMessenger";
+import useTheme, { type Theme } from "../../../hooks/useTheme";
 import { useAppDispatch, useAppSelector } from "../../../redux/hooks";
 import { updateConfig } from "../../../redux/slices/configSlice";
 import { selectCurrentOrg } from "../../../redux/slices/profilesSlice";
@@ -25,6 +26,7 @@ export function UserSettingsSection() {
 
   const [showExperimental, setShowExperimental] = useState(false);
   const { session } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   function handleUpdate(sharedConfig: SharedConfigSchema) {
     // Optimistic update
@@ -190,6 +192,18 @@ export function UserSettingsSection() {
             <ConfigHeader title="Appearance" variant="sm" />
             <Card>
               <div className="flex flex-col gap-4">
+                <UserSetting
+                  type="select"
+                  title="Theme"
+                  description="Choose the UI color theme. System follows your OS preference."
+                  value={theme}
+                  onChange={(value) => setTheme(value as Theme)}
+                  options={[
+                    { label: "System", value: "system" },
+                    { label: "Dark", value: "dark" },
+                    { label: "Light", value: "light" },
+                  ]}
+                />
                 <UserSetting
                   type="number"
                   title="Font Size"

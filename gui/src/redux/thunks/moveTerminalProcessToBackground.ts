@@ -29,7 +29,6 @@ export const moveTerminalProcessToBackground = createAsyncThunk<
     const toolCall = findToolCallById(state.session.history, toolCallId);
 
     if (!toolCall) {
-      console.error("Could not find tool call with ID:", toolCallId);
       return;
     }
 

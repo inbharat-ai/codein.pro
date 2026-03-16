@@ -70,6 +70,10 @@ export const uiSlice = createSlice({
       state.dialogMessage = action.payload;
     },
     setShowDialog: (state, action: PayloadAction<UIState["showDialog"]>) => {
+      // Guard: don't overwrite an already-visible dialog with a new one
+      if (action.payload === true && state.showDialog === true) {
+        return;
+      }
       state.showDialog = action.payload;
     },
     setIsExploreDialogOpen: (

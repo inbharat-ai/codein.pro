@@ -26,7 +26,6 @@ export const callToolById = createAsyncThunk<
   const state = getState();
   const toolCallState = findToolCallById(state.session.history, toolCallId);
   if (!toolCallState) {
-    console.warn(`Tool call with ID ${toolCallId} not found`);
     return;
   }
 

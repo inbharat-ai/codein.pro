@@ -97,10 +97,7 @@ export function LumpToolbar() {
 
         logToolUsage(terminalCall, false, true, ideMessenger);
       } catch (error) {
-        console.error(
-          `Failed to cancel terminal command ${terminalCall.toolCallId}:`,
-          error,
-        );
+        // Terminal cancel failed, continuing with other cancellations
       }
     });
 

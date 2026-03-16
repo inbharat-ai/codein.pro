@@ -10,7 +10,6 @@ import { newSession } from "../redux/slices/sessionSlice";
 
 const ErrorPage: React.FC = () => {
   const error: any = useRouteError();
-  console.error(error);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 

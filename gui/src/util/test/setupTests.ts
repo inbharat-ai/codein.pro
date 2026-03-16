@@ -1,5 +1,55 @@
 import "@testing-library/jest-dom";
 
+// Mock react-virtuoso for jsdom — it relies on real layout measurements that
+// jsdom cannot provide, causing tests to time out. This mock renders all items
+// directly so test assertions continue to work.
+vi.mock("react-virtuoso", () => {
+  const React = require("react");
+
+  const Virtuoso = React.forwardRef(function VirtuosoMock(
+    props: any,
+    ref: any,
+  ) {
+    const { data, itemContent, scrollerRef, style, className } = props;
+
+    const scrollerElRef = React.useCallback(
+      (el: HTMLDivElement | null) => {
+        if (scrollerRef) {
+          if (typeof scrollerRef === "function") {
+            scrollerRef(el);
+          } else {
+            scrollerRef.current = el;
+          }
+        }
+      },
+      [scrollerRef],
+    );
+
+    return React.createElement(
+      "div",
+      {
+        ref: scrollerElRef,
+        style: { ...style, overflowY: "auto" },
+        className,
+        "data-testid": "virtuoso-scroller",
+      },
+      React.createElement(
+        "div",
+        { "data-testid": "virtuoso-item-list" },
+        (data ?? []).map((item: any, index: number) =>
+          React.createElement(
+            "div",
+            { key: index, "data-index": index },
+            itemContent(index, item),
+          ),
+        ),
+      ),
+    );
+  });
+
+  return { Virtuoso, VirtuosoHandle: {} };
+});
+
 afterEach(() => {
   vi.clearAllMocks();
 });

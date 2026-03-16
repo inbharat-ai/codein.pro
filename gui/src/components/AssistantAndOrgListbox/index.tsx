@@ -107,7 +107,7 @@ export function AssistantAndOrgListbox({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.key === "'" &&
-        isMetaEquivalentKeyPressed(event as any) &&
+        isMetaEquivalentKeyPressed(event) &&
         event.shiftKey
       ) {
         const now = Date.now();

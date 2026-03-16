@@ -62,7 +62,7 @@ export function History() {
         })),
       );
     } catch (e) {
-      console.log("error adding sessions to minisearch", e);
+      // Silently handle minisearch indexing errors
     }
   }, [allSessionMetadata]);
 

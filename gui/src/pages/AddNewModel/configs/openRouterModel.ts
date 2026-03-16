@@ -41,13 +41,12 @@ async function fetchOpenRouterModelsFromAPI(): Promise<OpenRouterModel[]> {
     const data = await response.json();
 
     if (!data.data || !Array.isArray(data.data)) {
-      console.warn("Invalid OpenRouter models data structure from API");
       return [];
     }
 
     return data.data;
   } catch (error) {
-    console.error("Error fetching OpenRouter models from API:", error);
+    // OpenRouter API fetch failed
     return [];
   }
 }
@@ -59,7 +58,7 @@ export async function getOpenRouterModelsList(): Promise<ModelPackage[]> {
 
   apiModels.forEach((model: OpenRouterModel) => {
     if (!model.id || !model.name) {
-      console.warn("Skipping model with missing id or name", model);
+      // Skipping model with missing id or name
       return;
     }
 
@@ -69,7 +68,7 @@ export async function getOpenRouterModelsList(): Promise<ModelPackage[]> {
     try {
       models[key] = convertOpenRouterModelToPackage(model);
     } catch (error) {
-      console.error(`Failed to convert model ${model.id}:`, error);
+      // Model conversion failed, skipping
     }
   });
 

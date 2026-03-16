@@ -94,7 +94,6 @@ const StreamErrorDialog = ({ error }: StreamErrorProps) => {
         }
 
         if (!mainEditor) {
-          console.error("Main editor not found, cannot resubmit message.");
           return;
         }
 

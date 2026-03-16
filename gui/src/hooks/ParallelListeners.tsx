@@ -189,11 +189,11 @@ function ParallelListeners() {
           }
 
           const msg = result.content;
-          (window as any).windowId = msg.windowId;
-          (window as any).serverUrl = msg.serverUrl;
-          (window as any).workspacePaths = msg.workspacePaths;
-          (window as any).vscMachineId = msg.vscMachineId;
-          (window as any).vscMediaUrl = msg.vscMediaUrl;
+          window.windowId = msg.windowId;
+          window.serverUrl = msg.serverUrl;
+          window.workspacePaths = msg.workspacePaths;
+          window.vscMachineId = msg.vscMachineId;
+          window.vscMediaUrl = msg.vscMediaUrl;
         });
     }
   }, []);

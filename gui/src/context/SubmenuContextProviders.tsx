@@ -452,7 +452,7 @@ export const SubmenuContextProvidersProvider = ({
         });
         return limitedResults;
       } catch (error) {
-        console.error("Error in getSubmenuContextItems:", error);
+        // Search error, return empty results
         return [];
       }
     },
@@ -481,9 +481,7 @@ export const SubmenuContextProvidersProvider = ({
 
               if (!refreshProvider) {
                 if (providers === "dependsOnIndexing") {
-                  console.debug(
-                    `Skipping ${description.title} provider due to disabled indexing`,
-                  );
+                  // Provider skipped due to disabled indexing
                 }
                 return;
               }
@@ -562,14 +560,7 @@ export const SubmenuContextProvidersProvider = ({
                 }));
               }
             } catch (error) {
-              console.error(
-                `Error loading items for ${description.title}:`,
-                error,
-              );
-              console.error(
-                "Error details:",
-                JSON.stringify(error, Object.getOwnPropertyNames(error)),
-              );
+              // Submenu item loading failed for this provider
             } finally {
               if (!controller.signal.aborted) {
                 providersLoading.delete(description.title);

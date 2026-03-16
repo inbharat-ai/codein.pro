@@ -34,7 +34,7 @@ export const useCompactConversation = () => {
         }),
       );
     } catch (error) {
-      console.error("Error compacting conversation:", error);
+      // Compaction failed, loading state will be cleared in finally block
     } finally {
       // Clear loading state
       dispatch(setCompactionLoading({ index, loading: false }));

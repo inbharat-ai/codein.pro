@@ -67,7 +67,7 @@ export function AgentsList({ isCreatingAgent = false }: AgentsListProps) {
           setWorkspaces(workspaceInfos);
         }
       } catch (err) {
-        console.error("Failed to fetch workspace repos:", err);
+        // Workspace repo fetch failed
       }
     }
     void fetchWorkspaceRepos();
@@ -106,7 +106,7 @@ export function AgentsList({ isCreatingAgent = false }: AgentsListProps) {
           setTotalCount(0);
         }
       } catch (err: any) {
-        console.error("Failed to fetch agents:", err);
+        // Agent fetch failed
         setError(err.message || "Failed to load agents");
         setAgents([]);
         setTotalCount(0);

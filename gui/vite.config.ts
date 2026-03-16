@@ -52,6 +52,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
+    exclude: ["e2e/**", "node_modules/**"],
     setupFiles: "./src/util/test/setupTests.ts",
     onConsoleLog(log, type) {
       if (type === "stderr") {

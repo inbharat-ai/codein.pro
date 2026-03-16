@@ -295,6 +295,11 @@ const server = http.createServer(async (req, res) => {
       req.url || "/",
       `http://${req.headers.host || "localhost"}`,
     );
+    // Strip /v1 API prefix for forward-compat versioning while keeping
+    // legacy un-prefixed routes working unchanged.
+    if (url.pathname.startsWith("/v1/") || url.pathname === "/v1") {
+      url.pathname = url.pathname.slice(3) || "/";
+    }
     requestLogger.info(
       { method: req.method, path: url.pathname },
       "request.start",

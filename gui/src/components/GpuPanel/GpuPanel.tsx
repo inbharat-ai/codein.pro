@@ -51,18 +51,19 @@ const GpuPanel: React.FC = () => {
 
       {/* Offline banner */}
       {session.isOffline && (
-        <div className="gpu-error">
+        <div className="gpu-error" role="status" aria-live="polite">
           Agent is not running. Start the CodeIn agent to use GPU compute.
         </div>
       )}
 
       {/* Error banner */}
       {session.error && (
-        <div className="gpu-error">
+        <div className="gpu-error" role="alert" aria-live="assertive">
           {session.error}
           <button
             className="gpu-error__dismiss"
             onClick={() => session.setError(null)}
+            aria-label="Dismiss"
           >
             x
           </button>

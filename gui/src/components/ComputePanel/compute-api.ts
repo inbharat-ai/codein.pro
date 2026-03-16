@@ -1,10 +1,10 @@
 /** API wrapper for the compute job endpoints. */
 import {
   agentFetch as baseAgentFetch,
-  getAgentBaseUrl,
+  getAgentV1BaseUrl,
 } from "../../util/agentConfig";
 
-export const AGENT_BASE = getAgentBaseUrl();
+export const AGENT_BASE = getAgentV1BaseUrl();
 
 export async function agentFetch<T = unknown>(
   path: string,

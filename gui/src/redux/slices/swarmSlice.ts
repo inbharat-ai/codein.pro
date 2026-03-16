@@ -734,10 +734,7 @@ export const swarmSlice = createSlice({
       }
     });
     builder.addCase(fetchBackgroundTaskStatus.rejected, (state, action) => {
-      console.warn(
-        "Failed to fetch background task status:",
-        action.error.message,
-      );
+      // Background task status fetch failed
     });
   },
 });

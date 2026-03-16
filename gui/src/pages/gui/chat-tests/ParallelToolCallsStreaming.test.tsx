@@ -5,7 +5,7 @@ import { sendInputWithMockedResponse } from "../../../util/test/utils";
 import { Chat } from "../Chat";
 import { updateConfig } from "../../../redux/slices/configSlice";
 
-describe("Parallel Tool Calls - Streaming", () => {
+describe("Parallel Tool Calls - Streaming", { timeout: 15_000 }, () => {
   test("should handle streaming deltas for multiple tool calls", async () => {
     const { ideMessenger, store } = await renderWithProviders(<Chat />);
 

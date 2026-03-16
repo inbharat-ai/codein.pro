@@ -85,7 +85,7 @@ export const streamNormalInput = createAsyncThunk<
   ) => {
     if (process.env.NODE_ENV === "test" && depth > 50) {
       const message = `Max stream depth of ${50} reached in test`;
-      console.error(message, JSON.stringify(getState(), null, 2));
+      // Max stream depth reached in test
       throw new Error(message);
     }
     const state = getState();
@@ -247,7 +247,7 @@ export const streamNormalInput = createAsyncThunk<
             },
           });
         } catch (e) {
-          console.error("Failed to send dev data interaction log", e);
+          // Dev data interaction log failed, non-critical
         }
       }
     } catch (e) {

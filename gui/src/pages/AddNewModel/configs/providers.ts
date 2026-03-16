@@ -69,7 +69,7 @@ export async function initializeOpenRouterModels() {
       }
     }
   } catch (error) {
-    console.error("Failed to initialize OpenRouter models:", error);
+    // OpenRouter initialization failed, keeping placeholder
     // Keep placeholder on error so the UI doesn't break
   }
 }

@@ -38,7 +38,7 @@ export function MCPToolsPanel() {
       const data = await response.json();
       setServers(data.servers || []);
     } catch (error) {
-      console.error("Failed to load MCP servers:", error);
+      // MCP server load failed silently
     }
   };
 
@@ -49,7 +49,7 @@ export function MCPToolsPanel() {
       const data = await response.json();
       setTools(data.tools || []);
     } catch (error) {
-      console.error("Failed to load tools:", error);
+      // Tool load failed silently
     }
   };
 
@@ -59,7 +59,7 @@ export function MCPToolsPanel() {
       const data = await response.json();
       setActivity(data.activity || []);
     } catch (error) {
-      console.error("Failed to load activity:", error);
+      // Activity load failed silently
     }
   };
 
@@ -88,7 +88,6 @@ export function MCPToolsPanel() {
       setShowAddServer(false);
       await loadServers();
     } catch (error) {
-      console.error("Failed to add server:", error);
       alert("Failed to add server");
     }
   };
@@ -101,7 +100,7 @@ export function MCPToolsPanel() {
       await loadServers();
       await loadTools();
     } catch (error) {
-      console.error("Failed to connect:", error);
+      // Connection failed silently
     }
   };
 
@@ -112,7 +111,7 @@ export function MCPToolsPanel() {
       });
       await loadServers();
     } catch (error) {
-      console.error("Failed to disconnect:", error);
+      // Disconnect failed silently
     }
   };
 
@@ -127,7 +126,7 @@ export function MCPToolsPanel() {
       });
       await loadServers();
     } catch (error) {
-      console.error("Failed to remove server:", error);
+      // Remove failed silently
     }
   };
 

@@ -83,21 +83,11 @@ export class IdeMessenger implements IIdeMessenger {
     if (typeof vscode === "undefined") {
       if (isJetBrains()) {
         if (window.postIntellijMessage === undefined) {
-          console.log(
-            "Unable to send message: postIntellijMessage is undefined. ",
-            messageType,
-            data,
-          );
           throw new Error("postIntellijMessage is undefined");
         }
         window.postIntellijMessage?.(messageType, data, messageId);
         return;
       } else {
-        console.log(
-          "Unable to send message: vscode is undefined",
-          messageType,
-          data,
-        );
         return;
       }
     }
@@ -121,7 +111,6 @@ export class IdeMessenger implements IIdeMessenger {
       this._postToIde(messageType, data, messageId);
     } catch (error) {
       if (attempt < 5) {
-        console.log(`Attempt ${attempt} failed. Retrying...`);
         setTimeout(
           () => this.post(messageType, data, messageId, attempt + 1),
           Math.pow(2, attempt) * 1000,

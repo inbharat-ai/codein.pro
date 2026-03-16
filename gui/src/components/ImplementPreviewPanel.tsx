@@ -38,9 +38,15 @@ export function ImplementPreviewPanel() {
               const response = await ideMessenger.request("contract/apply", {
                 contract,
               });
-              const result = response as any;
-              if (result?.backupId) {
-                setBackupId(result.backupId);
+              if (
+                response.status === "success" &&
+                typeof response.content === "object" &&
+                response.content !== null &&
+                "backupId" in response.content
+              ) {
+                setBackupId(
+                  (response.content as { backupId: string }).backupId,
+                );
               }
             }}
           >

@@ -179,9 +179,6 @@ export function McpAppRenderer({
         .join("\n");
 
       if (!text) {
-        console.warn(
-          "[McpAppRenderer] onMessage received with no text content",
-        );
         return {};
       }
 
@@ -239,21 +236,8 @@ export function McpAppRenderer({
       throw new Error("Resource reads not supported in this context");
     };
 
-    bridge.onloggingmessage = (params: {
-      level: string;
-      logger?: string;
-      data: unknown;
-    }) => {
-      const logFn =
-        params.level === "error" || params.level === "critical"
-          ? console.error
-          : params.level === "warning"
-            ? console.warn
-            : console.log;
-      logFn(
-        `[MCP App${params.logger ? ` - ${params.logger}` : ""}]`,
-        params.data,
-      );
+    bridge.onloggingmessage = () => {
+      // MCP App logging messages intentionally suppressed in production
     };
 
     bridge.onupdatemodelcontext = async () => {
@@ -289,7 +273,7 @@ export function McpAppRenderer({
         });
       }
     } catch (err) {
-      console.error("[Continue] Failed to connect bridge to MCP App UI:", err);
+      // Bridge connection failed
       setError(err instanceof Error ? err : new Error(String(err)));
     }
   }, [html, csp, permissions]);

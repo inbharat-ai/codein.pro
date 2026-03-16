@@ -88,7 +88,7 @@ export default function ResponseActions({
             ? "Summarize conversation to reduce context length"
             : "Compact conversation"
         }
-        tabIndex={-1}
+        tabIndex={0}
         onClick={() => compactConversation(index)}
       >
         <div className="flex items-center space-x-1">
@@ -107,7 +107,7 @@ export default function ResponseActions({
 
       {isLast && ruleGenerationSupported && (
         <HeaderButtonWithToolTip
-          tabIndex={-1}
+          tabIndex={0}
           text="Generate rule"
           onClick={onGenerateRule}
         >
@@ -117,7 +117,7 @@ export default function ResponseActions({
 
       {isTruncated && (
         <HeaderButtonWithToolTip
-          tabIndex={-1}
+          tabIndex={0}
           text="Continue generation"
           onClick={onContinueGeneration}
         >
@@ -128,14 +128,14 @@ export default function ResponseActions({
       <HeaderButtonWithToolTip
         testId={`delete-button-${index}`}
         text="Delete"
-        tabIndex={-1}
+        tabIndex={0}
         onClick={onDelete}
       >
         <TrashIcon className="text-description-muted h-3.5 w-3.5" />
       </HeaderButtonWithToolTip>
 
       <CopyIconButton
-        tabIndex={-1}
+        tabIndex={0}
         text={renderChatMessage(item.message)}
         clipboardIconClassName="h-3.5 w-3.5 text-description-muted"
         checkIconClassName="h-3.5 w-3.5 text-success"

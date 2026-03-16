@@ -43,6 +43,8 @@
   <body
     class="bg-surface-950 dark overflow-x-hidden font-sans text-gray-200 antialiased"
   >
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
     <!-- NAVBAR -->
     <nav
       id="navbar"
@@ -51,7 +53,7 @@
       <div
         class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4"
       >
-        <a href="#" class="group flex items-center gap-3">
+        <a href="#hero" class="group flex items-center gap-3">
           <img
             src="assets/codein-logo.png"
             alt="CodeIn"
@@ -201,8 +203,10 @@
       </div>
     </nav>
 
+    <main id="main-content">
     <!-- HERO -->
     <section
+      id="hero"
       class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pb-16 pt-20"
     >
       <div class="hero-gradient absolute inset-0 opacity-30"></div>
@@ -313,7 +317,7 @@
         </div>
 
         <p
-          class="animate-fade-in text-xs text-gray-500"
+          class="animate-fade-in text-xs text-gray-400"
           style="animation-delay: 0.5s"
         >
           <span id="hero-os-label">Detecting your OS</span>
@@ -481,7 +485,7 @@
             <div
               class="bg-brand-500/10 mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
             >
-              <span class="text-2xl">&#x1f3af;</span>
+              <span class="text-2xl" aria-hidden="true">&#x1f3af;</span>
             </div>
             <h3 class="mb-2 text-lg font-semibold text-white">
               Vibe Coding, Not Just Autocomplete
@@ -502,7 +506,7 @@
             <div
               class="bg-saffron-500/10 mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
             >
-              <span class="text-2xl">&#x1f30d;</span>
+              <span class="text-2xl" aria-hidden="true">&#x1f30d;</span>
             </div>
             <h3 class="mb-2 text-lg font-semibold text-white">
               Multilingual Command Understanding
@@ -523,7 +527,7 @@
             <div
               class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10"
             >
-              <span class="text-2xl">&#x1f4b0;</span>
+              <span class="text-2xl" aria-hidden="true">&#x1f4b0;</span>
             </div>
             <h3 class="mb-2 text-lg font-semibold text-white">
               Powerful AI, Practical Cost
@@ -543,7 +547,7 @@
             <div
               class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10"
             >
-              <span class="text-2xl">&#x1f512;</span>
+              <span class="text-2xl" aria-hidden="true">&#x1f512;</span>
             </div>
             <h3 class="mb-2 text-lg font-semibold text-white">
               Local-First Control
@@ -563,7 +567,7 @@
             <div
               class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10"
             >
-              <span class="text-2xl">&#x1f310;</span>
+              <span class="text-2xl" aria-hidden="true">&#x1f310;</span>
             </div>
             <h3 class="mb-2 text-lg font-semibold text-white">
               Built for Language Expansion
@@ -583,7 +587,7 @@
             <div
               class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10"
             >
-              <span class="text-2xl">&#x1f680;</span>
+              <span class="text-2xl" aria-hidden="true">&#x1f680;</span>
             </div>
             <h3 class="mb-2 text-lg font-semibold text-white">
               Cursor/Copilot-Class UX
@@ -967,7 +971,7 @@
                 <div
                   class="bg-saffron-500/10 flex h-10 w-10 items-center justify-center rounded-lg"
                 >
-                  <span class="text-xl">&#x1f6e1;&#xfe0f;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f6e1;&#xfe0f;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -998,7 +1002,7 @@
                 <div
                   class="bg-brand-500/10 flex h-10 w-10 items-center justify-center rounded-lg"
                 >
-                  <span class="text-xl">&#x1f399;&#xfe0f;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f399;&#xfe0f;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1029,7 +1033,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10"
                 >
-                  <span class="text-xl">&#x1f5a5;&#xfe0f;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f5a5;&#xfe0f;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1065,7 +1069,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10"
                 >
-                  <span class="text-xl">&#x1f916;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f916;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1096,7 +1100,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10"
                 >
-                  <span class="text-xl">&#x1f4dd;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f4dd;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1127,7 +1131,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/10"
                 >
-                  <span class="text-xl">&#x1f50d;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f50d;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1158,7 +1162,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10"
                 >
-                  <span class="text-xl">&#x1f50c;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f50c;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1190,7 +1194,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10"
                 >
-                  <span class="text-xl">&#x1f9e0;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f9e0;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1221,7 +1225,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-500/10"
                 >
-                  <span class="text-xl">&#x1f33f;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f33f;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1253,7 +1257,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10"
                 >
-                  <span class="text-xl">&#x1f41b;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f41b;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1284,7 +1288,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10"
                 >
-                  <span class="text-xl">&#x1f680;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f680;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1346,7 +1350,7 @@
                 <div
                   class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/10"
                 >
-                  <span class="text-xl">&#x1f3a8;</span>
+                  <span class="text-xl" aria-hidden="true">&#x1f3a8;</span>
                 </div>
                 <h3
                   class="text-lg font-bold text-white"
@@ -1512,7 +1516,7 @@
               <div
                 class="flex h-14 w-14 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10"
               >
-                <span class="text-3xl">&#x1f5a5;&#xfe0f;</span>
+                <span class="text-3xl" aria-hidden="true">&#x1f5a5;&#xfe0f;</span>
               </div>
               <div>
                 <h3
@@ -1592,7 +1596,7 @@
               <div
                 class="flex h-14 w-14 items-center justify-center rounded-xl border border-pink-500/20 bg-pink-500/10"
               >
-                <span class="text-3xl">&#x1f3a8;</span>
+                <span class="text-3xl" aria-hidden="true">&#x1f3a8;</span>
               </div>
               <div>
                 <h3
@@ -1683,13 +1687,13 @@
           <div
             class="bg-surface-900/50 hover:border-brand-500/20 rounded-xl border border-white/5 p-5 text-center transition-all"
           >
-            <div class="text-brand-400 mb-2 text-2xl">&#x1f4a1;</div>
+            <div class="text-brand-400 mb-2 text-2xl" aria-hidden="true">&#x1f4a1;</div>
             <p class="text-sm font-medium text-white">Describe the feature</p>
           </div>
           <div
             class="bg-surface-900/50 hover:border-saffron-500/20 rounded-xl border border-white/5 p-5 text-center transition-all"
           >
-            <div class="text-saffron-400 mb-2 text-2xl">&#x1f528;</div>
+            <div class="text-saffron-400 mb-2 text-2xl" aria-hidden="true">&#x1f528;</div>
             <p class="text-sm font-medium text-white">
               Full frontend/backend flow
             </p>
@@ -1697,42 +1701,42 @@
           <div
             class="bg-surface-900/50 rounded-xl border border-white/5 p-5 text-center transition-all hover:border-emerald-500/20"
           >
-            <div class="mb-2 text-2xl text-emerald-400">&#x1f504;</div>
+            <div class="mb-2 text-2xl text-emerald-400" aria-hidden="true">&#x1f504;</div>
             <p class="text-sm font-medium text-white">Request refactors</p>
           </div>
           <div
             class="bg-surface-900/50 rounded-xl border border-white/5 p-5 text-center transition-all hover:border-purple-500/20"
           >
-            <div class="mb-2 text-2xl text-purple-400">&#x1f3a8;</div>
+            <div class="mb-2 text-2xl text-purple-400" aria-hidden="true">&#x1f3a8;</div>
             <p class="text-sm font-medium text-white">Improve UI/UX</p>
           </div>
           <div
             class="bg-surface-900/50 rounded-xl border border-white/5 p-5 text-center transition-all hover:border-rose-500/20"
           >
-            <div class="mb-2 text-2xl text-rose-400">&#x1f41b;</div>
+            <div class="mb-2 text-2xl text-rose-400" aria-hidden="true">&#x1f41b;</div>
             <p class="text-sm font-medium text-white">Fix bugs</p>
           </div>
           <div
             class="bg-surface-900/50 rounded-xl border border-white/5 p-5 text-center transition-all hover:border-cyan-500/20"
           >
-            <div class="mb-2 text-2xl text-cyan-400">&#x1f4c4;</div>
+            <div class="mb-2 text-2xl text-cyan-400" aria-hidden="true">&#x1f4c4;</div>
             <p class="text-sm font-medium text-white">Generate missing files</p>
           </div>
           <div
             class="bg-surface-900/50 rounded-xl border border-white/5 p-5 text-center transition-all hover:border-amber-500/20"
           >
-            <div class="mb-2 text-2xl text-amber-400">&#x2705;</div>
+            <div class="mb-2 text-2xl text-amber-400" aria-hidden="true">&#x2705;</div>
             <p class="text-sm font-medium text-white">Validate &amp; iterate</p>
           </div>
           <div
             class="bg-surface-900/50 rounded-xl border border-white/5 p-5 text-center transition-all hover:border-indigo-500/20"
           >
-            <div class="mb-2 text-2xl text-indigo-400">&#x1f4e6;</div>
+            <div class="mb-2 text-2xl text-indigo-400" aria-hidden="true">&#x1f4e6;</div>
             <p class="text-sm font-medium text-white">Multi-file changes</p>
           </div>
         </div>
 
-        <p class="mx-auto mt-10 max-w-2xl text-center text-sm text-gray-500">
+        <p class="mx-auto mt-10 max-w-2xl text-center text-sm text-gray-400">
           The long-term goal is for CodeIn to feel like a serious AI engineering
           partner, not just a code suggestion box.
         </p>
@@ -1969,7 +1973,7 @@
             >English</span
           >
         </div>
-        <p class="mx-auto max-w-2xl text-sm text-gray-500">
+        <p class="mx-auto max-w-2xl text-sm text-gray-400">
           Voice commands, AI chat, code comments, error messages, documentation
           — all in your preferred language. Auto-translate bridge ensures the AI
           understands you perfectly.
@@ -2105,7 +2109,7 @@
         <div
           class="bg-surface-900/60 overflow-x-auto rounded-2xl border border-white/10 backdrop-blur-sm"
         >
-          <table class="w-full text-left text-sm">
+          <table class="w-full text-left text-sm" aria-label="Feature comparison between CodeIn and competing products">
             <thead>
               <tr class="border-b border-white/10">
                 <th
@@ -2407,7 +2411,7 @@
         </div>
 
         <p
-          class="mt-4 text-center text-xs text-gray-500"
+          class="mt-4 text-center text-xs text-gray-400"
           data-i18n="compare.footnote"
         >
           &#x2713; = Full support &nbsp; ~ = Partial &nbsp; &#x2717; = Not
@@ -2419,7 +2423,7 @@
           <div
             class="border-saffron-500/20 bg-saffron-500/5 rounded-2xl border p-6"
           >
-            <div class="mb-3 text-3xl">&#x1f4b0;</div>
+            <div class="mb-3 text-3xl" aria-hidden="true">&#x1f4b0;</div>
             <h3
               class="mb-2 font-semibold text-white"
               data-i18n="compare.card1.title"
@@ -2434,7 +2438,7 @@
           <div
             class="border-brand-500/20 bg-brand-500/5 rounded-2xl border p-6"
           >
-            <div class="mb-3 text-3xl">&#x1f512;</div>
+            <div class="mb-3 text-3xl" aria-hidden="true">&#x1f512;</div>
             <h3
               class="mb-2 font-semibold text-white"
               data-i18n="compare.card2.title"
@@ -2450,7 +2454,7 @@
           <div
             class="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-6"
           >
-            <div class="mb-3 text-3xl">&#x1f1ee;&#x1f1f3;</div>
+            <div class="mb-3 text-3xl" aria-hidden="true">&#x1f1ee;&#x1f1f3;</div>
             <h3
               class="mb-2 font-semibold text-white"
               data-i18n="compare.card3.title"
@@ -2543,7 +2547,7 @@
         ></div>
 
         <div class="mt-12 text-center">
-          <p class="text-sm text-gray-500">
+          <p class="text-sm text-gray-400">
             Latest release:
             <span id="release-version" class="font-mono text-gray-400"
               >v1.0.0</span
@@ -2973,6 +2977,8 @@
       </div>
     </section>
 
+    </main>
+
     <!-- FOOTER -->
     <footer class="border-t border-white/5 px-6 py-12">
       <div class="mx-auto max-w-7xl">
@@ -2986,7 +2992,7 @@
               />
               <span class="font-bold text-white">CodeIn</span>
             </div>
-            <p class="text-sm leading-relaxed text-gray-500">
+            <p class="text-sm leading-relaxed text-gray-400">
               <span data-i18n="footer.tagline">By Bharat, for the world.</span
               ><br />
               <span data-i18n="footer.madeWith"
@@ -3001,7 +3007,7 @@
             >
               Product
             </h4>
-            <ul class="space-y-2 text-sm text-gray-500">
+            <ul class="space-y-2 text-sm text-gray-400">
               <li>
                 <a
                   href="#features"
@@ -3043,7 +3049,7 @@
             >
               Community
             </h4>
-            <ul class="space-y-2 text-sm text-gray-500">
+            <ul class="space-y-2 text-sm text-gray-400">
               <li>
                 <a
                   href="https://github.com/inbharat-ai/codein.pro"
@@ -3089,7 +3095,7 @@
             >
               Legal
             </h4>
-            <ul class="space-y-2 text-sm text-gray-500">
+            <ul class="space-y-2 text-sm text-gray-400">
               <li>
                 <a
                   href="https://github.com/inbharat-ai/codein.pro/blob/main/LICENSE"

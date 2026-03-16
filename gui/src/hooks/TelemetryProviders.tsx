@@ -110,7 +110,7 @@ const TelemetryProviders = ({ children }: PropsWithChildren) => {
         }
         Sentry.getCurrentScope().clear();
       } catch (error) {
-        console.error("Error disabling Sentry:", error);
+        // Sentry disable failed, non-critical
       }
     }
   }, [allowAnonymousTelemetry, hasContinueEmail]);

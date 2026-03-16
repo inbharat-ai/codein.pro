@@ -4,13 +4,13 @@ import {
   createSlice,
 } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-import { getAgentBaseUrl } from "../../util/agentConfig";
+import { getAgentV1BaseUrl } from "../../util/agentConfig";
 import { ensureAuth } from "../../util/authService";
 
 // ─── Hub Fetch Helper ────────────────────────────────────────
 
 async function hubFetch(path: string, opts?: RequestInit) {
-  const base = getAgentBaseUrl();
+  const base = getAgentV1BaseUrl();
 
   let token: string | null = null;
   try {

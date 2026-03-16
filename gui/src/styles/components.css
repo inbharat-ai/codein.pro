@@ -1,0 +1,374 @@
+/* =============================================================================
+   CodeIn — Static component styles
+   Migrated from styled-components (static/no-prop variants only).
+   Dynamic/prop-driven styled-components remain in their source files.
+   ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   Loader (gui/src/components/loaders/Loader.tsx)
+   --------------------------------------------------------------------------- */
+@keyframes codin-flash {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+.codin-loader {
+  margin-top: 16px;
+  margin: auto;
+  width: 28px;
+  animation: codin-flash 1.2s infinite ease-in-out;
+}
+
+/* ---------------------------------------------------------------------------
+   AnimatedEllipsis (gui/src/components/AnimatedEllipsis.tsx)
+   --------------------------------------------------------------------------- */
+@keyframes codin-ellipsis {
+  0% {
+    width: 0;
+  }
+  33% {
+    width: 0.33em;
+  }
+  66% {
+    width: 0.66em;
+  }
+  100% {
+    width: 1em;
+  }
+}
+
+.codin-animated-ellipsis {
+  display: inline-block;
+  width: 1em; /* Fixed width to match the maximum animation width */
+}
+
+.codin-animated-ellipsis::after {
+  content: "...";
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: codin-ellipsis 2s infinite;
+  width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   CheckDiv (gui/src/components/CheckDiv.tsx)
+   CSS variables used here are resolved at runtime from the design-token sheet.
+   --------------------------------------------------------------------------- */
+.codin-check-div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: var(--codin-radius-md, 0.5rem);
+  cursor: pointer;
+  border: 1px solid var(--codin-fg-primary, #e8e6f0);
+  color: var(--codin-fg-primary, #e8e6f0);
+  background-color: var(--codin-bg-primary, #0f0e17);
+  width: fit-content;
+  margin: 0.5rem;
+  height: 1.4em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.codin-check-div:hover {
+  background-color: var(--codin-fg-primary, #e8e6f0);
+  color: var(--codin-bg-primary, #0f0e17);
+}
+
+/* ---------------------------------------------------------------------------
+   ReusableCard (gui/src/components/ReusableCard.tsx)
+   --------------------------------------------------------------------------- */
+.codin-reusable-card {
+  margin: auto;
+  border-radius: var(--codin-radius-md, 0.5rem);
+  background-color: var(--codin-bg-surface, #201e3a);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* ---------------------------------------------------------------------------
+   StepsDiv (gui/src/pages/gui/Chat.tsx)
+   --------------------------------------------------------------------------- */
+.codin-steps-div {
+  position: relative;
+  background-color: transparent;
+}
+
+.codin-steps-div > * {
+  position: relative;
+}
+
+.codin-steps-div .thread-message {
+  margin: 0 0 0 1px;
+}
+
+/* ---------------------------------------------------------------------------
+   Layout (gui/src/components/Layout.tsx)
+   --------------------------------------------------------------------------- */
+/* LayoutTopDiv extends CustomScrollbarDiv */
+.codin-layout-top {
+  scrollbar-color: transparent transparent;
+  scrollbar-width: thin;
+  background-color: var(--codin-bg-primary, #0f0e17);
+  height: 100%;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.codin-layout-top * ::-webkit-scrollbar {
+  width: 4px;
+}
+
+.codin-layout-top * ::-webkit-scrollbar:horizontal {
+  height: 4px;
+}
+
+.codin-layout-top * ::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+}
+
+/* GeoBackgroundDiv */
+.codin-geo-bg {
+  height: 100%;
+}
+
+/* GridDiv */
+.codin-grid-div {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: 100%;
+  overflow-x: visible;
+}
+
+/* ---------------------------------------------------------------------------
+   ScreenCover + DialogContainer (gui/src/components/dialogs/index.tsx)
+   --------------------------------------------------------------------------- */
+.codin-screen-cover {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(0.5px);
+  z-index: 100000;
+  flex-direction: column;
+  animation: codin-dialog-backdrop-in 0.2s ease-out both;
+}
+
+.codin-dialog-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--codin-fg-primary, #e8e6f0);
+  background-color: var(--codin-bg-primary, #0f0e17);
+  border-radius: var(--codin-radius-md, 0.5rem);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  word-wrap: break-word;
+  animation: codin-dialog-enter 0.2s ease-out both;
+}
+
+/* ---------------------------------------------------------------------------
+   NewSessionButton (gui/src/components/mainInput/belowMainInput/NewSessionButton.tsx)
+   font-size is set via inline style (runtime value from getFontSize())
+   --------------------------------------------------------------------------- */
+.codin-new-session-btn {
+  width: fit-content;
+  margin-right: auto;
+  margin-left: 6px;
+  margin-top: 2px;
+  margin-bottom: 8px;
+  border-radius: var(--codin-radius-md, 0.5rem);
+  padding: 2px 6px;
+  color: var(--codin-fg-muted, #8b88ad);
+  cursor: pointer;
+}
+
+.codin-new-session-btn:hover {
+  background-color: rgba(139, 136, 173, 0.2); /* lightGray + 33 */
+  color: var(--codin-fg-primary, #e8e6f0);
+}
+
+/* ---------------------------------------------------------------------------
+   MarkdownWrapper (gui/src/components/mainInput/belowMainInput/ThinkingBlockPeek.tsx)
+   --------------------------------------------------------------------------- */
+.codin-markdown-wrapper > div > *:first-child {
+  margin-top: 0 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   InputBoxDiv (gui/src/components/mainInput/TipTapEditor/components/StyledComponents.ts)
+   font-size is set via inline style (runtime value from getFontSize())
+   --------------------------------------------------------------------------- */
+.codin-input-box-div {
+  resize: none;
+  font-family: inherit;
+  border-radius: 0.5rem;
+  padding-bottom: 1px;
+  margin: 0;
+  height: auto;
+  background-color: var(--codin-bg-surface, #201e3a);
+  color: var(--codin-fg-primary, #e8e6f0);
+  border: 1px solid var(--codin-border, #2a2845);
+  transition: border-color 0.15s ease-in-out;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.codin-input-box-div:focus-within {
+  border: 1px solid var(--codin-border-focus, #f59e0b);
+}
+
+.codin-input-box-div:focus {
+  outline: none;
+  border: 0.5px solid var(--codin-border-focus, #f59e0b);
+}
+
+.codin-input-box-div::placeholder {
+  color: rgba(139, 136, 173, 0.8); /* lightGray + cc */
+}
+
+/* ---------------------------------------------------------------------------
+   HoverDiv + HoverTextDiv (gui/src/components/mainInput/TipTapEditor/components/StyledComponents.ts)
+   --------------------------------------------------------------------------- */
+.codin-hover-div {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0.5;
+  background-color: var(--codin-indigo-600, #4f46e5);
+  color: var(--codin-fg-primary, #e8e6f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.codin-hover-text-div {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  color: var(--codin-fg-primary, #e8e6f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------------------
+   SpoilerButton + ButtonContent (gui/src/components/ui/SpoilerButton.tsx)
+   font-size is set via inline style (runtime value from getFontSize())
+   --------------------------------------------------------------------------- */
+.codin-spoiler-button {
+  background-color: var(--codin-bg-primary, #0f0e17);
+  width: fit-content;
+  margin: 8px 6px 0px 2px;
+  border: 0.5px solid var(--codin-fg-muted, #8b88ad);
+  border-radius: var(--codin-radius-md, 0.5rem);
+  padding: 4px 8px;
+  color: var(--codin-fg-muted, #8b88ad);
+  cursor: pointer;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.codin-spoiler-button:hover {
+  box-shadow:
+    0 6px 8px rgba(0, 0, 0, 0.15),
+    0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.codin-button-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------------------------------------------------------------------------
+   AtMentionDropdown (gui/src/components/mainInput/AtMentionDropdown/index.tsx)
+   --------------------------------------------------------------------------- */
+.codin-at-items-div {
+  border-radius: var(--codin-radius-md, 0.5rem);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0px 10px 20px rgba(0, 0, 0, 0.1);
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 330px;
+  padding: 0.2rem;
+  position: relative;
+  background-color: var(--codin-bg-surface, #201e3a);
+}
+
+.codin-at-item-div {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  display: block;
+  margin: 0;
+  padding: 2px 4px;
+  text-align: left;
+  width: 100%;
+  color: var(--codin-fg-primary, #e8e6f0);
+}
+
+.codin-at-item-div.is-selected {
+  background-color: var(--codin-bg-active, #312e81);
+  color: var(--codin-fg-primary, #e8e6f0);
+}
+
+.codin-at-query-input {
+  background-color: #fff1;
+  border: 1px solid var(--codin-fg-muted, #8b88ad);
+  border-radius: var(--codin-radius-md, 0.5rem);
+  overflow: hidden;
+  padding: 0.2rem 0.4rem;
+  width: 240px;
+  color: var(--codin-fg-primary, #e8e6f0);
+  font-family: inherit;
+  resize: none;
+}
+
+.codin-at-query-input:focus {
+  outline: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Th, Tr, Td (gui/src/pages/stats.tsx)
+   --------------------------------------------------------------------------- */
+.codin-stats-th {
+  padding: 0.5rem;
+  text-align: left;
+  border: 1px solid var(--codin-fg-muted, #8b88ad);
+}
+
+.codin-stats-tr {
+  overflow-wrap: anywhere;
+  border: 1px solid var(--codin-fg-muted, #8b88ad);
+}
+
+.codin-stats-tr:hover {
+  background-color: var(--codin-bg-surface, #201e3a);
+}
+
+.codin-stats-td {
+  padding: 0.5rem;
+  border: 1px solid var(--codin-fg-muted, #8b88ad);
+}

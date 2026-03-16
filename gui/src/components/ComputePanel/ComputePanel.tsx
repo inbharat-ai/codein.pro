@@ -64,18 +64,15 @@ const ComputePanel: React.FC = () => {
       {job.error && (
         <div
           className="codin-error-panel--error"
+          role="alert"
+          aria-live="assertive"
           style={{ padding: "8px 12px", fontSize: "0.8rem" }}
         >
           {job.error}
           <button
             onClick={() => job.setError(null)}
-            style={{
-              marginLeft: "auto",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "inherit",
-            }}
+            aria-label="Dismiss error"
+            className="compute-error-dismiss"
           >
             x
           </button>

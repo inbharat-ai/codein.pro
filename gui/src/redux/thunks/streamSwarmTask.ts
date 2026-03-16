@@ -165,7 +165,7 @@ export const streamSwarmTask = createAsyncThunk<
                   resultSize: completionContent.length,
                 });
               } catch (err) {
-                console.error("Error fetching task results", err);
+                // Task result fetch failed, using fallback content
                 accumulatedContent += `\n\nTask completed with ID ${taskResponse.taskId}`;
                 dispatch(
                   updateHistoryItemAtIndex({
@@ -205,7 +205,7 @@ export const streamSwarmTask = createAsyncThunk<
 
           pollTimeout = setTimeout(poll, delay);
         } catch (pollErr) {
-          console.error("Error polling task status", pollErr);
+          // Polling error, will retry on next interval
         }
       };
 
@@ -249,7 +249,7 @@ export const streamSwarmTask = createAsyncThunk<
         /* SSE not critical — polling handles it */
       }
     } catch (error: any) {
-      console.error("Swarm task error", error);
+      // Swarm task failed
 
       dispatch(
         updateHistoryItemAtIndex({

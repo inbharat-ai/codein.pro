@@ -16,9 +16,9 @@ function ConfirmationDialog(props: ConfirmationDialogProps) {
 
   return (
     <div className="p-4 pt-0">
-      <h1 className="mb-1 text-center text-xl">
+      <h2 className="mb-1 text-center text-xl">
         {props.title ?? "Confirmation"}
-      </h1>
+      </h2>
       <p className="text-center text-base" style={{ whiteSpace: "pre-wrap" }}>
         {props.text}
       </p>

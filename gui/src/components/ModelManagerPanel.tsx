@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { agentFetch as baseAgentFetch } from "../util/agentConfig";
 import "./ModelManagerPanel.css";
 import { Card, Divider } from "./ui";
-import { LoadingSpinner } from "./ui/LoadingState";
+import { EmptyState } from "./ui/EmptyState";
+import { LoadingPanel, LoadingSpinner } from "./ui/LoadingState";
 
 type ModelEntry = {
   id: string;
@@ -61,6 +62,7 @@ async function fetchAgent(path: string, options?: RequestInit) {
 export function ModelManagerPanel() {
   const [store, setStore] = useState<ModelStore | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [isBusy, setIsBusy] = useState(false);
   const [agentStatus, setAgentStatus] = useState<
     "checking" | "online" | "offline"
@@ -88,6 +90,8 @@ export function ModelManagerPanel() {
       setStore(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load models");
+    } finally {
+      setInitialLoading(false);
     }
   }, []);
 
@@ -223,6 +227,55 @@ export function ModelManagerPanel() {
               ✕
             </button>
           </div>
+        )}
+
+        {initialLoading && !store && (
+          <LoadingPanel message="Loading models..." className="py-12" />
+        )}
+
+        {!initialLoading && !store && !error && (
+          <EmptyState
+            icon={
+              <svg
+                className="h-10 w-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            }
+            title="No Models Available"
+            message="No local models found. Download a model to get started with offline AI coding."
+            action={{ label: "Retry", onClick: refresh }}
+          />
+        )}
+
+        {!initialLoading && store && store.models.length === 0 && (
+          <EmptyState
+            icon={
+              <svg
+                className="h-10 w-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            }
+            title="No Models Available"
+            message="No models are available for download or installed locally."
+          />
         )}
 
         <div className="models-grid">

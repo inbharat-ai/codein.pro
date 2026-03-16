@@ -87,6 +87,8 @@ export class ErrorBoundary extends React.Component<
               <button
                 onClick={() => this.setState({ showStack: !showStack })}
                 className="text-codin-fg-muted hover:text-codin-fg-secondary mb-1 text-[10px] transition-colors"
+                aria-label="Toggle error details"
+                aria-expanded={showStack}
               >
                 {showStack ? "Hide" : "Show"} details
               </button>

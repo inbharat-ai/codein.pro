@@ -182,7 +182,7 @@ const RuleCard: React.FC<RuleCardProps> = ({ rule }) => {
                 filepath: rule.sourceFile!,
               });
             } catch (error) {
-              console.error("Failed to delete rule file:", error);
+              // Rule file deletion failed
             }
           }}
         />,
@@ -487,10 +487,7 @@ function RulesSubSection() {
           }
         }
       } catch (e) {
-        console.error(
-          "Rules notch section: failed to parse selected profile",
-          e,
-        );
+        // Failed to parse selected profile for rules
       }
     }
 
