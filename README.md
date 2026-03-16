@@ -16,7 +16,7 @@
 <!-- Primary Badges -->
 
 [![Version](https://img.shields.io/badge/v1.1.0-6366f1?style=for-the-badge&label=version)](https://github.com/AIS-Developers/CodeIn/releases)
-[![Tests](https://img.shields.io/badge/1,492_passing-10b981?style=for-the-badge&logo=vitest&logoColor=white&label=tests)](packages/agent/test/)
+[![Tests](https://img.shields.io/badge/2,409_passing-10b981?style=for-the-badge&logo=vitest&logoColor=white&label=tests)](packages/agent/test/)
 [![License](https://img.shields.io/badge/Apache_2.0-f97316?style=for-the-badge&label=license)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366f1?style=for-the-badge)](CONTRIBUTING.md)
 
@@ -71,7 +71,7 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 <table>
 <tr>
 <td align="center"><h3>🤖</h3><b>13</b><br/><sub>Agent Types</sub></td>
-<td align="center"><h3>🧪</h3><b>1,492</b><br/><sub>Tests Passing</sub></td>
+<td align="center"><h3>🧪</h3><b>2,409</b><br/><sub>Tests Passing</sub></td>
 <td align="center"><h3>🔌</h3><b>50+</b><br/><sub>LLM Providers</sub></td>
 <td align="center"><h3>🌐</h3><b>19</b><br/><sub>Indian Languages</sub></td>
 <td align="center"><h3>🛡️</h3><b>27</b><br/><sub>Route Modules</sub></td>
@@ -701,9 +701,9 @@ CodeIn/
 
 | Package          | Runner                   |  Suites |     Tests | Status                 |
 | :--------------- | :----------------------- | ------: | --------: | :--------------------- |
-| `packages/agent` | Node.js test runner      |     105 |       936 | 936 passing, 2 failing |
-| `gui`            | Vitest + Testing Library |      54 |       556 | All passing            |
-| **Total**        |                          | **159** | **1,492** | **1,492 passing**      |
+| `packages/agent` | Node.js test runner      |     184 |     1,770 | All passing            |
+| `gui`            | Vitest + Testing Library |      68 |       639 | 637 passing, 2 timeout |
+| **Total**        |                          | **252** | **2,409** | **2,407 passing**      |
 
 ### Run Tests
 
