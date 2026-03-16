@@ -2,6 +2,7 @@
  * Tests for TerminalManager — persistent terminal sessions
  */
 "use strict";
+const { describe, it, afterEach } = require("node:test");
 
 const assert = require("node:assert");
 

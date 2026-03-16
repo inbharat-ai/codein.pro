@@ -1,6 +1,7 @@
 /**
  * MAS — Logger Smoke Tests
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 const { createLogger, setLogLevel, LOG_LEVEL } = require("../src/mas/logger");

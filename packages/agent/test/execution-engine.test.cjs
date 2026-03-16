@@ -1,25 +1,38 @@
 /**
  * CodeIn MAS — Execution Engine Tests
  *
- * Jest-compatible tests for the DAG-based plan execution engine.
+ * node:test-compatible tests for the DAG-based plan execution engine.
  */
 "use strict";
+const { test, describe, beforeEach } = require("node:test");
+const assert = require("node:assert/strict");
 
 const { ExecutionEngine, EXECUTION_STATUS } = require("../src/mas/execution-engine");
+
+// ─── Mock helper ────────────────────────────────────────────
+
+function createMock(impl) {
+  const fn = (...args) => { fn.calls.push(args); return impl ? impl(...args) : fn._returnValue; };
+  fn.calls = [];
+  fn._returnValue = undefined;
+  fn.mockReturnValue = (v) => { fn._returnValue = v; return fn; };
+  fn.mockReset = () => { fn.calls = []; fn._returnValue = undefined; };
+  return fn;
+}
 
 // ─── Mock Factories ───────────────────────────────────────────
 
 function createMockSkillRegistry(overrides = {}) {
   return {
-    findSkillsForTask: jest.fn(() => []),
-    executeSkill: jest.fn(async () => ({ success: true, data: "skill-result" })),
+    findSkillsForTask: createMock(() => []),
+    executeSkill: createMock(async () => ({ success: true, data: "skill-result" })),
     ...overrides,
   };
 }
 
 function createMockPermissionGate(overrides = {}) {
   return {
-    requestPermission: jest.fn(async () => ({
+    requestPermission: createMock(async () => ({
       decision: "approved",
       reason: "Auto-approved",
     })),
@@ -31,16 +44,16 @@ function createMockMemory() {
   const store = new Map();
   return {
     shortTerm: {
-      set: jest.fn((k, v) => store.set(k, v)),
-      get: jest.fn((k) => store.get(k)),
+      set: createMock((k, v) => store.set(k, v)),
+      get: createMock((k) => store.get(k)),
     },
     working: {
-      set: jest.fn((k, v) => store.set(k, v)),
-      get: jest.fn((k) => store.get(k)),
+      set: createMock((k, v) => store.set(k, v)),
+      get: createMock((k) => store.get(k)),
     },
     blackboard: {
-      post: jest.fn(),
-      getShared: jest.fn(),
+      post: createMock(),
+      getShared: createMock(),
     },
   };
 }
@@ -48,13 +61,13 @@ function createMockMemory() {
 function createMockAuditTrail() {
   const entries = [];
   return {
-    record: jest.fn((entry) => entries.push(entry)),
+    record: createMock((entry) => entries.push(entry)),
     entries,
   };
 }
 
 function createMockRunLLM(response = "LLM result") {
-  return jest.fn(async () => response);
+  return createMock(async () => response);
 }
 
 function makePlan(steps, overrides = {}) {
@@ -117,10 +130,10 @@ describe("ExecutionEngine", () => {
 
     const result = await engine.executePlan(plan);
 
-    expect(result.steps[0].status).toBe("completed");
-    expect(result.steps[1].status).toBe("completed");
-    expect(result.steps[2].status).toBe("completed");
-    expect(skillRegistry.executeSkill).toHaveBeenCalledTimes(3);
+    assert.equal(result.steps[0].status, "completed");
+    assert.equal(result.steps[1].status, "completed");
+    assert.equal(result.steps[2].status, "completed");
+    assert.equal(skillRegistry.executeSkill.calls.length, 3);
   });
 
   // ────────────────────────────────────────────────────────────
@@ -128,7 +141,7 @@ describe("ExecutionEngine", () => {
   // ────────────────────────────────────────────────────────────
   test("executes parallel steps then a dependent step", async () => {
     const executionOrder = [];
-    skillRegistry.executeSkill = jest.fn(async (name) => {
+    skillRegistry.executeSkill = createMock(async (name) => {
       executionOrder.push(name);
       return { success: true };
     });
@@ -141,13 +154,13 @@ describe("ExecutionEngine", () => {
 
     const result = await engine.executePlan(plan);
 
-    expect(result.steps.every((s) => s.status === "completed")).toBe(true);
+    assert.ok(result.steps.every((s) => s.status === "completed"));
     // taskC must come after both taskA and taskB
     const idxC = executionOrder.indexOf("taskC");
     const idxA = executionOrder.indexOf("taskA");
     const idxB = executionOrder.indexOf("taskB");
-    expect(idxC).toBeGreaterThan(idxA);
-    expect(idxC).toBeGreaterThan(idxB);
+    assert.ok(idxC > idxA);
+    assert.ok(idxC > idxB);
   });
 
   // ────────────────────────────────────────────────────────────
@@ -155,7 +168,7 @@ describe("ExecutionEngine", () => {
   // ────────────────────────────────────────────────────────────
   test("retries a failed step", async () => {
     let callCount = 0;
-    skillRegistry.executeSkill = jest.fn(async () => {
+    skillRegistry.executeSkill = createMock(async () => {
       callCount++;
       if (callCount === 1) throw new Error("Transient failure");
       return { success: true };
@@ -170,16 +183,16 @@ describe("ExecutionEngine", () => {
 
     const result = await engine.executePlan(plan);
 
-    expect(result.steps[0].status).toBe("completed");
-    expect(callCount).toBe(2);
-    expect(events.some((e) => e.type === "step_retrying")).toBe(true);
+    assert.equal(result.steps[0].status, "completed");
+    assert.equal(callCount, 2);
+    assert.ok(events.some((e) => e.type === "step_retrying"));
   });
 
   // ────────────────────────────────────────────────────────────
   // 4. Step failure after retries marks plan failed
   // ────────────────────────────────────────────────────────────
   test("marks plan failed when step exhausts all retries", async () => {
-    skillRegistry.executeSkill = jest.fn(async () => {
+    skillRegistry.executeSkill = createMock(async () => {
       throw new Error("Permanent failure");
     });
 
@@ -190,8 +203,8 @@ describe("ExecutionEngine", () => {
     const result = await engine.executePlan(plan);
     const status = engine.getExecutionStatus(plan.id);
 
-    expect(result.steps[0].status).toBe("failed");
-    expect(status.status).toBe(EXECUTION_STATUS.FAILED);
+    assert.equal(result.steps[0].status, "failed");
+    assert.equal(status.status, EXECUTION_STATUS.FAILED);
   });
 
   // ────────────────────────────────────────────────────────────
@@ -199,7 +212,7 @@ describe("ExecutionEngine", () => {
   // ────────────────────────────────────────────────────────────
   test("pauses and resumes execution", async () => {
     let stepCount = 0;
-    skillRegistry.executeSkill = jest.fn(async () => {
+    skillRegistry.executeSkill = createMock(async () => {
       stepCount++;
       return { success: true };
     });
@@ -216,7 +229,7 @@ describe("ExecutionEngine", () => {
     const result = await execPromise;
 
     // Verify execution completed successfully
-    expect(result.steps.every((s) => s.status === "completed")).toBe(true);
+    assert.ok(result.steps.every((s) => s.status === "completed"));
 
     // Also verify that pause/resume API works correctly on status
     const plan2 = makePlan(
@@ -237,16 +250,16 @@ describe("ExecutionEngine", () => {
     });
 
     const pauseResult = engine.pauseExecution("plan-pause-test");
-    expect(pauseResult.success).toBe(true);
+    assert.ok(pauseResult.success);
 
     const statusAfterPause = engine.getExecutionStatus("plan-pause-test");
-    expect(statusAfterPause.status).toBe(EXECUTION_STATUS.PAUSED);
+    assert.equal(statusAfterPause.status, EXECUTION_STATUS.PAUSED);
 
     const resumeResult = engine.resumeExecution("plan-pause-test");
-    expect(resumeResult.success).toBe(true);
+    assert.ok(resumeResult.success);
 
     const statusAfterResume = engine.getExecutionStatus("plan-pause-test");
-    expect(statusAfterResume.status).toBe(EXECUTION_STATUS.RUNNING);
+    assert.equal(statusAfterResume.status, EXECUTION_STATUS.RUNNING);
   });
 
   // ────────────────────────────────────────────────────────────
@@ -280,19 +293,17 @@ describe("ExecutionEngine", () => {
 
     const cancelResult = await engine.cancelExecution(plan.id);
 
-    expect(cancelResult.success).toBe(true);
-    expect(skillRegistry.executeSkill).toHaveBeenCalledWith(
-      "undeploy",
-      { env: "staging" },
-      expect.any(Object),
-    );
+    assert.ok(cancelResult.success);
+    const rollbackCall = skillRegistry.executeSkill.calls.find(c => c[0] === "undeploy");
+    assert.ok(rollbackCall, "Should have called undeploy rollback skill");
+    assert.deepStrictEqual(rollbackCall[1], { env: "staging" });
   });
 
   // ────────────────────────────────────────────────────────────
   // 7. getExecutionStatus returns correct state
   // ────────────────────────────────────────────────────────────
   test("getExecutionStatus returns correct state after execution", async () => {
-    skillRegistry.executeSkill = jest.fn(async () => ({ done: true }));
+    skillRegistry.executeSkill = createMock(async () => ({ done: true }));
 
     const plan = makePlan([
       { id: "s1", description: "Only step", skillName: "do-thing" },
@@ -301,19 +312,19 @@ describe("ExecutionEngine", () => {
     await engine.executePlan(plan);
     const status = engine.getExecutionStatus(plan.id);
 
-    expect(status).not.toBeNull();
-    expect(status.planId).toBe(plan.id);
-    expect(status.status).toBe(EXECUTION_STATUS.COMPLETED);
-    expect(status.steps).toHaveLength(1);
-    expect(status.steps[0].status).toBe("completed");
-    expect(status.finishedAt).toBeTruthy();
+    assert.ok(status !== null);
+    assert.equal(status.planId, plan.id);
+    assert.equal(status.status, EXECUTION_STATUS.COMPLETED);
+    assert.equal(status.steps.length, 1);
+    assert.equal(status.steps[0].status, "completed");
+    assert.ok(status.finishedAt);
   });
 
   // ────────────────────────────────────────────────────────────
   // 8. Permission denial skips step
   // ────────────────────────────────────────────────────────────
   test("skips step when permission is denied", async () => {
-    permissionGate.requestPermission = jest.fn(async () => ({
+    permissionGate.requestPermission = createMock(async () => ({
       decision: "denied",
       reason: "User denied",
     }));
@@ -329,9 +340,9 @@ describe("ExecutionEngine", () => {
 
     const result = await engine.executePlan(plan);
 
-    expect(result.steps[0].status).toBe("skipped");
-    expect(result.steps[0].error).toContain("Permission denied");
-    expect(skillRegistry.executeSkill).not.toHaveBeenCalled();
+    assert.equal(result.steps[0].status, "skipped");
+    assert.ok(result.steps[0].error.includes("Permission denied"));
+    assert.equal(skillRegistry.executeSkill.calls.length, 0);
   });
 
   // ────────────────────────────────────────────────────────────
@@ -339,7 +350,7 @@ describe("ExecutionEngine", () => {
   // ────────────────────────────────────────────────────────────
   test("step only runs after all dependencies complete", async () => {
     const callOrder = [];
-    skillRegistry.executeSkill = jest.fn(async (name) => {
+    skillRegistry.executeSkill = createMock(async (name) => {
       callOrder.push(name);
       return { ok: true };
     });
@@ -358,9 +369,9 @@ describe("ExecutionEngine", () => {
     const idxC = callOrder.indexOf("c");
     const idxD = callOrder.indexOf("d");
 
-    expect(idxC).toBeGreaterThan(idxA); // c depends on a
-    expect(idxD).toBeGreaterThan(idxB); // d depends on b
-    expect(idxD).toBeGreaterThan(idxC); // d depends on c
+    assert.ok(idxC > idxA); // c depends on a
+    assert.ok(idxD > idxB); // d depends on b
+    assert.ok(idxD > idxC); // d depends on c
   });
 
   // ────────────────────────────────────────────────────────────
@@ -371,15 +382,15 @@ describe("ExecutionEngine", () => {
     const result = await engine.executePlan(plan);
     const status = engine.getExecutionStatus(plan.id);
 
-    expect(status.status).toBe(EXECUTION_STATUS.COMPLETED);
-    expect(result.steps).toHaveLength(0);
+    assert.equal(status.status, EXECUTION_STATUS.COMPLETED);
+    assert.equal(result.steps.length, 0);
   });
 
   // ────────────────────────────────────────────────────────────
   // 11. Rollback on step failure
   // ────────────────────────────────────────────────────────────
   test("rollback is invoked on step failure after retries", async () => {
-    skillRegistry.executeSkill = jest.fn(async (name) => {
+    skillRegistry.executeSkill = createMock(async (name) => {
       if (name === "deploy") throw new Error("Deploy failed");
       return { rolledBack: true };
     });
@@ -398,21 +409,25 @@ describe("ExecutionEngine", () => {
 
     await engine.executePlan(plan);
 
-    expect(plan.steps[0].status).toBe("failed");
+    assert.equal(plan.steps[0].status, "failed");
     // executeSkill called for deploy (1 initial + 2 retries = 3) + 1 rollback
-    expect(skillRegistry.executeSkill).toHaveBeenCalledWith(
-      "undeploy",
-      expect.any(Object),
-      expect.any(Object),
-    );
-    expect(events.some((e) => e.type === "step_rolling_back")).toBe(true);
+    const rollbackCall = skillRegistry.executeSkill.calls.find(c => c[0] === "undeploy");
+    assert.ok(rollbackCall, "Should have called undeploy rollback");
+    assert.ok(events.some((e) => e.type === "step_rolling_back"));
   });
 
   // ────────────────────────────────────────────────────────────
   // 12. agentType falls back to runLLM
   // ────────────────────────────────────────────────────────────
   test("uses runLLM when step has agentType but no skillName", async () => {
-    runLLM.mockResolvedValue("LLM generated code");
+    runLLM = createMock(async () => "LLM generated code");
+    engine = new ExecutionEngine({
+      skillRegistry,
+      permissionGate,
+      memory,
+      auditTrail,
+      runLLM,
+    });
 
     const plan = makePlan([
       { id: "s1", description: "Write code", agentType: "coder" },
@@ -420,10 +435,10 @@ describe("ExecutionEngine", () => {
 
     const result = await engine.executePlan(plan);
 
-    expect(result.steps[0].status).toBe("completed");
-    expect(result.steps[0].result).toBe("LLM generated code");
-    expect(runLLM).toHaveBeenCalled();
-    expect(skillRegistry.executeSkill).not.toHaveBeenCalled();
+    assert.equal(result.steps[0].status, "completed");
+    assert.equal(result.steps[0].result, "LLM generated code");
+    assert.ok(runLLM.calls.length > 0);
+    assert.equal(skillRegistry.executeSkill.calls.length, 0);
   });
 
   // ────────────────────────────────────────────────────────────
@@ -452,15 +467,15 @@ describe("ExecutionEngine", () => {
 
     const active = engine.listActiveExecutions();
 
-    expect(active).toHaveLength(2);
-    expect(active.map((a) => a.planId).sort()).toEqual(["plan-1", "plan-2"]);
+    assert.equal(active.length, 2);
+    assert.deepStrictEqual(active.map((a) => a.planId).sort(), ["plan-1", "plan-2"]);
   });
 
   // ────────────────────────────────────────────────────────────
   // 14. Events are emitted throughout execution
   // ────────────────────────────────────────────────────────────
   test("emits plan_started, step_started, step_completed, plan_finished events", async () => {
-    skillRegistry.executeSkill = jest.fn(async () => ({ ok: true }));
+    skillRegistry.executeSkill = createMock(async () => ({ ok: true }));
     const events = [];
     engine.on("event", (e) => events.push(e.type));
 
@@ -470,18 +485,19 @@ describe("ExecutionEngine", () => {
 
     await engine.executePlan(plan);
 
-    expect(events).toContain("plan_started");
-    expect(events).toContain("step_started");
-    expect(events).toContain("step_completed");
-    expect(events).toContain("plan_finished");
+    assert.ok(events.includes("plan_started"));
+    assert.ok(events.includes("step_started"));
+    assert.ok(events.includes("step_completed"));
+    assert.ok(events.includes("plan_finished"));
   });
 
   // ────────────────────────────────────────────────────────────
   // 15. Invalid plan throws
   // ────────────────────────────────────────────────────────────
   test("throws on invalid plan (no steps array)", async () => {
-    await expect(engine.executePlan({ id: "bad", goal: "x" })).rejects.toThrow(
-      "Plan must have a steps array",
+    await assert.rejects(
+      () => engine.executePlan({ id: "bad", goal: "x" }),
+      /Plan must have a steps array/
     );
   });
 
@@ -494,21 +510,24 @@ describe("ExecutionEngine", () => {
       { id: "b", description: "B", dependsOn: ["a"] },
     ]);
 
-    await expect(engine.executePlan(plan)).rejects.toThrow("dependency cycle");
+    await assert.rejects(
+      () => engine.executePlan(plan),
+      /dependency cycle/
+    );
   });
 
   // ────────────────────────────────────────────────────────────
   // 17. getExecutionStatus returns null for unknown plan
   // ────────────────────────────────────────────────────────────
   test("getExecutionStatus returns null for unknown planId", () => {
-    expect(engine.getExecutionStatus("nonexistent")).toBeNull();
+    assert.equal(engine.getExecutionStatus("nonexistent"), null);
   });
 
   // ────────────────────────────────────────────────────────────
   // 18. Audit trail is recorded
   // ────────────────────────────────────────────────────────────
   test("records entries in audit trail on step completion and failure", async () => {
-    skillRegistry.executeSkill = jest.fn(async (name) => {
+    skillRegistry.executeSkill = createMock(async (name) => {
       if (name === "fail-skill") throw new Error("fail");
       return { ok: true };
     });
@@ -520,17 +539,17 @@ describe("ExecutionEngine", () => {
 
     await engine.executePlan(plan);
 
-    expect(auditTrail.record).toHaveBeenCalled();
+    assert.ok(auditTrail.record.calls.length > 0);
     const actions = auditTrail.entries.map((e) => e.action);
-    expect(actions).toContain("step_failed");
-    expect(actions).toContain("step_completed");
+    assert.ok(actions.includes("step_failed"));
+    assert.ok(actions.includes("step_completed"));
   });
 
   // ────────────────────────────────────────────────────────────
   // 19. Skips downstream steps when dependency fails
   // ────────────────────────────────────────────────────────────
   test("skips downstream steps when a dependency fails", async () => {
-    skillRegistry.executeSkill = jest.fn(async (name) => {
+    skillRegistry.executeSkill = createMock(async (name) => {
       if (name === "broken") throw new Error("broken");
       return { ok: true };
     });
@@ -542,15 +561,15 @@ describe("ExecutionEngine", () => {
 
     const result = await engine.executePlan(plan);
 
-    expect(result.steps[0].status).toBe("failed");
-    expect(result.steps[1].status).toBe("skipped");
+    assert.equal(result.steps[0].status, "failed");
+    assert.equal(result.steps[1].status, "skipped");
   });
 
   // ────────────────────────────────────────────────────────────
   // 20. Checkpoint stored in memory after each step
   // ────────────────────────────────────────────────────────────
   test("stores checkpoint in working memory after each step", async () => {
-    skillRegistry.executeSkill = jest.fn(async () => ({ ok: true }));
+    skillRegistry.executeSkill = createMock(async () => ({ ok: true }));
 
     const plan = makePlan([
       { id: "s1", description: "Step 1", skillName: "a" },
@@ -559,9 +578,8 @@ describe("ExecutionEngine", () => {
 
     await engine.executePlan(plan);
 
-    expect(memory.working.set).toHaveBeenCalledWith(
-      `checkpoint:${plan.id}`,
-      expect.objectContaining({ planId: plan.id }),
-    );
+    const checkpointCall = memory.working.set.calls.find(c => c[0] === `checkpoint:${plan.id}`);
+    assert.ok(checkpointCall, "Should have stored checkpoint");
+    assert.equal(checkpointCall[1].planId, plan.id);
   });
 });

@@ -1,6 +1,7 @@
 /**
  * MAS — Topologies Smoke Tests
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 const { TOPOLOGY } = require("../src/mas/types");

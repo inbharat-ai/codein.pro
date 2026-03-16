@@ -19,10 +19,10 @@ export default function Layout() {
   ) : (
     <div className="flex h-full w-full">
       <div className="flex h-full w-full flex-col">
-        {/* <div className="flex-shrink-0 border-b border-[color:var(--vscode-panel-border)] p-3">
+        {/* <div className="flex-shrink-0 border-b border-[color:var(--codin-border, #2a2845)] p-3">
           <button
             onClick={() => setShowTotalUsage(true)}
-            className="float-right cursor-pointer border-none bg-transparent text-sm text-[color:var(--vscode-textLink-foreground)] underline hover:text-[color:var(--vscode-textLink-activeForeground)]"
+            className="float-right cursor-pointer border-none bg-transparent text-sm text-[color:var(--codin-saffron-500, #f59e0b)] underline hover:text-[color:var(--codin-saffron-400, #fbbf24)]"
           >
             View Total Usage Summary
           </button>
@@ -43,11 +43,11 @@ export default function Layout() {
       {/* Full-screen popover for TotalUsage */}
       {showTotalUsage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="relative h-full w-full max-w-6xl overflow-hidden bg-[color:var(--vscode-panel-background)] shadow-2xl">
+          <div className="bg-[color:var(--codin-bg-primary, #0f0e17)] relative h-full w-full max-w-6xl overflow-hidden shadow-2xl">
             {/* Close button */}
             <button
               onClick={() => setShowTotalUsage(false)}
-              className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--vscode-button-background)] text-[color:var(--vscode-button-foreground)] transition-colors hover:bg-[color:var(--vscode-button-hoverBackground)]"
+              className="bg-[color:var(--codin-indigo-700, #4338ca)] text-[color:var(--white, #ffffff)] hover:bg-[color:var(--codin-indigo-600, #4f46e5)] absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors"
             >
               ×
             </button>

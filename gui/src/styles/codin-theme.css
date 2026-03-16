@@ -453,6 +453,48 @@
   }
 }
 
+@keyframes codin-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes codin-toast-exit {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes codin-dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes codin-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 @keyframes codin-shimmer {
   0% {
     background-position: -200% 0;
@@ -504,19 +546,22 @@
 
 .codin-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--codin-bg-hover) transparent;
+  scrollbar-color: var(--codin-fg-muted) transparent;
 }
 .codin-scrollbar::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 .codin-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .codin-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--codin-bg-hover);
+  background: var(--codin-fg-muted);
   border-radius: 3px;
+  opacity: 0.3;
 }
 .codin-scrollbar::-webkit-scrollbar-thumb:hover {
+  opacity: 0.6;
   background: var(--codin-indigo-800);
 }
 
@@ -530,9 +575,11 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
+[role="button"]:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--codin-border-focus);
   outline-offset: 2px;
+  border-radius: var(--codin-radius-sm);
 }
 
 /* ── Skip-to-content link (screen reader + keyboard) ───────────── */

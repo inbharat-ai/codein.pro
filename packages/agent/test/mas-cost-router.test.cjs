@@ -1,6 +1,7 @@
 /**
  * MAS — Cost Router Smoke Tests
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 const { CostRouter, MODEL_PRICING, COMPLEXITY_KEYWORDS } = require("../src/mas/cost-router");

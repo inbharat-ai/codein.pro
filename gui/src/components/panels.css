@@ -58,6 +58,13 @@
   background: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
   font-size: 0.9rem;
+  transition: border-color var(--codin-transition-fast);
+}
+
+.search-box input:focus-visible {
+  outline: 2px solid var(--codin-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--codin-radius-sm);
 }
 
 .search-box input::placeholder {
@@ -72,7 +79,9 @@
   color: var(--vscode-button-foreground);
   cursor: pointer;
   font-weight: 500;
-  transition: background 0.2s;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
 }
 
 .search-box button:hover:not(:disabled) {

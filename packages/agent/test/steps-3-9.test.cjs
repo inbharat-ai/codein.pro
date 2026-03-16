@@ -2,6 +2,7 @@
  * Steps 3-9 Production Hardening Tests
  * Node.js built-in test runner format
  */
+const { test } = require("node:test");
 
 const assert = require('node:assert/strict');
 

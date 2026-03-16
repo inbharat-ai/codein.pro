@@ -2,6 +2,7 @@
  * Tests for GitWorkflow — git automation
  */
 "use strict";
+const { describe, it } = require("node:test");
 
 const assert = require("node:assert");
 

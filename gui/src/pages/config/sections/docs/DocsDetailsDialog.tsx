@@ -69,7 +69,7 @@ function DocsDetailsDialog({ startUrl }: DocsDetailsDialogProps) {
           ) : (
             <div className="relative mt-2 h-[300px] overflow-auto">
               <table className="w-full border-collapse">
-                <thead className="bg-vsc-background sticky top-0 text-left">
+                <thead className="bg-codin-bg sticky top-0 text-left">
                   <tr>
                     <th className="py-1">Filepath</th>
                     <th>Content</th>

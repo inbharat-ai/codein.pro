@@ -4,6 +4,7 @@
  * Jest-compatible format — describe/it/beforeAll/afterAll globals
  */
 "use strict";
+const { describe, it, beforeEach, before, after } = require("node:test");
 
 const assert = require("node:assert");
 const fs = require("node:fs/promises");
@@ -22,11 +23,11 @@ const {
 
 let tmpDir;
 
-beforeAll(async () => {
+before(async () => {
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "skill-reg-test-"));
 });
 
-afterAll(async () => {
+after(async () => {
   if (tmpDir) {
     await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
   }
@@ -169,7 +170,7 @@ describe("EnhancedSkillRegistry — registration", () => {
 describe("EnhancedSkillRegistry — builtin skills", () => {
   let registry;
 
-  beforeAll(() => {
+  before(() => {
     registry = new EnhancedSkillRegistry();
     registry.registerBuiltinSkills();
   });
@@ -225,7 +226,7 @@ describe("EnhancedSkillRegistry — builtin skills", () => {
 describe("EnhancedSkillRegistry — findSkillsForTask", () => {
   let registry;
 
-  beforeAll(() => {
+  before(() => {
     registry = new EnhancedSkillRegistry();
     registry.registerBuiltinSkills();
   });
@@ -266,7 +267,7 @@ describe("EnhancedSkillRegistry — findSkillsForTask", () => {
 describe("EnhancedSkillRegistry — listSkills", () => {
   let registry;
 
-  beforeAll(() => {
+  before(() => {
     registry = new EnhancedSkillRegistry();
     registry.registerBuiltinSkills();
   });
@@ -316,7 +317,7 @@ describe("EnhancedSkillRegistry — listSkills", () => {
 describe("EnhancedSkillRegistry — estimateSkillCost", () => {
   let registry;
 
-  beforeAll(() => {
+  before(() => {
     registry = new EnhancedSkillRegistry();
     registry.registerBuiltinSkills();
   });
@@ -352,7 +353,7 @@ describe("EnhancedSkillRegistry — estimateSkillCost", () => {
 describe("EnhancedSkillRegistry — executeSkill", () => {
   let registry;
 
-  beforeAll(() => {
+  before(() => {
     registry = new EnhancedSkillRegistry();
     registry.registerBuiltinSkills();
   });

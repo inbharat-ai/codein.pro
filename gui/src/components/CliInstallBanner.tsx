@@ -102,7 +102,7 @@ export function CliInstallBanner({
   }
 
   return (
-    <div className="border-t-vsc-input-border bg-vsc-background sticky bottom-0 border-t px-4 pb-4 pt-4">
+    <div className="border-t-codin-border bg-codin-bg sticky bottom-0 border-t px-4 pb-4 pt-4">
       <Card className="relative">
         <CloseButton onClick={handleDismiss}>
           <XMarkIcon className="h-5 w-5 hover:brightness-125" />
@@ -114,10 +114,7 @@ export function CliInstallBanner({
               Try out the Continue CLI
             </div>
             <div className="text-description mt-1 text-sm">
-              Use{" "}
-              <code className="bg-vsc-background rounded px-1.5 py-0.5">
-                cn
-              </code>{" "}
+              Use <code className="bg-codin-bg rounded px-1.5 py-0.5">cn</code>{" "}
               in your terminal interactively and then deploy Continuous AI
               workflows.{" "}
               <span
@@ -139,7 +136,7 @@ export function CliInstallBanner({
                 <span
                   ref={commandTextRef}
                   className="text-foreground cursor-pointer text-xs"
-                  style={{ fontFamily: "var(--vscode-editor-font-family)" }}
+                  style={{ fontFamily: "var(--codin-font-mono, monospace)" }}
                   onClick={handleCommandClick}
                 >
                   npm i -g @continuedev/cli

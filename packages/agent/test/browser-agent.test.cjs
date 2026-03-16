@@ -2,6 +2,7 @@
  * Tests for BrowserAgent — Web Research Agent (HTTP fetch + LLM analysis)
  */
 "use strict";
+const { describe, it } = require("node:test");
 
 const assert = require("node:assert");
 

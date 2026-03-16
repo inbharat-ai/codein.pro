@@ -5,11 +5,24 @@
  * circuit breaker integration, frequency tracking, and error handling.
  */
 "use strict";
+const { describe, it } = require("node:test");
 
-const assert = require("node:assert");
+const assert = require("node:assert/strict");
 
 const { BaseAgent } = require("../src/mas/agents/base-agent");
 const { AGENT_TYPE, AGENT_STATUS } = require("../src/mas/types");
+
+// ─── Mock helper ────────────────────────────────────────────
+
+function createMock(impl) {
+  const fn = (...args) => { fn.calls.push(args); return impl ? impl(...args) : fn._returnValue; };
+  fn.calls = [];
+  fn._returnValue = undefined;
+  fn.mockReturnValue = (v) => { fn._returnValue = v; return fn; };
+  fn.mockImplementation = (i) => { impl = i; return fn; };
+  fn.mockReset = () => { fn.calls = []; fn._returnValue = undefined; };
+  return fn;
+}
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -30,17 +43,17 @@ function makeDeps(overrides = {}) {
     },
     memory: {
       shortTerm: {
-        set: jest.fn(),
-        get: jest.fn(() => undefined),
+        set: createMock(),
+        get: createMock(() => undefined),
       },
       working: {
-        set: jest.fn(),
-        get: jest.fn(() => undefined),
-        recordDecision: jest.fn(),
+        set: createMock(),
+        get: createMock(() => undefined),
+        recordDecision: createMock(),
       },
     },
-    emitEvent: jest.fn(),
-    runLLM: jest.fn(async () => "LLM response text"),
+    emitEvent: createMock(),
+    runLLM: createMock(async () => "LLM response text"),
     ...overrides,
   };
 }
@@ -49,7 +62,7 @@ function makeDeps(overrides = {}) {
 function agentWithToolLLM(responses) {
   let callIndex = 0;
   const deps = makeDeps({
-    runLLM: jest.fn(async () => {
+    runLLM: createMock(async () => {
       const resp = responses[callIndex] || '{"answer":"done"}';
       callIndex++;
       return typeof resp === "string" ? resp : JSON.stringify(resp);
@@ -63,48 +76,43 @@ function agentWithToolLLM(responses) {
 describe("BaseAgent — Lifecycle", () => {
   it("initializes in IDLE status with a unique id", () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
-    expect(agent.status).toBe(AGENT_STATUS.IDLE);
-    expect(agent.id).toMatch(/^agent_/);
-    expect(agent.type).toBe(AGENT_TYPE.CODER);
+    assert.equal(agent.status, AGENT_STATUS.IDLE);
+    assert.match(agent.id, /^agent_/);
+    assert.equal(agent.type, AGENT_TYPE.CODER);
   });
 
   it("activate transitions to BUSY and emits AGENT_SPAWN", () => {
     const deps = makeDeps();
     const agent = new BaseAgent(makeOpts(), deps);
     agent.activate();
-    expect(agent.status).toBe(AGENT_STATUS.BUSY);
-    expect(deps.emitEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: "agent_spawn",
-        data: expect.objectContaining({ agentId: agent.id }),
-      })
-    );
+    assert.equal(agent.status, AGENT_STATUS.BUSY);
+    assert.ok(deps.emitEvent.calls.length > 0);
+    const call = deps.emitEvent.calls.find(c => c[0] && c[0].type === "agent_spawn");
+    assert.ok(call, "Should have emitted agent_spawn event");
+    assert.equal(call[0].data.agentId, agent.id);
   });
 
   it("deactivate transitions back to IDLE", () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
     agent.activate();
     agent.deactivate();
-    expect(agent.status).toBe(AGENT_STATUS.IDLE);
+    assert.equal(agent.status, AGENT_STATUS.IDLE);
   });
 
   it("markFailed transitions to ERROR and emits AGENT_REMOVE", () => {
     const deps = makeDeps();
     const agent = new BaseAgent(makeOpts(), deps);
     agent.markFailed("test failure");
-    expect(agent.status).toBe(AGENT_STATUS.ERROR);
-    expect(deps.emitEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: "agent_remove",
-        data: expect.objectContaining({ reason: "test failure" }),
-      })
-    );
+    assert.equal(agent.status, AGENT_STATUS.ERROR);
+    const call = deps.emitEvent.calls.find(c => c[0] && c[0].type === "agent_remove");
+    assert.ok(call, "Should have emitted agent_remove event");
+    assert.equal(call[0].data.reason, "test failure");
   });
 
   it("terminate transitions to SHUTDOWN", () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
     agent.terminate();
-    expect(agent.status).toBe(AGENT_STATUS.SHUTDOWN);
+    assert.equal(agent.status, AGENT_STATUS.SHUTDOWN);
   });
 });
 
@@ -114,26 +122,27 @@ describe("BaseAgent — LLM Interaction", () => {
     const agent = new BaseAgent(makeOpts(), deps);
     const result = await agent.callLLM("Hello agent");
 
-    expect(deps.runLLM).toHaveBeenCalledWith(
-      agent.getSystemPrompt(),
-      "Hello agent",
-      expect.objectContaining({ model: "test-model", maxTokens: 4096 })
-    );
-    expect(result).toBe("LLM response text");
+    assert.ok(deps.runLLM.calls.length > 0);
+    assert.equal(deps.runLLM.calls[0][0], agent.getSystemPrompt());
+    assert.equal(deps.runLLM.calls[0][1], "Hello agent");
+    assert.ok(deps.runLLM.calls[0][2]);
+    assert.equal(deps.runLLM.calls[0][2].model, "test-model");
+    assert.equal(deps.runLLM.calls[0][2].maxTokens, 4096);
+    assert.equal(result, "LLM response text");
   });
 
   it("callLLM tracks metrics on success", async () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
     await agent.callLLM("test");
 
-    expect(agent.metrics.tasksCompleted).toBe(1);
-    expect(agent.metrics.toolCalls).toBe(1);
-    expect(agent.metrics.totalTimeMs).toBeGreaterThanOrEqual(0);
+    assert.equal(agent.metrics.tasksCompleted, 1);
+    assert.equal(agent.metrics.toolCalls, 1);
+    assert.ok(agent.metrics.totalTimeMs >= 0);
   });
 
   it("callLLM extracts text from {text, usage} response objects", async () => {
     const deps = makeDeps({
-      runLLM: jest.fn(async () => ({
+      runLLM: createMock(async () => ({
         text: "extracted text",
         usage: { input_tokens: 100, output_tokens: 50 },
         model: "claude-sonnet",
@@ -142,38 +151,39 @@ describe("BaseAgent — LLM Interaction", () => {
     const agent = new BaseAgent(makeOpts(), deps);
     const result = await agent.callLLM("test");
 
-    expect(result).toBe("extracted text");
-    expect(agent.metrics.tokensUsed).toBe(150);
-    expect(agent.metrics.costUSD).toBeGreaterThan(0);
+    assert.equal(result, "extracted text");
+    assert.equal(agent.metrics.tokensUsed, 150);
+    assert.ok(agent.metrics.costUSD > 0);
   });
 
   it("callLLM throws and increments toolCalls on LLM failure", async () => {
     const deps = makeDeps({
-      runLLM: jest.fn(async () => {
+      runLLM: createMock(async () => {
         throw new Error("LLM provider down");
       }),
     });
     const agent = new BaseAgent(makeOpts(), deps);
 
-    await expect(agent.callLLM("test", { maxRetries: 0 })).rejects.toThrow(
-      "LLM provider down"
+    await assert.rejects(
+      () => agent.callLLM("test", { maxRetries: 0 }),
+      /LLM provider down/
     );
-    expect(agent.metrics.toolCalls).toBe(1);
+    assert.equal(agent.metrics.toolCalls, 1);
   });
 
   it("callLLMJson parses JSON from LLM response", async () => {
     const deps = makeDeps({
-      runLLM: jest.fn(async () => '{"key":"value"}'),
+      runLLM: createMock(async () => '{"key":"value"}'),
     });
     const agent = new BaseAgent(makeOpts(), deps);
     const result = await agent.callLLMJson("give me json");
-    expect(result).toEqual({ key: "value" });
+    assert.deepStrictEqual(result, { key: "value" });
   });
 
   it("callLLMJson retries on parse failure then succeeds", async () => {
     let calls = 0;
     const deps = makeDeps({
-      runLLM: jest.fn(async () => {
+      runLLM: createMock(async () => {
         calls++;
         if (calls === 1) return "not json at all";
         return '{"retried":true}';
@@ -181,17 +191,17 @@ describe("BaseAgent — LLM Interaction", () => {
     });
     const agent = new BaseAgent(makeOpts(), deps);
     const result = await agent.callLLMJson("give me json");
-    expect(result).toEqual({ retried: true });
-    expect(calls).toBe(2);
+    assert.deepStrictEqual(result, { retried: true });
+    assert.equal(calls, 2);
   });
 
   it("callLLMJson extracts JSON from markdown code blocks", async () => {
     const deps = makeDeps({
-      runLLM: jest.fn(async () => '```json\n{"code_block":true}\n```'),
+      runLLM: createMock(async () => '```json\n{"code_block":true}\n```'),
     });
     const agent = new BaseAgent(makeOpts(), deps);
     const result = await agent.callLLMJson("test");
-    expect(result).toEqual({ code_block: true });
+    assert.deepStrictEqual(result, { code_block: true });
   });
 });
 
@@ -202,10 +212,11 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
       '{"answer":"File content is: hello"}',
     ]);
 
+    const toolExecute = createMock(async (args) => `content of ${args.path}`);
     const toolRegistry = {
       read_file: {
         description: "Read a file",
-        execute: jest.fn(async (args) => `content of ${args.path}`),
+        execute: toolExecute,
       },
     };
 
@@ -215,10 +226,11 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
       totalTimeout: 30000,
     });
 
-    expect(toolRegistry.read_file.execute).toHaveBeenCalledWith({ path: "test.js" });
-    expect(result.answer).toBe("File content is: hello");
-    expect(result.toolLog).toHaveLength(1);
-    expect(result.toolLog[0].tool).toBe("read_file");
+    assert.ok(toolExecute.calls.length > 0);
+    assert.deepStrictEqual(toolExecute.calls[0][0], { path: "test.js" });
+    assert.equal(result.answer, "File content is: hello");
+    assert.equal(result.toolLog.length, 1);
+    assert.equal(result.toolLog[0].tool, "read_file");
   });
 
   it("chains multiple tool calls before final answer", async () => {
@@ -231,11 +243,11 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
     const toolRegistry = {
       write_file: {
         description: "Write file",
-        execute: jest.fn(async () => "ok"),
+        execute: createMock(async () => "ok"),
       },
       read_file: {
         description: "Read file",
-        execute: jest.fn(async () => "hi"),
+        execute: createMock(async () => "hi"),
       },
     };
 
@@ -245,8 +257,8 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
       totalTimeout: 30000,
     });
 
-    expect(result.toolLog).toHaveLength(2);
-    expect(result.answer).toBe("verified");
+    assert.equal(result.toolLog.length, 2);
+    assert.equal(result.answer, "verified");
   });
 
   it("detects infinite tool loop and aborts", async () => {
@@ -256,10 +268,11 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
     );
     const { agent } = agentWithToolLLM(infiniteResponses);
 
+    const searchExecute = createMock(async () => "no results");
     const toolRegistry = {
       search: {
         description: "Search",
-        execute: jest.fn(async () => "no results"),
+        execute: searchExecute,
       },
     };
 
@@ -269,9 +282,9 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
       totalTimeout: 30000,
     });
 
-    expect(result.answer).toMatch(/infinite loop/i);
+    assert.match(result.answer, /infinite loop/i);
     // Should have been called 6 times before loop detection triggers (default threshold)
-    expect(toolRegistry.search.execute.mock.calls.length).toBeLessThanOrEqual(6);
+    assert.ok(searchExecute.calls.length <= 6);
   });
 
   it("handles unknown tool gracefully", async () => {
@@ -286,7 +299,7 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
       totalTimeout: 30000,
     });
 
-    expect(result.answer).toBe("gave up");
+    assert.equal(result.answer, "gave up");
   });
 
   it("handles tool execution errors and continues", async () => {
@@ -298,7 +311,7 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
     const toolRegistry = {
       failing_tool: {
         description: "Always fails",
-        execute: jest.fn(async () => {
+        execute: createMock(async () => {
           throw new Error("tool crashed");
         }),
       },
@@ -310,8 +323,8 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
       totalTimeout: 30000,
     });
 
-    expect(result.toolLog[0].result).toMatch(/ERROR.*tool crashed/);
-    expect(result.answer).toBe("recovered");
+    assert.match(result.toolLog[0].result, /ERROR.*tool crashed/);
+    assert.equal(result.answer, "recovered");
   });
 
   it("returns non-JSON LLM response as final answer", async () => {
@@ -323,12 +336,12 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
       totalTimeout: 30000,
     });
 
-    expect(result.answer).toBe("This is just plain text");
+    assert.equal(result.answer, "This is just plain text");
   });
 
   it("returns answer when LLM returns null", async () => {
     const deps = makeDeps({
-      runLLM: jest.fn(async () => null),
+      runLLM: createMock(async () => null),
     });
     const agent = new BaseAgent(makeOpts(), deps);
 
@@ -338,22 +351,22 @@ describe("BaseAgent — Tool-Use Loop (callLLMWithTools)", () => {
       totalTimeout: 30000,
     });
 
-    expect(result.answer).toBe("LLM returned no response");
+    assert.equal(result.answer, "LLM returned no response");
   });
 });
 
 describe("BaseAgent — System Prompt & Confidence", () => {
   it("getSystemPrompt returns a string", () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
-    expect(typeof agent.getSystemPrompt()).toBe("string");
-    expect(agent.getSystemPrompt().length).toBeGreaterThan(0);
+    assert.equal(typeof agent.getSystemPrompt(), "string");
+    assert.ok(agent.getSystemPrompt().length > 0);
   });
 
   it("computeConfidence returns base score for simple results", () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
     const score = agent.computeConfidence("plain string result");
-    expect(score).toBeGreaterThanOrEqual(0.7);
-    expect(score).toBeLessThanOrEqual(0.95);
+    assert.ok(score >= 0.7);
+    assert.ok(score <= 0.95);
   });
 
   it("computeConfidence boosts for structured results without errors", () => {
@@ -363,7 +376,7 @@ describe("BaseAgent — System Prompt & Confidence", () => {
       { data: "structured" },
       { filesRead: 3 }
     );
-    expect(highScore).toBeGreaterThan(lowScore);
+    assert.ok(highScore > lowScore);
   });
 });
 
@@ -373,35 +386,34 @@ describe("BaseAgent — Memory Helpers", () => {
     const deps = makeDeps({
       memory: {
         shortTerm: {
-          set: jest.fn((k, v) => { store[k] = v; }),
-          get: jest.fn((k) => store[k]),
+          set: createMock((k, v) => { store[k] = v; }),
+          get: createMock((k) => store[k]),
         },
-        working: { set: jest.fn(), get: jest.fn(), recordDecision: jest.fn() },
+        working: { set: createMock(), get: createMock(), recordDecision: createMock() },
       },
     });
     const agent = new BaseAgent(makeOpts(), deps);
 
     agent.remember("task_progress", "50%");
-    expect(deps.memory.shortTerm.set).toHaveBeenCalledWith(
-      `agent:${agent.id}:task_progress`,
-      "50%"
-    );
+    assert.ok(deps.memory.shortTerm.set.calls.length > 0);
+    assert.equal(deps.memory.shortTerm.set.calls[0][0], `agent:${agent.id}:task_progress`);
+    assert.equal(deps.memory.shortTerm.set.calls[0][1], "50%");
 
     const recalled = agent.recall("task_progress");
-    expect(deps.memory.shortTerm.get).toHaveBeenCalledWith(
-      `agent:${agent.id}:task_progress`
-    );
+    assert.ok(deps.memory.shortTerm.get.calls.length > 0);
+    assert.equal(deps.memory.shortTerm.get.calls[0][0], `agent:${agent.id}:task_progress`);
   });
 });
 
 describe("BaseAgent — Permission Delegation", () => {
   it("requestPermission delegates to permissionGate", async () => {
+    const requestPermission = createMock(async () => ({
+      decision: "approved",
+      reason: "auto",
+    }));
     const deps = makeDeps({
       permissionGate: {
-        requestPermission: jest.fn(async () => ({
-          decision: "approved",
-          reason: "auto",
-        })),
+        requestPermission,
       },
     });
     const agent = new BaseAgent(makeOpts(), deps);
@@ -413,22 +425,22 @@ describe("BaseAgent — Permission Delegation", () => {
       0.5
     );
 
-    expect(deps.permissionGate.requestPermission).toHaveBeenCalledWith({
-      nodeId: "node_1",
-      agentId: agent.id,
-      permissionType: "file_write",
-      action: "Write to config.json",
-      costEstimate: 0.5,
-    });
-    expect(result.decision).toBe("approved");
+    assert.ok(requestPermission.calls.length > 0);
+    const arg = requestPermission.calls[0][0];
+    assert.equal(arg.nodeId, "node_1");
+    assert.equal(arg.agentId, agent.id);
+    assert.equal(arg.permissionType, "file_write");
+    assert.equal(arg.action, "Write to config.json");
+    assert.equal(arg.costEstimate, 0.5);
+    assert.equal(result.decision, "approved");
   });
 });
 
 describe("BaseAgent — Cost Tracking", () => {
   it("tracks cost with persistence layer", async () => {
-    const recordCost = jest.fn();
+    const recordCost = createMock();
     const deps = makeDeps({
-      runLLM: jest.fn(async () => ({
+      runLLM: createMock(async () => ({
         text: "response",
         usage: { input_tokens: 1000, output_tokens: 500 },
         model: "claude-sonnet-4",
@@ -440,34 +452,32 @@ describe("BaseAgent — Cost Tracking", () => {
 
     await agent.callLLM("test");
 
-    expect(agent.metrics.tokensUsed).toBe(1500);
-    expect(agent.metrics.costUSD).toBeGreaterThan(0);
-    expect(recordCost).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sessionId: "session_123",
-        agentId: agent.id,
-        totalTokens: 1500,
-      })
-    );
+    assert.equal(agent.metrics.tokensUsed, 1500);
+    assert.ok(agent.metrics.costUSD > 0);
+    assert.ok(recordCost.calls.length > 0);
+    const costArg = recordCost.calls[0][0];
+    assert.equal(costArg.sessionId, "session_123");
+    assert.equal(costArg.agentId, agent.id);
+    assert.equal(costArg.totalTokens, 1500);
   });
 
   it("_getModelCost returns correct pricing tiers", () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
     const opusCost = agent._getModelCost("claude-opus-4");
     const haikuCost = agent._getModelCost("claude-haiku");
-    expect(opusCost.input).toBeGreaterThan(haikuCost.input);
-    expect(opusCost.output).toBeGreaterThan(haikuCost.output);
+    assert.ok(opusCost.input > haikuCost.input);
+    assert.ok(opusCost.output > haikuCost.output);
   });
 });
 
 describe("BaseAgent — Abstract Methods", () => {
   it("execute() throws 'not implemented' on base class", async () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
-    await expect(agent.execute({}, {})).rejects.toThrow(/not implemented/i);
+    await assert.rejects(() => agent.execute({}, {}), /not implemented/i);
   });
 
   it("describeCapabilities returns a string", () => {
     const agent = new BaseAgent(makeOpts(), makeDeps());
-    expect(typeof agent.describeCapabilities()).toBe("string");
+    assert.equal(typeof agent.describeCapabilities(), "string");
   });
 });

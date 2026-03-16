@@ -2,6 +2,7 @@
  * Tests for AgentRouter — agent pool management
  */
 "use strict";
+const { describe, it, beforeEach } = require("node:test");
 
 const assert = require("node:assert");
 

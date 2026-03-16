@@ -107,7 +107,7 @@ export default function PipelinePanel() {
           gap: 8,
           marginBottom: 16,
           padding: 12,
-          border: "1px solid var(--vscode-panel-border, #444)",
+          border: "1px solid var(--codin-border, #2a2845)",
           borderRadius: 6,
         }}
       >
@@ -122,9 +122,9 @@ export default function PipelinePanel() {
             padding: 8,
             fontFamily: "inherit",
             borderRadius: 4,
-            border: "1px solid var(--vscode-input-border, #555)",
-            backgroundColor: "var(--vscode-input-background, #1e1e1e)",
-            color: "var(--vscode-input-foreground, #ccc)",
+            border: "1px solid var(--codin-border, #2a2845)",
+            backgroundColor: "var(--codin-bg-surface, #201e3a)",
+            color: "var(--codin-fg-primary, #e8e6f0)",
           }}
         />
         <div style={{ display: "flex", gap: 8 }}>
@@ -136,9 +136,9 @@ export default function PipelinePanel() {
               flex: 1,
               padding: 6,
               borderRadius: 4,
-              border: "1px solid var(--vscode-input-border, #555)",
-              backgroundColor: "var(--vscode-input-background, #1e1e1e)",
-              color: "var(--vscode-input-foreground, #ccc)",
+              border: "1px solid var(--codin-border, #2a2845)",
+              backgroundColor: "var(--codin-bg-surface, #201e3a)",
+              color: "var(--codin-fg-primary, #e8e6f0)",
             }}
           />
           <input
@@ -149,9 +149,9 @@ export default function PipelinePanel() {
               flex: 1,
               padding: 6,
               borderRadius: 4,
-              border: "1px solid var(--vscode-input-border, #555)",
-              backgroundColor: "var(--vscode-input-background, #1e1e1e)",
-              color: "var(--vscode-input-foreground, #ccc)",
+              border: "1px solid var(--codin-border, #2a2845)",
+              backgroundColor: "var(--codin-bg-surface, #201e3a)",
+              color: "var(--codin-fg-primary, #e8e6f0)",
             }}
           />
           <button
@@ -161,8 +161,8 @@ export default function PipelinePanel() {
               padding: "6px 16px",
               borderRadius: 4,
               border: "none",
-              backgroundColor: "var(--vscode-button-background, #0e639c)",
-              color: "var(--vscode-button-foreground, #fff)",
+              backgroundColor: "var(--codin-indigo-700, #4338ca)",
+              color: "#ffffff",
               cursor: creating ? "wait" : "pointer",
               opacity: creating || !goal.trim() ? 0.5 : 1,
             }}
@@ -185,7 +185,7 @@ export default function PipelinePanel() {
               key={p.id}
               style={{
                 padding: 12,
-                border: "1px solid var(--vscode-panel-border, #444)",
+                border: "1px solid var(--codin-border, #2a2845)",
                 borderRadius: 6,
                 display: "flex",
                 justifyContent: "space-between",

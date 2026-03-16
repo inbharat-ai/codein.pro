@@ -2,6 +2,7 @@
  * Tests for SQLite Store — memory, task queue, analytics
  */
 "use strict";
+const { describe, it, afterEach } = require("node:test");
 
 const assert = require("node:assert");
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { agentFetch as baseAgentFetch } from "../util/agentConfig";
 import "./ModelManagerPanel.css";
 import { Card, Divider } from "./ui";
+import { LoadingSpinner } from "./ui/LoadingState";
 
 type ModelEntry = {
   id: string;
@@ -185,7 +186,17 @@ export function ModelManagerPanel() {
               <h3 className="panel-title">🤖 Local Model Manager</h3>
               <div className={`agent-status ${agentStatus}`}>
                 <span className="status-dot"></span>
-                <span className="status-text">
+                <span
+                  className="status-text"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  {agentStatus === "checking" && (
+                    <LoadingSpinner className="h-3 w-3" />
+                  )}
                   {agentStatus === "checking"
                     ? "Checking..."
                     : agentStatus === "online"

@@ -3,6 +3,7 @@
  *
  * Covers fail-closed model, auto-approval, GPU guardrails.
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 const {

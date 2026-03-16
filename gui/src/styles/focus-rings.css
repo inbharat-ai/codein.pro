@@ -1,0 +1,19 @@
+/**
+ * Global focus-visible rings for all interactive elements.
+ * Uses codin-* design tokens for consistency.
+ *
+ * This overrides the blanket `*:focus { outline: none }` from index.css
+ * while keeping :focus (non-visible) suppressed to avoid mouse-click rings.
+ */
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--codin-border-focus);
+  outline-offset: 2px;
+  border-radius: var(--codin-radius-sm);
+}

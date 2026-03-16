@@ -5,6 +5,7 @@
  * following the same pattern as http-swarm-integration.test.cjs.
  */
 "use strict";
+const { describe, it, before, after } = require("node:test");
 
 const http = require("node:http");
 const assert = require("node:assert/strict");
@@ -111,7 +112,7 @@ async function fetch(path, opts = {}) {
 // ─── Tests ──────────────────────────────────────────────────
 
 describe("Computer Routes", () => {
-  beforeAll(async () => {
+  before(async () => {
     const router = new MicroRouter();
     const deps = makeDeps();
     registerComputerRoutes(router, deps);
@@ -143,7 +144,7 @@ describe("Computer Routes", () => {
     });
   });
 
-  afterAll(() => {
+  after(() => {
     if (server) server.close();
   });
 

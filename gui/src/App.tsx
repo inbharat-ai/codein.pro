@@ -1,28 +1,66 @@
+import React, { Suspense } from "react";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import ComputePanel from "./components/ComputePanel";
-import GitPanel from "./components/GitPanel";
-import GpuPanel from "./components/GpuPanel";
 import Layout from "./components/Layout";
-import { MCPToolsPanel } from "./components/MCPToolsPanel";
-import PermissionsPanel from "./components/PermissionsPanel";
-import PipelinePanel from "./components/PipelinePanel";
-import RepoIntelligencePanel from "./components/RepoIntelligencePanel";
-import ResearchPanel from "./components/ResearchPanel";
-import { SwarmPanel } from "./components/SwarmPanel/SwarmPanel";
-import { AIHubPanel } from "./components/AIHubPanel/AIHubPanel";
-import { ComputerPanel } from "./components/ComputerPanel/ComputerPanel";
 import { MainEditorProvider } from "./components/mainInput/TipTapEditor";
+import { LoadingPanel } from "./components/ui/LoadingState";
+import { ToastProvider } from "./components/ui/Toast";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
 import { VscThemeProvider } from "./context/VscTheme";
 import ParallelListeners from "./hooks/ParallelListeners";
-import ConfigPage from "./pages/config";
-import ErrorPage from "./pages/error";
 import Chat from "./pages/gui";
-import History from "./pages/history";
-import Stats from "./pages/stats";
-import ThemePage from "./styles/ThemePage";
+import ErrorPage from "./pages/error";
 import { ROUTES } from "./util/navigation";
+
+// ── Lazy-loaded routes (code-split) ──────────────────────────────────
+const ConfigPage = React.lazy(() => import("./pages/config"));
+const History = React.lazy(() => import("./pages/history"));
+const Stats = React.lazy(() => import("./pages/stats"));
+const ThemePage = React.lazy(() => import("./styles/ThemePage"));
+
+const ComputePanel = React.lazy(() => import("./components/ComputePanel"));
+const SwarmPanel = React.lazy(() =>
+  import("./components/SwarmPanel/SwarmPanel").then((m) => ({
+    default: m.SwarmPanel,
+  })),
+);
+const AIHubPanel = React.lazy(() =>
+  import("./components/AIHubPanel/AIHubPanel").then((m) => ({
+    default: m.AIHubPanel,
+  })),
+);
+const ComputerPanel = React.lazy(() =>
+  import("./components/ComputerPanel/ComputerPanel").then((m) => ({
+    default: m.ComputerPanel,
+  })),
+);
+const MCPToolsPanel = React.lazy(() =>
+  import("./components/MCPToolsPanel").then((m) => ({
+    default: m.MCPToolsPanel,
+  })),
+);
+const GpuPanel = React.lazy(() => import("./components/GpuPanel"));
+const GitPanel = React.lazy(() => import("./components/GitPanel"));
+const PermissionsPanel = React.lazy(
+  () => import("./components/PermissionsPanel"),
+);
+const PipelinePanel = React.lazy(() => import("./components/PipelinePanel"));
+const RepoIntelligencePanel = React.lazy(
+  () => import("./components/RepoIntelligencePanel"),
+);
+const ResearchPanel = React.lazy(() => import("./components/ResearchPanel"));
+
+// ── Helper: wrap a lazy component in Suspense ────────────────────────
+function lazySuspense(
+  Component: React.LazyExoticComponent<React.ComponentType<any>>,
+  message?: string,
+) {
+  return (
+    <Suspense fallback={<LoadingPanel message={message ?? "Loading..."} />}>
+      <Component />
+    </Suspense>
+  );
+}
 
 const router = createMemoryRouter([
   {
@@ -40,63 +78,66 @@ const router = createMemoryRouter([
       },
       {
         path: ROUTES.HISTORY,
-        element: <History />,
+        element: lazySuspense(History, "Loading history..."),
       },
       {
         path: ROUTES.STATS,
-        element: <Stats />,
+        element: lazySuspense(Stats, "Loading stats..."),
       },
       {
         path: ROUTES.CONFIG,
-        element: <ConfigPage />,
+        element: lazySuspense(ConfigPage, "Loading settings..."),
       },
       {
         path: ROUTES.THEME,
-        element: <ThemePage />,
+        element: lazySuspense(ThemePage, "Loading theme..."),
       },
       {
         path: ROUTES.COMPUTE,
-        element: <ComputePanel />,
+        element: lazySuspense(ComputePanel, "Loading compute..."),
       },
       {
         path: ROUTES.MCP,
-        element: <MCPToolsPanel />,
+        element: lazySuspense(MCPToolsPanel, "Loading MCP tools..."),
       },
       {
         path: ROUTES.SWARM,
-        element: <SwarmPanel />,
+        element: lazySuspense(SwarmPanel, "Loading swarm..."),
       },
       {
         path: ROUTES.PIPELINE,
-        element: <PipelinePanel />,
+        element: lazySuspense(PipelinePanel, "Loading pipeline..."),
       },
       {
         path: ROUTES.REPO_INTELLIGENCE,
-        element: <RepoIntelligencePanel />,
+        element: lazySuspense(
+          RepoIntelligencePanel,
+          "Loading repo intelligence...",
+        ),
       },
       {
         path: ROUTES.PERMISSIONS,
-        element: <PermissionsPanel />,
+        element: lazySuspense(PermissionsPanel, "Loading permissions..."),
       },
       {
         path: ROUTES.RESEARCH,
-        element: <ResearchPanel />,
+        element: lazySuspense(ResearchPanel, "Loading research..."),
       },
       {
         path: ROUTES.GIT,
-        element: <GitPanel />,
+        element: lazySuspense(GitPanel, "Loading git..."),
       },
       {
         path: ROUTES.GPU,
-        element: <GpuPanel />,
+        element: lazySuspense(GpuPanel, "Loading GPU..."),
       },
       {
         path: ROUTES.AI_HUB,
-        element: <AIHubPanel />,
+        element: lazySuspense(AIHubPanel, "Loading AI Hub..."),
       },
       {
         path: ROUTES.COMPUTER,
-        element: <ComputerPanel />,
+        element: lazySuspense(ComputerPanel, "Loading computer use..."),
       },
     ],
   },
@@ -110,12 +151,14 @@ function App() {
   return (
     <ErrorBoundary>
       <VscThemeProvider>
-        <MainEditorProvider>
-          <SubmenuContextProvidersProvider>
-            <RouterProvider router={router} />
-          </SubmenuContextProvidersProvider>
-        </MainEditorProvider>
-        <ParallelListeners />
+        <ToastProvider>
+          <MainEditorProvider>
+            <SubmenuContextProvidersProvider>
+              <RouterProvider router={router} />
+            </SubmenuContextProvidersProvider>
+          </MainEditorProvider>
+          <ParallelListeners />
+        </ToastProvider>
       </VscThemeProvider>
     </ErrorBoundary>
   );

@@ -1,12 +1,37 @@
 /**
  * CodeIn MAS — Skill Generator Tests
  *
- * Jest-compatible tests for the SkillGenerator module.
+ * node:test-compatible tests for the SkillGenerator module.
  * All external dependencies (runLLM, sandbox, skillRegistry, auditTrail) are mocked.
  */
 "use strict";
+const { test, describe } = require("node:test");
+const assert = require("node:assert/strict");
 
 const { SkillGenerator, MAX_CODE_SIZE, DANGEROUS_PATTERNS } = require("../src/mas/skill-generator");
+
+// ═══════════════════════════════════════════════════════════════
+// Mock helper
+// ═══════════════════════════════════════════════════════════════
+
+function createMock(impl) {
+  const fn = (...args) => { fn.calls.push(args); return impl ? impl(...args) : fn._returnValue; };
+  fn.calls = [];
+  fn._returnValue = undefined;
+  fn.mockReturnValue = (v) => { fn._returnValue = v; return fn; };
+  fn.mockReset = () => { fn.calls = []; fn._returnValue = undefined; };
+  return fn;
+}
+
+function createMockWithResolvedValues(...values) {
+  let callIdx = 0;
+  const fn = createMock(async () => {
+    const val = values[callIdx] !== undefined ? values[callIdx] : values[values.length - 1];
+    callIdx++;
+    return val;
+  });
+  return fn;
+}
 
 // ═══════════════════════════════════════════════════════════════
 // Helpers — Mock Factories
@@ -26,28 +51,28 @@ const VALID_SKILL_DEF = {
 };
 
 function createMockRunLLM(response) {
-  return jest.fn().mockResolvedValue(typeof response === "string" ? response : makeLLMResponse(response));
+  return createMock(async () => typeof response === "string" ? response : makeLLMResponse(response));
 }
 
 function createMockSandbox(exitCode = 0, stdout = '{"success":true,"result":{"sum":6}}', stderr = "") {
   return {
-    execute: jest.fn().mockResolvedValue({ exitCode, stdout, stderr, durationMs: 50, sandboxId: "test-123" }),
+    execute: createMock(async () => ({ exitCode, stdout, stderr, durationMs: 50, sandboxId: "test-123" })),
   };
 }
 
 function createMockSkillRegistry() {
   const skills = new Map();
   return {
-    registerSkill: jest.fn((def) => { skills.set(def.name, def); return def; }),
-    unregisterSkill: jest.fn((name) => skills.delete(name)),
-    getSkill: jest.fn((name) => skills.get(name) || null),
+    registerSkill: createMock((def) => { skills.set(def.name, def); return def; }),
+    unregisterSkill: createMock((name) => skills.delete(name)),
+    getSkill: createMock((name) => skills.get(name) || null),
     _skills: skills,
   };
 }
 
 function createMockAuditTrail() {
   return {
-    record: jest.fn((entry) => ({ ...entry, id: "audit_test", timestamp: Date.now() })),
+    record: createMock((entry) => ({ ...entry, id: "audit_test", timestamp: Date.now() })),
   };
 }
 
@@ -59,42 +84,40 @@ describe("SkillGenerator", () => {
   // ─── Constructor ──────────────────────────────────────────
 
   test("constructor requires runLLM function", () => {
-    expect(() => new SkillGenerator({})).toThrow("requires a runLLM function");
-    expect(() => new SkillGenerator({ runLLM: "not-a-function" })).toThrow("requires a runLLM function");
+    assert.throws(() => new SkillGenerator({}), /requires a runLLM function/);
+    assert.throws(() => new SkillGenerator({ runLLM: "not-a-function" }), /requires a runLLM function/);
   });
 
   test("constructor accepts valid dependencies", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
-    expect(gen).toBeInstanceOf(SkillGenerator);
+    const gen = new SkillGenerator({ runLLM: createMock() });
+    assert.ok(gen instanceof SkillGenerator);
   });
 
   // ─── generateSkill: success path ──────────────────────────
 
   test("generates a simple skill with mock LLM returning valid code", async () => {
-    const runLLM = createMockRunLLM(VALID_SKILL_DEF);
+    const runLLM = createMockWithResolvedValues(
+      makeLLMResponse(VALID_SKILL_DEF),
+      '[{"numbers": [1, 2, 3]}]'
+    );
     const sandbox = createMockSandbox();
     const registry = createMockSkillRegistry();
     const audit = createMockAuditTrail();
 
-    // First call: skill generation. Second call: test input generation.
-    runLLM
-      .mockResolvedValueOnce(makeLLMResponse(VALID_SKILL_DEF))
-      .mockResolvedValueOnce('[{"numbers": [1, 2, 3]}]');
-
     const gen = new SkillGenerator({ runLLM, sandbox, skillRegistry: registry, auditTrail: audit });
     const result = await gen.generateSkill("Sum an array of numbers");
 
-    expect(result.success).toBe(true);
-    expect(result.skillName).toBe("sum-numbers");
-    expect(result.skill).toBeDefined();
-    expect(result.skill.trustLevel).toBe("generated");
+    assert.ok(result.success);
+    assert.equal(result.skillName, "sum-numbers");
+    assert.ok(result.skill);
+    assert.equal(result.skill.trustLevel, "generated");
   });
 
   test("skill is registered in the registry after generation", async () => {
-    const runLLM = createMockRunLLM(VALID_SKILL_DEF);
-    runLLM
-      .mockResolvedValueOnce(makeLLMResponse(VALID_SKILL_DEF))
-      .mockResolvedValueOnce('[{"numbers": [1]}]');
+    const runLLM = createMockWithResolvedValues(
+      makeLLMResponse(VALID_SKILL_DEF),
+      '[{"numbers": [1]}]'
+    );
 
     const sandbox = createMockSandbox();
     const registry = createMockSkillRegistry();
@@ -102,17 +125,17 @@ describe("SkillGenerator", () => {
     const gen = new SkillGenerator({ runLLM, sandbox, skillRegistry: registry });
     await gen.generateSkill("Sum numbers");
 
-    expect(registry.registerSkill).toHaveBeenCalledTimes(1);
-    expect(registry.registerSkill).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "sum-numbers", trustLevel: "generated" })
-    );
+    assert.equal(registry.registerSkill.calls.length, 1);
+    const regArg = registry.registerSkill.calls[0][0];
+    assert.equal(regArg.name, "sum-numbers");
+    assert.equal(regArg.trustLevel, "generated");
   });
 
   test("audit trail is recorded on successful generation", async () => {
-    const runLLM = createMockRunLLM(VALID_SKILL_DEF);
-    runLLM
-      .mockResolvedValueOnce(makeLLMResponse(VALID_SKILL_DEF))
-      .mockResolvedValueOnce('[{}]');
+    const runLLM = createMockWithResolvedValues(
+      makeLLMResponse(VALID_SKILL_DEF),
+      '[{}]'
+    );
 
     const sandbox = createMockSandbox();
     const audit = createMockAuditTrail();
@@ -120,127 +143,135 @@ describe("SkillGenerator", () => {
     const gen = new SkillGenerator({ runLLM, sandbox, auditTrail: audit });
     await gen.generateSkill("Sum numbers");
 
-    expect(audit.record).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: "skill_generated",
-        skillName: "sum-numbers",
-      })
-    );
+    assert.ok(audit.record.calls.length > 0);
+    const recordArg = audit.record.calls.find(c => c[0].action === "skill_generated");
+    assert.ok(recordArg);
+    assert.equal(recordArg[0].skillName, "sum-numbers");
   });
 
   // ─── _validateCode: dangerous patterns ────────────────────
 
   test("rejects code containing require('child_process')", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = gen._validateCode("const cp = require('child_process'); cp.exec('rm -rf /')");
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("child_process"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("child_process")));
   });
 
   test("rejects code containing require('node:child_process')", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = gen._validateCode("const cp = require('node:child_process')");
-    expect(result.valid).toBe(false);
+    assert.ok(!result.valid);
   });
 
   test("rejects code containing eval()", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = gen._validateCode("const x = eval('1+1')");
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("eval"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("eval")));
   });
 
   test("rejects code containing new Function()", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = gen._validateCode("const fn = new Function('return 1')");
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("Function"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("Function")));
   });
 
   test("rejects code containing process.exit()", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = gen._validateCode("process.exit(1)");
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("process"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("process")));
   });
 
   test("rejects code containing require('fs').rmSync", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = gen._validateCode("const fs = require('fs'); fs.rmSync('/')");
-    expect(result.valid).toBe(false);
+    assert.ok(!result.valid);
   });
 
   test("rejects oversized code (> 10 KB)", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const bigCode = "const x = " + "'a'.repeat(1);\n".repeat(1000);
     // Ensure it's actually over 10KB
     const oversized = bigCode + "x".repeat(MAX_CODE_SIZE);
     const result = gen._validateCode(oversized);
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("maximum size"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("maximum size")));
   });
 
   test("rejects code with syntax errors", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = gen._validateCode("function( { broken syntax");
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("Syntax error"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("Syntax error")));
   });
 
   test("accepts valid safe code", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = gen._validateCode('async function execute(input) { return { ok: true }; }');
-    expect(result.valid).toBe(true);
-    expect(result.errors).toHaveLength(0);
+    assert.ok(result.valid);
+    assert.equal(result.errors.length, 0);
   });
 
   test("rejects null/empty code", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
-    expect(gen._validateCode(null).valid).toBe(false);
-    expect(gen._validateCode("").valid).toBe(false);
-    expect(gen._validateCode(123).valid).toBe(false);
+    const gen = new SkillGenerator({ runLLM: createMock() });
+    assert.ok(!gen._validateCode(null).valid);
+    assert.ok(!gen._validateCode("").valid);
+    assert.ok(!gen._validateCode(123).valid);
   });
 
   // ─── Sandbox testing flow ─────────────────────────────────
 
   test("sandbox testing passes when sandbox returns exit code 0", async () => {
-    const runLLM = createMockRunLLM(VALID_SKILL_DEF);
-    runLLM
-      .mockResolvedValueOnce(makeLLMResponse(VALID_SKILL_DEF))
-      .mockResolvedValueOnce('[{"numbers": [1, 2]}]');
+    const runLLM = createMockWithResolvedValues(
+      makeLLMResponse(VALID_SKILL_DEF),
+      '[{"numbers": [1, 2]}]'
+    );
 
     const sandbox = createMockSandbox(0, '{"success":true,"result":{"sum":3}}');
     const gen = new SkillGenerator({ runLLM, sandbox });
 
     const result = await gen.generateSkill("Sum numbers");
-    expect(result.success).toBe(true);
-    expect(sandbox.execute).toHaveBeenCalled();
+    assert.ok(result.success);
+    assert.ok(sandbox.execute.calls.length > 0);
   });
 
   test("failed sandbox test triggers retry", async () => {
-    const runLLM = jest.fn();
+    let callIdx = 0;
+    const responses = [
+      makeLLMResponse(VALID_SKILL_DEF),
+      '[{"numbers": [1]}]',
+      makeLLMResponse(VALID_SKILL_DEF),
+      '[{"numbers": [1]}]',
+    ];
+    const runLLM = createMock(async () => {
+      const val = responses[callIdx] || responses[responses.length - 1];
+      callIdx++;
+      return val;
+    });
 
-    // Attempt 1: valid code but sandbox fails
-    runLLM.mockResolvedValueOnce(makeLLMResponse(VALID_SKILL_DEF));
-    runLLM.mockResolvedValueOnce('[{"numbers": [1]}]');
-
-    // Attempt 2: valid code and sandbox succeeds
-    runLLM.mockResolvedValueOnce(makeLLMResponse(VALID_SKILL_DEF));
-    runLLM.mockResolvedValueOnce('[{"numbers": [1]}]');
-
+    let sandboxCallIdx = 0;
+    const sandboxResponses = [
+      { exitCode: 1, stdout: "", stderr: "TypeError", durationMs: 10, sandboxId: "t1" },
+      { exitCode: 0, stdout: '{"success":true,"result":{"sum":1}}', stderr: "", durationMs: 10, sandboxId: "t2" },
+    ];
     const sandbox = {
-      execute: jest.fn()
-        .mockResolvedValueOnce({ exitCode: 1, stdout: "", stderr: "TypeError", durationMs: 10, sandboxId: "t1" })
-        .mockResolvedValueOnce({ exitCode: 0, stdout: '{"success":true,"result":{"sum":1}}', stderr: "", durationMs: 10, sandboxId: "t2" }),
+      execute: createMock(async () => {
+        const val = sandboxResponses[sandboxCallIdx] || sandboxResponses[sandboxResponses.length - 1];
+        sandboxCallIdx++;
+        return val;
+      }),
     };
 
     const gen = new SkillGenerator({ runLLM, sandbox });
     const result = await gen.generateSkill("Sum numbers");
 
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
     // LLM was called for 2 generation attempts (2 skill gen + 2 test gen = 4 total)
-    expect(runLLM).toHaveBeenCalledTimes(4);
-    expect(sandbox.execute).toHaveBeenCalledTimes(2);
+    assert.equal(runLLM.calls.length, 4);
+    assert.equal(sandbox.execute.calls.length, 2);
   });
 
   test("max retries exhausted returns failure", async () => {
@@ -250,8 +281,8 @@ describe("SkillGenerator", () => {
     const gen = new SkillGenerator({ runLLM });
     const result = await gen.generateSkill("Do something dangerous");
 
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("Failed after 3 attempts");
+    assert.ok(!result.success);
+    assert.ok(result.error.includes("Failed after 3 attempts"));
   });
 
   test("audit trail records failure when all attempts exhausted", async () => {
@@ -262,13 +293,11 @@ describe("SkillGenerator", () => {
     const gen = new SkillGenerator({ runLLM, auditTrail: audit });
     await gen.generateSkill("Dangerous task");
 
-    expect(audit.record).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: "skill_generated",
-        error: expect.stringContaining("Validation failed"),
-        metadata: expect.objectContaining({ exhausted: true }),
-      })
+    const failRecord = audit.record.calls.find(c =>
+      c[0].action === "skill_generated" && c[0].error && c[0].error.includes("Validation failed")
     );
+    assert.ok(failRecord, "Should have recorded a failure audit entry");
+    assert.ok(failRecord[0].metadata.exhausted);
   });
 
   // ─── Works without optional dependencies ──────────────────
@@ -278,8 +307,8 @@ describe("SkillGenerator", () => {
     const gen = new SkillGenerator({ runLLM });
 
     const result = await gen.generateSkill("Sum numbers");
-    expect(result.success).toBe(true);
-    expect(result.skillName).toBe("sum-numbers");
+    assert.ok(result.success);
+    assert.equal(result.skillName, "sum-numbers");
   });
 
   test("works without audit trail", async () => {
@@ -288,7 +317,7 @@ describe("SkillGenerator", () => {
 
     // Should not throw
     const result = await gen.generateSkill("Sum numbers");
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
   });
 
   test("works without skill registry", async () => {
@@ -296,113 +325,124 @@ describe("SkillGenerator", () => {
     const gen = new SkillGenerator({ runLLM });
 
     const result = await gen.generateSkill("Sum numbers");
-    expect(result.success).toBe(true);
-    expect(result.skill.name).toBe("sum-numbers");
+    assert.ok(result.success);
+    assert.equal(result.skill.name, "sum-numbers");
   });
 
   // ─── refineSkill ──────────────────────────────────────────
 
   test("refines an existing generated skill", async () => {
-    const runLLM = jest.fn();
-    // Generation call
-    runLLM.mockResolvedValueOnce(makeLLMResponse(VALID_SKILL_DEF));
-    // Refinement call
     const refinedDef = {
       ...VALID_SKILL_DEF,
       code: 'async function execute(input) { return { sum: (input.numbers || []).reduce((a, b) => a + b, 0), count: (input.numbers || []).length }; }',
     };
-    runLLM.mockResolvedValueOnce(makeLLMResponse(refinedDef));
+    let callIdx = 0;
+    const responses = [
+      makeLLMResponse(VALID_SKILL_DEF),
+      makeLLMResponse(refinedDef),
+    ];
+    const runLLM = createMock(async () => {
+      const val = responses[callIdx] || responses[responses.length - 1];
+      callIdx++;
+      return val;
+    });
 
     const registry = createMockSkillRegistry();
     const gen = new SkillGenerator({ runLLM, skillRegistry: registry });
 
     // First generate
     await gen.generateSkill("Sum numbers");
-    expect(registry.registerSkill).toHaveBeenCalledTimes(1);
+    assert.equal(registry.registerSkill.calls.length, 1);
 
     // Then refine
     const result = await gen.refineSkill("sum-numbers", "Also return the count of numbers");
-    expect(result.success).toBe(true);
-    expect(result.skillName).toBe("sum-numbers");
+    assert.ok(result.success);
+    assert.equal(result.skillName, "sum-numbers");
     // Registry should have been called again (unregister + register)
-    expect(registry.unregisterSkill).toHaveBeenCalledWith("sum-numbers");
-    expect(registry.registerSkill).toHaveBeenCalledTimes(2);
+    assert.ok(registry.unregisterSkill.calls.some(c => c[0] === "sum-numbers"));
+    assert.equal(registry.registerSkill.calls.length, 2);
   });
 
   test("refineSkill fails for non-existent skill", async () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = await gen.refineSkill("nonexistent-skill", "Fix it");
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("was not generated");
+    assert.ok(!result.success);
+    assert.ok(result.error.includes("was not generated"));
   });
 
   test("refineSkill requires feedback", async () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = await gen.refineSkill("some-skill", "");
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("Feedback is required");
+    assert.ok(!result.success);
+    assert.ok(result.error.includes("Feedback is required"));
   });
 
   // ─── generateSkill: edge cases ────────────────────────────
 
   test("returns error for empty task description", async () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = await gen.generateSkill("");
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("Task description is required");
+    assert.ok(!result.success);
+    assert.ok(result.error.includes("Task description is required"));
   });
 
   test("returns error for non-string task description", async () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const result = await gen.generateSkill(123);
-    expect(result.success).toBe(false);
+    assert.ok(!result.success);
   });
 
   test("handles LLM returning code wrapped in markdown fences", async () => {
     const fencedResponse = "```json\n" + makeLLMResponse(VALID_SKILL_DEF) + "\n```";
-    const runLLM = jest.fn().mockResolvedValue(fencedResponse);
+    const runLLM = createMock(async () => fencedResponse);
 
     const gen = new SkillGenerator({ runLLM });
     const result = await gen.generateSkill("Sum numbers");
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
   });
 
   test("handles LLM returning invalid JSON gracefully with retries", async () => {
-    const runLLM = jest.fn()
-      .mockResolvedValueOnce("this is not json at all")
-      .mockResolvedValueOnce("still not json {{{")
-      .mockResolvedValueOnce(makeLLMResponse(VALID_SKILL_DEF));
+    let callIdx = 0;
+    const responses = [
+      "this is not json at all",
+      "still not json {{{",
+      makeLLMResponse(VALID_SKILL_DEF),
+    ];
+    const runLLM = createMock(async () => {
+      const val = responses[callIdx] || responses[responses.length - 1];
+      callIdx++;
+      return val;
+    });
 
     const gen = new SkillGenerator({ runLLM });
     const result = await gen.generateSkill("Sum numbers");
-    expect(result.success).toBe(true);
-    expect(runLLM).toHaveBeenCalledTimes(3);
+    assert.ok(result.success);
+    assert.equal(runLLM.calls.length, 3);
   });
 
   // ─── _wrapAsSkill ─────────────────────────────────────────
 
   test("wrapped skill execute throws without sandbox", async () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
+    const gen = new SkillGenerator({ runLLM: createMock() });
     const skill = gen._wrapAsSkill("test-skill", "async function execute(input) { return {}; }", {
       description: "test",
     });
 
-    await expect(skill.execute({ foo: "bar" })).rejects.toThrow("no sandbox available");
+    await assert.rejects(() => skill.execute({ foo: "bar" }), /no sandbox available/);
   });
 
   test("wrapped skill execute runs code in sandbox", async () => {
     const sandbox = createMockSandbox(0, '{"__ok":true,"result":{"sum":3}}');
-    const gen = new SkillGenerator({ runLLM: jest.fn(), sandbox });
+    const gen = new SkillGenerator({ runLLM: createMock(), sandbox });
 
     const skill = gen._wrapAsSkill("test-skill", "async function execute(input) { return { sum: 3 }; }", {
       description: "test",
     });
 
     const result = await skill.execute({ numbers: [1, 2] });
-    expect(result).toEqual({ sum: 3 });
-    expect(sandbox.execute).toHaveBeenCalledWith(
-      expect.objectContaining({ runtime: "node" })
-    );
+    assert.deepStrictEqual(result, { sum: 3 });
+    assert.ok(sandbox.execute.calls.length > 0);
+    assert.equal(sandbox.execute.calls[0][0].runtime, "node");
   });
 
   // ─── Events ───────────────────────────────────────────────
@@ -415,8 +455,8 @@ describe("SkillGenerator", () => {
     gen.on("generation:success", (data) => events.push(data));
 
     await gen.generateSkill("Sum numbers");
-    expect(events).toHaveLength(1);
-    expect(events[0].skillName).toBe("sum-numbers");
+    assert.equal(events.length, 1);
+    assert.equal(events[0].skillName, "sum-numbers");
   });
 
   test("emits generation:exhausted when all attempts fail", async () => {
@@ -428,24 +468,24 @@ describe("SkillGenerator", () => {
     gen.on("generation:exhausted", (data) => events.push(data));
 
     await gen.generateSkill("Bad task");
-    expect(events).toHaveLength(1);
-    expect(events[0].lastError).toContain("Validation failed");
+    assert.equal(events.length, 1);
+    assert.ok(events[0].lastError.includes("Validation failed"));
   });
 
   // ─── Dangerous pattern coverage ───────────────────────────
 
   test("rejects require('net')", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
-    expect(gen._validateCode("require('net')").valid).toBe(false);
+    const gen = new SkillGenerator({ runLLM: createMock() });
+    assert.ok(!gen._validateCode("require('net')").valid);
   });
 
   test("rejects require('worker_threads')", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
-    expect(gen._validateCode("require('worker_threads')").valid).toBe(false);
+    const gen = new SkillGenerator({ runLLM: createMock() });
+    assert.ok(!gen._validateCode("require('worker_threads')").valid);
   });
 
   test("rejects require('cluster')", () => {
-    const gen = new SkillGenerator({ runLLM: jest.fn() });
-    expect(gen._validateCode("require('cluster')").valid).toBe(false);
+    const gen = new SkillGenerator({ runLLM: createMock() });
+    assert.ok(!gen._validateCode("require('cluster')").valid);
   });
 });

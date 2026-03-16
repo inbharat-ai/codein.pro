@@ -5,6 +5,8 @@
  * approve_always, GPU budget tracking, audit log, and concurrent requests.
  */
 "use strict";
+const { describe, it } = require("node:test");
+const assert = require("node:assert/strict");
 
 const {
   PermissionGate,
@@ -48,23 +50,23 @@ describe("Permission — Auto-approve for safe reads", () => {
       action: "Read config.json",
     });
 
-    expect(result.decision).toBe(PERMISSION_DECISION.APPROVED);
-    expect(result.reason).toContain("Auto-approved");
+    assert.equal(result.decision, PERMISSION_DECISION.APPROVED);
+    assert.ok(result.reason.includes("Auto-approved"));
 
     // Should not be in pending
-    expect(gate.getPendingCount()).toBe(0);
+    assert.equal(gate.getPendingCount(), 0);
 
     // Should emit PERMISSION_GRANTED event
     const grantedEvents = events.filter(
       (e) => e.type === "permission_granted"
     );
-    expect(grantedEvents.length).toBe(1);
-    expect(grantedEvents[0].data.auto).toBe(true);
+    assert.equal(grantedEvents.length, 1);
+    assert.equal(grantedEvents[0].data.auto, true);
 
     // Audit log should record it
     const log = gate.getAuditLog();
-    expect(log.length).toBe(1);
-    expect(log[0].decision).toBe("approved");
+    assert.equal(log.length, 1);
+    assert.equal(log[0].decision, "approved");
 
     gate.destroy();
     memory.destroy();
@@ -85,23 +87,23 @@ describe("Permission — Deny flow", () => {
     });
 
     // Should be pending
-    expect(gate.getPendingCount()).toBe(1);
+    assert.equal(gate.getPendingCount(), 1);
 
     // User denies
     const pending = gate.getPendingRequests();
     const resp = gate.respondToRequest(pending[0].id, PERMISSION_RESPONSE.DENY);
-    expect(resp.success).toBe(true);
+    assert.ok(resp.success);
 
     const result = await permPromise;
-    expect(result.decision).toBe(PERMISSION_DECISION.DENIED);
-    expect(result.reason).toContain("User denied");
+    assert.equal(result.decision, PERMISSION_DECISION.DENIED);
+    assert.ok(result.reason.includes("User denied"));
 
     // No longer pending
-    expect(gate.getPendingCount()).toBe(0);
+    assert.equal(gate.getPendingCount(), 0);
 
     // Denial event emitted
     const deniedEvents = events.filter((e) => e.type === "permission_denied");
-    expect(deniedEvents.length).toBe(1);
+    assert.equal(deniedEvents.length, 1);
 
     gate.destroy();
     memory.destroy();
@@ -117,8 +119,8 @@ describe("Permission — Deny flow", () => {
       action: "Do something unknown",
     });
 
-    expect(result.decision).toBe(PERMISSION_DECISION.DENIED);
-    expect(result.reason).toContain("Unknown permission type");
+    assert.equal(result.decision, PERMISSION_DECISION.DENIED);
+    assert.ok(result.reason.includes("Unknown permission type"));
 
     gate.destroy();
     memory.destroy();
@@ -141,8 +143,8 @@ describe("Permission — approve_once", () => {
     let pending = gate.getPendingRequests();
     gate.respondToRequest(pending[0].id, PERMISSION_RESPONSE.APPROVE_ONCE);
     const r1 = await p1;
-    expect(r1.decision).toBe(PERMISSION_DECISION.APPROVED);
-    expect(r1.reason).toContain("once");
+    assert.equal(r1.decision, PERMISSION_DECISION.APPROVED);
+    assert.ok(r1.reason.includes("once"));
 
     // Second request: should block again (approve_once does not persist)
     const p2 = gate.requestPermission({
@@ -152,12 +154,12 @@ describe("Permission — approve_once", () => {
       action: "Write to another.txt",
     });
     pending = gate.getPendingRequests();
-    expect(pending).toHaveLength(1);
+    assert.equal(pending.length, 1);
 
     // Approve again
     gate.respondToRequest(pending[0].id, PERMISSION_RESPONSE.APPROVE_ONCE);
     const r2 = await p2;
-    expect(r2.decision).toBe(PERMISSION_DECISION.APPROVED);
+    assert.equal(r2.decision, PERMISSION_DECISION.APPROVED);
 
     gate.destroy();
     memory.destroy();
@@ -180,8 +182,8 @@ describe("Permission — approve_always", () => {
     const pending = gate.getPendingRequests();
     gate.respondToRequest(pending[0].id, PERMISSION_RESPONSE.APPROVE_ALWAYS);
     const r1 = await p1;
-    expect(r1.decision).toBe(PERMISSION_DECISION.APPROVED);
-    expect(r1.reason).toContain("always");
+    assert.equal(r1.decision, PERMISSION_DECISION.APPROVED);
+    assert.ok(r1.reason.includes("always"));
 
     // Second request: should be auto-approved from working memory cache
     const r2 = await gate.requestPermission({
@@ -190,11 +192,11 @@ describe("Permission — approve_always", () => {
       permissionType: PERMISSION_TYPE.GIT_OP,
       action: "git push",
     });
-    expect(r2.decision).toBe(PERMISSION_DECISION.APPROVED);
-    expect(r2.reason).toContain("session grant");
+    assert.equal(r2.decision, PERMISSION_DECISION.APPROVED);
+    assert.ok(r2.reason.includes("session grant"));
 
     // No pending requests (was auto-approved)
-    expect(gate.getPendingCount()).toBe(0);
+    assert.equal(gate.getPendingCount(), 0);
 
     gate.destroy();
     memory.destroy();
@@ -223,13 +225,13 @@ describe("Permission — approve_always", () => {
       permissionType: PERMISSION_TYPE.COMMAND_RUN,
       action: "run tests",
     });
-    expect(gate.getPendingCount()).toBe(1);
+    assert.equal(gate.getPendingCount(), 1);
     gate.respondToRequest(
       gate.getPendingRequests()[0].id,
       PERMISSION_RESPONSE.DENY
     );
     const r2 = await p2;
-    expect(r2.decision).toBe(PERMISSION_DECISION.DENIED);
+    assert.equal(r2.decision, PERMISSION_DECISION.DENIED);
 
     gate.destroy();
     memory.destroy();
@@ -252,8 +254,8 @@ describe("Permission — GPU Budget Tracking", () => {
       costEstimate: 5.0, // Way over $1 budget
     });
 
-    expect(result.decision).toBe(PERMISSION_DECISION.DENIED);
-    expect(result.reason).toContain("budget exceeded");
+    assert.equal(result.decision, PERMISSION_DECISION.DENIED);
+    assert.ok(result.reason.includes("budget exceeded"));
 
     gate.destroy();
     memory.destroy();
@@ -266,7 +268,7 @@ describe("Permission — GPU Budget Tracking", () => {
 
     const status = gate.getGpuStatus();
     // Budget should be capped at GPU_BUDGET_HARD_CAP
-    expect(status.budget).toBeLessThanOrEqual(GPU_BUDGET_HARD_CAP);
+    assert.ok(status.budget <= GPU_BUDGET_HARD_CAP);
 
     gate.destroy();
     memory.destroy();
@@ -278,10 +280,10 @@ describe("Permission — GPU Budget Tracking", () => {
     });
 
     const status = gate.getGpuStatus();
-    expect(status.budget).toBe(5.0);
-    expect(status.spent).toBe(0);
-    expect(status.remaining).toBe(5.0);
-    expect(status.sessionExpired).toBe(false);
+    assert.equal(status.budget, 5.0);
+    assert.equal(status.spent, 0);
+    assert.equal(status.remaining, 5.0);
+    assert.equal(status.sessionExpired, false);
 
     gate.destroy();
     memory.destroy();
@@ -316,10 +318,10 @@ describe("Permission — Audit Log", () => {
     await p2;
 
     const log = gate.getAuditLog();
-    expect(log.length).toBe(2);
-    expect(log[0].decision).toBe("approved");
-    expect(log[1].decision).toBe("approved");
-    expect(log[0].timestamp).toBeDefined();
+    assert.equal(log.length, 2);
+    assert.equal(log[0].decision, "approved");
+    assert.equal(log[1].decision, "approved");
+    assert.ok(log[0].timestamp);
 
     gate.destroy();
     memory.destroy();
@@ -338,7 +340,7 @@ describe("Permission — Audit Log", () => {
     }
 
     const limited = gate.getAuditLog(2);
-    expect(limited.length).toBe(2);
+    assert.equal(limited.length, 2);
 
     gate.destroy();
     memory.destroy();
@@ -371,7 +373,7 @@ describe("Permission — Concurrent Requests", () => {
       action: "fetch API",
     });
 
-    expect(gate.getPendingCount()).toBe(3);
+    assert.equal(gate.getPendingCount(), 3);
 
     // Respond to each
     const pending = gate.getPendingRequests();
@@ -380,11 +382,11 @@ describe("Permission — Concurrent Requests", () => {
     gate.respondToRequest(pending[2].id, PERMISSION_RESPONSE.APPROVE_ALWAYS);
 
     const [r1, r2, r3] = await Promise.all([p1, p2, p3]);
-    expect(r1.decision).toBe(PERMISSION_DECISION.APPROVED);
-    expect(r2.decision).toBe(PERMISSION_DECISION.DENIED);
-    expect(r3.decision).toBe(PERMISSION_DECISION.APPROVED);
+    assert.equal(r1.decision, PERMISSION_DECISION.APPROVED);
+    assert.equal(r2.decision, PERMISSION_DECISION.DENIED);
+    assert.equal(r3.decision, PERMISSION_DECISION.APPROVED);
 
-    expect(gate.getPendingCount()).toBe(0);
+    assert.equal(gate.getPendingCount(), 0);
 
     gate.destroy();
     memory.destroy();
@@ -403,8 +405,8 @@ describe("Permission — Concurrent Requests", () => {
 
     const pending = gate.getPendingRequests();
     const result = gate.respondToRequest(pending[0].id, "invalid_response");
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("Invalid response");
+    assert.ok(!result.success);
+    assert.ok(result.error.includes("Invalid response"));
 
     gate.cancelAllPending();
     gate.destroy();
@@ -414,8 +416,8 @@ describe("Permission — Concurrent Requests", () => {
   it("respondToRequest returns error for non-existent request ID", () => {
     const { gate, memory } = createGate();
     const result = gate.respondToRequest("ghost_id", "approve_once");
-    expect(result.success).toBe(false);
-    expect(result.error).toContain("No pending request");
+    assert.ok(!result.success);
+    assert.ok(result.error.includes("No pending request"));
 
     gate.destroy();
     memory.destroy();
@@ -441,14 +443,14 @@ describe("Permission — cancelAllPending", () => {
       action: "run",
     });
 
-    expect(gate.getPendingCount()).toBe(2);
+    assert.equal(gate.getPendingCount(), 2);
     gate.cancelAllPending();
 
     const [r1, r2] = await Promise.all([p1, p2]);
-    expect(r1.decision).toBe(PERMISSION_DECISION.DENIED);
-    expect(r1.reason).toContain("shutdown");
-    expect(r2.decision).toBe(PERMISSION_DECISION.DENIED);
-    expect(gate.getPendingCount()).toBe(0);
+    assert.equal(r1.decision, PERMISSION_DECISION.DENIED);
+    assert.ok(r1.reason.includes("shutdown"));
+    assert.equal(r2.decision, PERMISSION_DECISION.DENIED);
+    assert.equal(gate.getPendingCount(), 0);
 
     gate.destroy();
     memory.destroy();

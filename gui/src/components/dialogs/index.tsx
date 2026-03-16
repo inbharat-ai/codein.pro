@@ -24,6 +24,7 @@ const ScreenCover = styled.div`
   backdrop-filter: blur(0.5px);
   z-index: 100000;
   flex-direction: column;
+  animation: codin-dialog-backdrop-in 0.2s ease-out both;
 `;
 
 const DialogContainer = styled.div`
@@ -38,6 +39,7 @@ const DialogContainer = styled.div`
   flex-direction: column;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   word-wrap: break-word;
+  animation: codin-dialog-enter 0.2s ease-out both;
 `;
 
 const TextDialog = (props: TextDialogProps) => {

@@ -6,6 +6,7 @@
  * since the function is module-internal).
  */
 "use strict";
+const { describe, it } = require("node:test");
 
 const assert = require("node:assert/strict");
 const { registerStatusRoutes } = require("../src/routes/status");

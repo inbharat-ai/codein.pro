@@ -3,6 +3,7 @@
  *
  * Covers AgentRouter pool management and topology schedulers.
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 const { AgentRouter } = require("../src/mas/agent-router");

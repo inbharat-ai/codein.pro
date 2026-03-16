@@ -95,7 +95,7 @@ function Spinner({ size = "h-4 w-4" }: { size?: string }) {
 function ModelList({ models }: { models: ProviderModel[] }) {
   if (models.length === 0) {
     return (
-      <p className="text-vsc-foreground/40 py-2 text-center text-[10px]">
+      <p className="text-codin-fg-muted py-2 text-center text-[10px]">
         Click "Fetch Models" to load available models
       </p>
     );
@@ -106,13 +106,13 @@ function ModelList({ models }: { models: ProviderModel[] }) {
       {models.map((model) => (
         <div
           key={model.id}
-          className="bg-vsc-background flex items-center gap-2 rounded px-2 py-1.5 text-[10px]"
+          className="bg-codin-bg flex items-center gap-2 rounded px-2 py-1.5 text-[10px]"
         >
           <div className="min-w-0 flex-1">
-            <div className="text-vsc-foreground truncate text-xs font-medium">
+            <div className="text-codin-fg truncate text-xs font-medium">
               {model.name}
             </div>
-            <div className="text-vsc-foreground/40 flex items-center gap-2">
+            <div className="text-codin-fg-muted flex items-center gap-2">
               <span className="font-mono">{model.id}</span>
               {model.contextWindow && (
                 <span>
@@ -183,7 +183,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
   };
 
   return (
-    <div className="border-vsc-input-border bg-vsc-input-background overflow-hidden rounded-lg border">
+    <div className="border-codin-border bg-codin-bg-surface overflow-hidden rounded-lg border">
       {/* Card Header */}
       <div className="flex items-center gap-3 p-3">
         <StatusDot
@@ -191,7 +191,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h4 className="text-vsc-foreground text-sm font-semibold">
+            <h4 className="text-codin-fg text-sm font-semibold">
               {provider.displayName}
             </h4>
             {!provider.enabled && (
@@ -200,7 +200,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
               </span>
             )}
           </div>
-          <p className="text-vsc-foreground/50 text-[10px]">
+          <p className="text-codin-fg-muted text-[10px]">
             {provider.description}
           </p>
         </div>
@@ -223,17 +223,17 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
       </div>
 
       {/* Key & Actions Row */}
-      <div className="border-vsc-input-border border-t px-3 py-2">
+      <div className="border-codin-border border-t px-3 py-2">
         <div className="flex items-center gap-2 text-[10px]">
           {/* Key Status */}
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            <span className="text-vsc-foreground/50">API Key:</span>
+            <span className="text-codin-fg-muted">API Key:</span>
             {provider.hasKey ? (
               <span className="font-mono text-green-400">
                 {provider.keyHint ? `****${provider.keyHint}` : "configured"}
               </span>
             ) : (
-              <span className="text-vsc-foreground/30">No key</span>
+              <span className="text-codin-fg-muted">No key</span>
             )}
           </div>
 
@@ -304,12 +304,12 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
                 onChange={(e) => setKeyInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSaveKey()}
                 placeholder={`Enter ${provider.displayName} API key...`}
-                className="bg-vsc-background border-vsc-input-border w-full rounded border px-2 py-1 pr-12 text-xs"
+                className="bg-codin-bg border-codin-border w-full rounded border px-2 py-1 pr-12 text-xs"
                 autoFocus
               />
               <button
                 onClick={() => setShowKey(!showKey)}
-                className="text-vsc-foreground/40 hover:text-vsc-foreground/60 absolute right-1 top-1/2 -translate-y-1/2 px-1 text-[10px]"
+                className="text-codin-fg-muted hover:text-codin-fg-secondary absolute right-1 top-1/2 -translate-y-1/2 px-1 text-[10px]"
               >
                 {showKey ? "hide" : "show"}
               </button>
@@ -337,7 +337,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
 
       {/* Capabilities */}
       {provider.capabilities.length > 0 && (
-        <div className="border-vsc-input-border flex flex-wrap gap-1 border-t px-3 py-1.5">
+        <div className="border-codin-border flex flex-wrap gap-1 border-t px-3 py-1.5">
           {provider.capabilities.map((cap) => (
             <CapabilityBadge key={cap} label={cap} />
           ))}
@@ -346,9 +346,9 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
 
       {/* Expanded Model Browser */}
       {expanded && (
-        <div className="border-vsc-input-border border-t px-3 py-2">
+        <div className="border-codin-border border-t px-3 py-2">
           <div className="mb-1.5 flex items-center justify-between">
-            <h5 className="text-vsc-foreground/60 text-[10px] font-semibold">
+            <h5 className="text-codin-fg-secondary text-[10px] font-semibold">
               Models ({models.length})
             </h5>
             <button
@@ -386,7 +386,7 @@ function HealthDashboard() {
         label="Providers"
         value={String(providers.length)}
         sub="total"
-        color="text-vsc-foreground"
+        color="text-codin-fg"
       />
       <DashboardCard
         label="Configured"
@@ -422,12 +422,12 @@ function DashboardCard({
   color: string;
 }) {
   return (
-    <div className="bg-vsc-input-background border-vsc-input-border rounded-lg border p-3 text-center">
+    <div className="bg-codin-bg-surface border-codin-border rounded-lg border p-3 text-center">
       <div className={`text-lg font-bold ${color}`}>{value}</div>
-      <div className="text-vsc-foreground/70 text-[10px] font-medium">
+      <div className="text-codin-fg-secondary text-[10px] font-medium">
         {label}
       </div>
-      <div className="text-vsc-foreground/40 text-[9px]">{sub}</div>
+      <div className="text-codin-fg-muted text-[9px]">{sub}</div>
     </div>
   );
 }
@@ -445,14 +445,12 @@ export function AIHubPanel() {
   }, [dispatch]);
 
   return (
-    <div className="bg-vsc-background flex h-full flex-col overflow-hidden">
+    <div className="bg-codin-bg flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-vsc-input-border flex items-center justify-between border-b p-3">
+      <div className="border-codin-border flex items-center justify-between border-b p-3">
         <div>
-          <h2 className="text-vsc-foreground text-sm font-semibold">
-            AI API Hub
-          </h2>
-          <p className="text-vsc-foreground/50 text-[10px]">
+          <h2 className="text-codin-fg text-sm font-semibold">AI API Hub</h2>
+          <p className="text-codin-fg-muted text-[10px]">
             Manage provider keys, test connections, and browse models
           </p>
         </div>
@@ -483,7 +481,7 @@ export function AIHubPanel() {
 
         {/* Loading State */}
         {loading && providers.length === 0 && (
-          <div className="text-vsc-foreground/50 flex flex-col items-center justify-center gap-2 py-12">
+          <div className="text-codin-fg-muted flex flex-col items-center justify-center gap-2 py-12">
             <Spinner size="h-6 w-6" />
             <span className="text-xs">Loading providers...</span>
           </div>
@@ -491,7 +489,7 @@ export function AIHubPanel() {
 
         {/* Empty State */}
         {!loading && providers.length === 0 && !error && (
-          <div className="text-vsc-foreground/50 flex flex-col items-center justify-center gap-2 py-12">
+          <div className="text-codin-fg-muted flex flex-col items-center justify-center gap-2 py-12">
             <svg
               className="h-10 w-10 opacity-30"
               fill="none"
@@ -517,7 +515,7 @@ export function AIHubPanel() {
           <>
             <HealthDashboard />
             <div className="space-y-3">
-              <h3 className="text-vsc-foreground/70 text-xs font-semibold">
+              <h3 className="text-codin-fg-secondary text-xs font-semibold">
                 Providers ({providers.length})
               </h3>
               {providers.map((provider) => (

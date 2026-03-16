@@ -5,6 +5,7 @@
  * then exercises the full lifecycle: init → spawn → status → events → shutdown.
  */
 "use strict";
+const { describe, it, before, after } = require("node:test");
 
 const http = require("node:http");
 const assert = require("node:assert/strict");
@@ -87,7 +88,7 @@ async function fetch(path, opts = {}) {
 // ─── Tests ──────────────────────────────────────────────────
 
 describe("HTTP Swarm Integration", () => {
-  beforeAll(async () => {
+  before(async () => {
     const router = new MicroRouter();
     const deps = makeDeps();
     registerSwarmRoutes(router, deps);
@@ -120,7 +121,7 @@ describe("HTTP Swarm Integration", () => {
     });
   });
 
-  afterAll(() => {
+  after(() => {
     if (server) server.close();
   });
 

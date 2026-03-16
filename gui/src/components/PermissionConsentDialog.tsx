@@ -82,7 +82,7 @@ export function PermissionConsentDialog() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="border-vsc-input-border bg-vsc-background w-full max-w-md rounded-lg border border-solid p-6 shadow-xl">
+      <div className="border-codin-border bg-codin-bg w-full max-w-md rounded-lg border border-solid p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Permission Required</h2>
           <span className={`text-sm font-medium ${getRiskColor()}`}>
@@ -100,7 +100,7 @@ export function PermissionConsentDialog() {
 
           <div>
             <div className="text-sm font-medium opacity-70">Intent</div>
-            <div className="bg-vsc-input-background rounded p-2 text-sm">
+            <div className="bg-codin-bg-surface rounded p-2 text-sm">
               {currentRequest.intent}
             </div>
           </div>
@@ -109,7 +109,7 @@ export function PermissionConsentDialog() {
             Object.keys(currentRequest.details).length > 0 && (
               <div>
                 <div className="text-sm font-medium opacity-70">Details</div>
-                <div className="bg-vsc-input-background max-h-32 overflow-y-auto rounded p-2 font-mono text-xs">
+                <div className="bg-codin-bg-surface max-h-32 overflow-y-auto rounded p-2 font-mono text-xs">
                   {JSON.stringify(currentRequest.details, null, 2)}
                 </div>
               </div>
@@ -131,13 +131,13 @@ export function PermissionConsentDialog() {
         <div className="flex gap-2">
           <button
             onClick={() => respond("allow")}
-            className="bg-vsc-button text-vsc-button-foreground flex-1 rounded px-4 py-2 text-sm font-medium"
+            className="bg-codin-indigo-700 flex-1 rounded px-4 py-2 text-sm font-medium text-white"
           >
             Allow
           </button>
           <button
             onClick={() => respond("deny")}
-            className="bg-vsc-input-background flex-1 rounded px-4 py-2 text-sm font-medium"
+            className="bg-codin-bg-surface flex-1 rounded px-4 py-2 text-sm font-medium"
           >
             Deny
           </button>

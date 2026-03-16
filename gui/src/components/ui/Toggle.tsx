@@ -36,11 +36,14 @@ export function Toggle({
         </div>
       </div>
       <div
-        className={`duration-400 overflow-hidden transition-all ease-in-out ${
-          isOpen ? "mt-4 max-h-screen" : "max-h-0"
-        }`}
+        className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+        style={{
+          gridTemplateRows: isOpen ? "1fr" : "0fr",
+        }}
       >
-        <div className="pl-6">{children}</div>
+        <div className="overflow-hidden">
+          <div className={`pl-6 ${isOpen ? "mt-4" : ""}`}>{children}</div>
+        </div>
       </div>
     </div>
   );

@@ -22,8 +22,8 @@ export function ModeSelector() {
               onClick={() => dispatch(setMode(option))}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                 isActive
-                  ? "bg-vsc-button text-vsc-button-foreground"
-                  : "bg-vsc-input-background text-vsc-foreground"
+                  ? "bg-codin-indigo-700 text-white"
+                  : "bg-codin-bg-surface text-codin-fg"
               }`}
             >
               {option.toUpperCase()}

@@ -197,7 +197,7 @@ class ComputeStateMachine extends EventEmitter {
         typeof context.error === "string"
           ? context.error
           : context.error.message;
-      step.retryCount = (step.retryCount || 0) + (context.isRetry ? 0 : 1);
+      step.retryCount = (step.retryCount || 0) + (context.isRetry ? 1 : 0);
     }
     if (newStatus === STEP_STATUSES.ESCALATED) {
       step.escalated = true;

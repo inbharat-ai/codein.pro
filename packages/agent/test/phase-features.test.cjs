@@ -11,6 +11,7 @@
  *   - Doc Generator (Phase 3.3)
  */
 "use strict";
+const { test, describe, it } = require("node:test");
 
 const assert = require("node:assert/strict");
 

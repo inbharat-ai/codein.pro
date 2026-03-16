@@ -2,6 +2,7 @@
  * Tests for DockerSandbox — container-based code execution
  */
 "use strict";
+const { describe, it } = require("node:test");
 
 const assert = require("node:assert");
 

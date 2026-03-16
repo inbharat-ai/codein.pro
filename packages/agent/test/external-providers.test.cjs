@@ -1,3 +1,4 @@
+const { test } = require("node:test");
 /**
  * @fileoverview Test suite for External Providers (GPT-4, Claude, Gemini)
  * Tests: provider configuration, request building, response parsing,

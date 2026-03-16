@@ -13,6 +13,7 @@ import Shortcut from "../gui/Shortcut";
 
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
+import { LoadingPanel } from "../ui/LoadingState";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import {
@@ -154,7 +155,7 @@ export function History() {
     >
       <div className="relative my-2 mt-4 flex justify-center space-x-2">
         <input
-          className="bg-vsc-input-background text-vsc-foreground flex-1 rounded-md border border-none py-1 pl-2 pr-8 text-sm outline-none focus:outline-none"
+          className="bg-codin-bg-surface text-codin-fg flex-1 rounded-md border border-none py-1 pl-2 pr-8 text-sm"
           ref={searchInputRef}
           placeholder="Search past sessions"
           type="text"
@@ -163,7 +164,7 @@ export function History() {
         />
         {searchTerm && (
           <XMarkIcon
-            className="text-vsc-foreground hover:bg-vsc-background duration-50 absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform cursor-pointer rounded-full p-0.5 transition-colors"
+            className="text-codin-fg hover:bg-codin-bg duration-50 absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform cursor-pointer rounded-full p-0.5 transition-colors"
             onClick={() => {
               setSearchTerm("");
               if (searchInputRef.current) {
@@ -178,13 +179,40 @@ export function History() {
         {filteredAndSortedSessions.length === 0 && (
           <div className="m-3 text-center">
             {isSessionMetadataLoading ? (
-              "Loading Sessions..."
+              <LoadingPanel message="Loading sessions..." />
             ) : (
-              <>
-                No past sessions found. To start a new session, either click the
-                "+" button or use the keyboard shortcut:{" "}
-                <Shortcut>meta L</Shortcut>
-              </>
+              <div className="flex flex-col items-center gap-3 py-8">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-10 w-10"
+                  style={{ color: "var(--codin-fg-muted)" }}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"
+                  />
+                </svg>
+                <div>
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: "var(--codin-fg-primary)" }}
+                  >
+                    No past sessions found
+                  </p>
+                  <p
+                    className="mt-1 text-xs"
+                    style={{ color: "var(--codin-fg-muted)" }}
+                  >
+                    Start a new session with the "+" button or{" "}
+                    <Shortcut>meta L</Shortcut>
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         )}

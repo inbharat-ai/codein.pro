@@ -10,5 +10,6 @@ export {
   ListboxOptions,
 } from "./Listbox";
 export { Popover, PopoverButton, PopoverPanel } from "./Popover";
+export { ToastProvider, useToast } from "./Toast";
 export { Toggle } from "./Toggle";
 export { Transition } from "./Transition";

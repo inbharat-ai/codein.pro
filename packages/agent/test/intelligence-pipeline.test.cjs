@@ -1,3 +1,4 @@
+const { test } = require("node:test");
 /**
  * @fileoverview Comprehensive test suite for Intelligence Pipeline
  * Tests: ComplexityClassifier, VerificationEngine, ConfidenceScorer,

@@ -5,6 +5,9 @@
  * plugin enable/disable lifecycle, and skill execution.
  */
 "use strict";
+const { describe, it, beforeEach, after } = require("node:test");
+const assert = require("node:assert/strict");
+const looseAssert = require("node:assert");
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -35,7 +38,7 @@ function createPlugin(pluginDir, name, manifest, handlers = {}) {
   return dir;
 }
 
-afterAll(() => {
+after(() => {
   for (const dir of tmpDirs) {
     try {
       fs.rmSync(dir, { recursive: true, force: true });
@@ -60,20 +63,20 @@ describe("PluginManager — Manifest Validation", () => {
       version: "1.0.0",
       tools: [{ name: "greet", handler: "greet.js" }],
     });
-    expect(result.valid).toBe(true);
-    expect(result.errors).toHaveLength(0);
+    assert.ok(result.valid);
+    assert.equal(result.errors.length, 0);
   });
 
   it("rejects manifest missing required fields", () => {
     const result = pm.validateManifest({});
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("name"))).toBe(true);
-    expect(result.errors.some((e) => e.includes("version"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("name")));
+    assert.ok(result.errors.some((e) => e.includes("version")));
   });
 
   it("rejects non-object manifest", () => {
     const result = pm.validateManifest(null);
-    expect(result.valid).toBe(false);
+    assert.ok(!result.valid);
   });
 
   it("rejects invalid plugin name format", () => {
@@ -81,8 +84,8 @@ describe("PluginManager — Manifest Validation", () => {
       name: "MyPlugin",
       version: "1.0.0",
     });
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("lowercase"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("lowercase")));
   });
 
   it("rejects invalid semver version", () => {
@@ -90,8 +93,8 @@ describe("PluginManager — Manifest Validation", () => {
       name: "ok-name",
       version: "not-a-version",
     });
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("semver"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("semver")));
   });
 
   it("validates tools array", () => {
@@ -100,8 +103,8 @@ describe("PluginManager — Manifest Validation", () => {
       version: "1.0.0",
       tools: [{ name: "tool1" }], // missing handler
     });
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("handler"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("handler")));
   });
 
   it("validates hooks must be known names", () => {
@@ -110,8 +113,8 @@ describe("PluginManager — Manifest Validation", () => {
       version: "1.0.0",
       hooks: { unknownHook: "handler.js" },
     });
-    expect(result.valid).toBe(false);
-    expect(result.errors.some((e) => e.includes("Unknown hook"))).toBe(true);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.some((e) => e.includes("Unknown hook")));
   });
 
   it("accepts valid hooks: beforeTask, afterTask, onError", () => {
@@ -124,7 +127,7 @@ describe("PluginManager — Manifest Validation", () => {
         onError: "error.js",
       },
     });
-    expect(result.valid).toBe(true);
+    assert.ok(result.valid);
   });
 });
 
@@ -145,16 +148,17 @@ describe("PluginManager — Registration", () => {
     });
 
     const list = pm.listPlugins();
-    expect(list).toHaveLength(1);
-    expect(list[0].name).toBe("test-plugin");
-    expect(list[0].status).toBe("active");
-    expect(list[0].toolCount).toBe(1);
+    assert.equal(list.length, 1);
+    assert.equal(list[0].name, "test-plugin");
+    assert.equal(list[0].status, "active");
+    assert.equal(list[0].toolCount, 1);
   });
 
   it("throws on registering invalid manifest", () => {
-    expect(() =>
-      pm.registerPlugin({ name: "INVALID", version: "bad" })
-    ).toThrow(/Invalid manifest/);
+    assert.throws(
+      () => pm.registerPlugin({ name: "INVALID", version: "bad" }),
+      /Invalid manifest/
+    );
   });
 
   it("replaces already-registered plugin", () => {
@@ -162,8 +166,8 @@ describe("PluginManager — Registration", () => {
     pm.registerPlugin({ name: "test-plugin", version: "2.0.0" });
 
     const list = pm.listPlugins();
-    expect(list).toHaveLength(1);
-    expect(list[0].version).toBe("2.0.0");
+    assert.equal(list.length, 1);
+    assert.equal(list[0].version, "2.0.0");
   });
 
   it("unregisters a plugin and removes its hooks", () => {
@@ -175,12 +179,12 @@ describe("PluginManager — Registration", () => {
     });
 
     const removed = pm.unregisterPlugin("hooked-plugin");
-    expect(removed).toBe(true);
-    expect(pm.listPlugins()).toHaveLength(0);
+    assert.ok(removed);
+    assert.equal(pm.listPlugins().length, 0);
   });
 
   it("unregister returns false for non-existent plugin", () => {
-    expect(pm.unregisterPlugin("ghost")).toBe(false);
+    assert.ok(!pm.unregisterPlugin("ghost"));
   });
 });
 
@@ -201,9 +205,9 @@ describe("PluginManager — Loading from Directory", () => {
     const pm = new PluginManager({ pluginDir });
     const result = await pm.loadPlugins();
 
-    expect(result.loaded).toContain("hello-plugin");
-    expect(result.errors).toHaveLength(0);
-    expect(pm.listPlugins()).toHaveLength(1);
+    assert.ok(result.loaded.includes("hello-plugin"));
+    assert.equal(result.errors.length, 0);
+    assert.equal(pm.listPlugins().length, 1);
   });
 
   it("reports errors for plugins with invalid manifests", async () => {
@@ -215,9 +219,9 @@ describe("PluginManager — Loading from Directory", () => {
     const pm = new PluginManager({ pluginDir });
     const result = await pm.loadPlugins();
 
-    expect(result.loaded).toHaveLength(0);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].name).toBe("bad-plugin");
+    assert.equal(result.loaded.length, 0);
+    assert.equal(result.errors.length, 1);
+    assert.equal(result.errors[0].name, "bad-plugin");
   });
 
   it("handles non-existent plugin directory gracefully", async () => {
@@ -225,8 +229,8 @@ describe("PluginManager — Loading from Directory", () => {
       pluginDir: "/tmp/definitely-not-a-dir-" + Date.now(),
     });
     const result = await pm.loadPlugins();
-    expect(result.loaded).toHaveLength(0);
-    expect(result.errors).toHaveLength(0);
+    assert.equal(result.loaded.length, 0);
+    assert.equal(result.errors.length, 0);
   });
 
   it("skips non-directory entries in plugin dir", async () => {
@@ -236,7 +240,7 @@ describe("PluginManager — Loading from Directory", () => {
 
     const pm = new PluginManager({ pluginDir });
     const result = await pm.loadPlugins();
-    expect(result.loaded).toHaveLength(0);
+    assert.equal(result.loaded.length, 0);
   });
 });
 
@@ -255,9 +259,9 @@ describe("PluginManager — getPluginTools", () => {
     });
 
     const tools = pm.getPluginTools("coder");
-    expect(tools).toHaveLength(1);
-    expect(tools[0].name).toBe("lint");
-    expect(tools[0]._plugin).toBe("coder-tools");
+    assert.equal(tools.length, 1);
+    assert.equal(tools[0].name, "lint");
+    assert.equal(tools[0]._plugin, "coder-tools");
   });
 
   it("excludes tools from plugins restricted to other agent types", () => {
@@ -270,7 +274,7 @@ describe("PluginManager — getPluginTools", () => {
     });
 
     const tools = pm.getPluginTools("tester");
-    expect(tools).toHaveLength(0);
+    assert.equal(tools.length, 0);
   });
 
   it("returns tools when agentTypes is not set (available to all)", () => {
@@ -282,7 +286,7 @@ describe("PluginManager — getPluginTools", () => {
     });
 
     const tools = pm.getPluginTools("any-type");
-    expect(tools).toHaveLength(1);
+    assert.equal(tools.length, 1);
   });
 });
 
@@ -309,15 +313,15 @@ describe("PluginManager — Hook Execution", () => {
     await pm.loadPlugins();
 
     const result = await pm.runHook("beforeTask", { taskId: "t1" });
-    expect(result.ran).toBe(1);
-    expect(result.errors).toBe(0);
+    assert.equal(result.ran, 1);
+    assert.equal(result.errors, 0);
   });
 
   it("returns {ran:0, errors:0} for hooks with no handlers", async () => {
     const pm = new PluginManager({ pluginDir: "/tmp/nonexistent" });
     const result = await pm.runHook("afterTask", { taskId: "t1" });
-    expect(result.ran).toBe(0);
-    expect(result.errors).toBe(0);
+    assert.equal(result.ran, 0);
+    assert.equal(result.errors, 0);
   });
 
   it("isolates hook errors — one failing hook does not crash others", async () => {
@@ -356,9 +360,9 @@ describe("PluginManager — Hook Execution", () => {
 
     const result = await pm.runHook("beforeTask", { taskId: "t1" });
     // Both attempted, one error, one success
-    expect(result.ran + result.errors).toBe(2);
-    expect(result.errors).toBe(1);
-    expect(result.ran).toBe(1);
+    assert.equal(result.ran + result.errors, 2);
+    assert.equal(result.errors, 1);
+    assert.equal(result.ran, 1);
   });
 
   it("hooks receive the correct data payload", async () => {
@@ -385,8 +389,8 @@ describe("PluginManager — Hook Execution", () => {
       taskId: "task_123",
       status: "completed",
     });
-    expect(result.ran).toBe(1);
-    expect(result.errors).toBe(0);
+    assert.equal(result.ran, 1);
+    assert.equal(result.errors, 0);
   });
 });
 
@@ -419,15 +423,16 @@ describe("PluginManager — Plugin Tool Execution", () => {
       {}
     );
 
-    expect(result).toEqual({ sum: 10 });
-    expect(duration).toBeGreaterThanOrEqual(0);
+    looseAssert.deepEqual(result, { sum: 10 });
+    assert.ok(duration >= 0);
   });
 
   it("throws for non-registered plugin", async () => {
     const pm = new PluginManager({ pluginDir: "/tmp/nonexistent" });
-    await expect(
-      pm.executePluginTool("ghost", "tool", {}, {})
-    ).rejects.toThrow(/not registered/);
+    await assert.rejects(
+      () => pm.executePluginTool("ghost", "tool", {}, {}),
+      /not registered/
+    );
   });
 
   it("throws for non-existent tool in plugin", async () => {
@@ -438,9 +443,10 @@ describe("PluginManager — Plugin Tool Execution", () => {
       tools: [],
     });
 
-    await expect(
-      pm.executePluginTool("empty-plugin", "missing-tool", {}, {})
-    ).rejects.toThrow(/not found/);
+    await assert.rejects(
+      () => pm.executePluginTool("empty-plugin", "missing-tool", {}, {}),
+      /not found/
+    );
   });
 });
 
@@ -455,22 +461,22 @@ describe("SkillRegistry — Built-in Skills", () => {
 
   it("has built-in skills pre-registered", () => {
     const skills = registry.listSkills();
-    expect(skills.length).toBeGreaterThan(0);
+    assert.ok(skills.length > 0);
     const names = skills.map((s) => s.name);
-    expect(names).toContain("generate-commit-message");
-    expect(names).toContain("generate-pr-description");
-    expect(names).toContain("explain-code");
-    expect(names).toContain("suggest-tests");
-    expect(names).toContain("review-diff");
+    assert.ok(names.includes("generate-commit-message"));
+    assert.ok(names.includes("generate-pr-description"));
+    assert.ok(names.includes("explain-code"));
+    assert.ok(names.includes("suggest-tests"));
+    assert.ok(names.includes("review-diff"));
   });
 
   it("filters skills by category", () => {
     const gitSkills = registry.listSkills("git");
-    expect(gitSkills.length).toBeGreaterThan(0);
-    gitSkills.forEach((s) => expect(s.category).toBe("git"));
+    assert.ok(gitSkills.length > 0);
+    gitSkills.forEach((s) => assert.equal(s.category, "git"));
 
     const docsSkills = registry.listSkills("docs");
-    expect(docsSkills.length).toBeGreaterThan(0);
+    assert.ok(docsSkills.length > 0);
   });
 
   it("executes generate-commit-message skill", async () => {
@@ -479,11 +485,11 @@ describe("SkillRegistry — Built-in Skills", () => {
         "diff --git a/src/index.js b/src/index.js\n+console.log('hello');\n-console.log('goodbye');",
     });
 
-    expect(result).toBeDefined();
-    expect(result.suggestion).toBeDefined();
-    expect(typeof result.suggestion).toBe("string");
-    expect(result.stats).toBeDefined();
-    expect(result.stats.additions).toBeGreaterThanOrEqual(0);
+    assert.ok(result);
+    assert.ok(result.suggestion);
+    assert.equal(typeof result.suggestion, "string");
+    assert.ok(result.stats);
+    assert.ok(result.stats.additions >= 0);
   });
 
   it("executes explain-code skill", async () => {
@@ -492,22 +498,24 @@ describe("SkillRegistry — Built-in Skills", () => {
       language: "javascript",
     });
 
-    expect(result.lineCount).toBe(2);
-    expect(result.language).toBe("javascript");
-    expect(result.hasFunctions).toBe(true);
-    expect(result.hasClasses).toBe(true);
+    assert.equal(result.lineCount, 2);
+    assert.equal(result.language, "javascript");
+    assert.ok(result.hasFunctions);
+    assert.ok(result.hasClasses);
   });
 
   it("throws when skill requires missing context keys", async () => {
-    await expect(
-      registry.executeSkill("generate-commit-message", {})
-    ).rejects.toThrow(/requires context keys.*stagedDiff/);
+    await assert.rejects(
+      () => registry.executeSkill("generate-commit-message", {}),
+      /requires context keys.*stagedDiff/
+    );
   });
 
   it("throws for non-existent skill", async () => {
-    await expect(
-      registry.executeSkill("nonexistent-skill", {})
-    ).rejects.toThrow(/not registered/);
+    await assert.rejects(
+      () => registry.executeSkill("nonexistent-skill", {}),
+      /not registered/
+    );
   });
 
   it("registers and executes custom skill", async () => {
@@ -522,12 +530,13 @@ describe("SkillRegistry — Built-in Skills", () => {
     const result = await registry.executeSkill("custom-skill", {
       input: "hello",
     });
-    expect(result.output).toBe("HELLO");
+    assert.equal(result.output, "HELLO");
   });
 
   it("throws when registering skill without execute function", () => {
-    expect(() =>
-      registry.registerSkill({ name: "bad-skill", description: "no execute" })
-    ).toThrow(/execute function/);
+    assert.throws(
+      () => registry.registerSkill({ name: "bad-skill", description: "no execute" }),
+      /execute function/
+    );
   });
 });

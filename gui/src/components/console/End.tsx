@@ -11,14 +11,14 @@ export interface StartProps {
 }
 
 export default function Start({ item }: StartProps) {
-  //  <div className="border-0 border-b-2 border-solid border-[color:var(--vscode-panel-border)]">
+  //  <div className="border-0 border-b-2 border-solid border-[color:var(--codin-border, #2a2845)]">
   switch (item.kind) {
     case "success":
       return <></>;
     case "error":
       return (
         <div>
-          <span className="text-[color:var(--vscode-statusBarItem-errorForeground) m-0.5 inline-block rounded-sm bg-[color:var(--vscode-statusBarItem-errorBackground)] p-0.5">
+          <span className="text-[color:var(--codin-fg-primary, #e8e6f0) bg-[color:var(--codin-saffron-700, #b45309)] m-0.5 inline-block rounded-sm p-0.5">
             Error
           </span>
           {item.message}
@@ -28,7 +28,7 @@ export default function Start({ item }: StartProps) {
     case "cancel":
       return (
         <div>
-          <span className="text-[color:var(--vscode-statusBarItem-warningForeground) m-0.5 inline-block rounded-sm bg-[color:var(--vscode-statusBarItem-warningBackground)] p-0.5">
+          <span className="text-[color:var(--codin-fg-primary, #e8e6f0) bg-[color:var(--codin-saffron-600, #d97706)] m-0.5 inline-block rounded-sm p-0.5">
             Cancelled
           </span>
         </div>

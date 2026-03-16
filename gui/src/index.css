@@ -1,5 +1,6 @@
 /* CodeIn India-Tech Design System */
 @import "./styles/codin-theme.css";
+@import "./styles/focus-rings.css";
 
 @tailwind base;
 @tailwind components;
@@ -78,8 +79,30 @@ body {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.thin-scrollbar {
+/* Unified thin scrollbar — alias both class names */
+.thin-scrollbar,
+.scrollbar-thin {
   scrollbar-width: thin;
+  scrollbar-color: var(--codin-fg-muted) transparent;
+}
+.thin-scrollbar::-webkit-scrollbar,
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-track,
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb,
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--codin-fg-muted);
+  border-radius: 3px;
+  opacity: 0.3;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover,
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  opacity: 0.6;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -114,18 +137,18 @@ body {
 }
 
 .scroll-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
   border-radius: 4px;
 }
 
 .scroll-container::-webkit-scrollbar-thumb {
-  background-color: #888;
+  background-color: var(--codin-fg-muted);
   border-radius: 4px;
   transition: background-color 0.3s ease;
 }
 
 .scroll-container::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
+  background-color: var(--codin-indigo-800);
 }
 
 .scroll-container:is(:hover, :focus)::-webkit-scrollbar {

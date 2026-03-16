@@ -5,6 +5,8 @@
  * and validators directly. Also tests retry logic and cancel behavior.
  */
 "use strict";
+const { describe, it } = require("node:test");
+const assert = require("node:assert/strict");
 
 const {
   createTaskGraph,
@@ -38,20 +40,21 @@ describe("TaskGraph — Construction & Validation", () => {
       ],
     });
 
-    expect(graph.id).toMatch(/^task_/);
-    expect(graph.nodes).toHaveLength(3);
-    expect(graph.edges).toHaveLength(2);
-    expect(graph.status).toBe(NODE_STATUS.QUEUED);
+    assert.match(graph.id, /^task_/);
+    assert.equal(graph.nodes.length, 3);
+    assert.equal(graph.edges.length, 2);
+    assert.equal(graph.status, NODE_STATUS.QUEUED);
 
     const validation = validateTaskGraph(graph);
-    expect(validation.valid).toBe(true);
-    expect(validation.errors).toHaveLength(0);
+    assert.ok(validation.valid);
+    assert.equal(validation.errors.length, 0);
   });
 
   it("rejects graph with missing goal", () => {
-    expect(() =>
-      createTaskGraph({ goal: "", nodes: [], edges: [] })
-    ).toThrow(/goal is required/i);
+    assert.throws(
+      () => createTaskGraph({ goal: "", nodes: [], edges: [] }),
+      /goal is required/i
+    );
   });
 
   it("detects invalid edge references", () => {
@@ -63,8 +66,8 @@ describe("TaskGraph — Construction & Validation", () => {
     });
 
     const validation = validateTaskGraph(graph);
-    expect(validation.valid).toBe(false);
-    expect(validation.errors.some((e) => e.includes("unknown node"))).toBe(true);
+    assert.ok(!validation.valid);
+    assert.ok(validation.errors.some((e) => e.includes("unknown node")));
   });
 
   it("detects dependency cycles", () => {
@@ -80,8 +83,8 @@ describe("TaskGraph — Construction & Validation", () => {
     });
 
     const validation = validateTaskGraph(graph);
-    expect(validation.valid).toBe(false);
-    expect(validation.errors.some((e) => e.includes("cycle"))).toBe(true);
+    assert.ok(!validation.valid);
+    assert.ok(validation.errors.some((e) => e.includes("cycle")));
   });
 });
 
@@ -134,8 +137,8 @@ describe("TaskGraph — Linear Topology (A -> B -> C)", () => {
     await executeNode(nodeB.id);
     await executeNode(nodeC.id);
 
-    expect(executionOrder).toEqual([nodeA.id, nodeB.id, nodeC.id]);
-    expect(nodeC.status).toBe(NODE_STATUS.SUCCEEDED);
+    assert.deepStrictEqual(executionOrder, [nodeA.id, nodeB.id, nodeC.id]);
+    assert.equal(nodeC.status, NODE_STATUS.SUCCEEDED);
   });
 });
 
@@ -184,16 +187,16 @@ describe("TaskGraph — Parallel Topology (A,B,C -> D)", () => {
     ]);
 
     // All three should be done before D starts
-    expect(nodeA.status).toBe(NODE_STATUS.SUCCEEDED);
-    expect(nodeB.status).toBe(NODE_STATUS.SUCCEEDED);
-    expect(nodeC.status).toBe(NODE_STATUS.SUCCEEDED);
+    assert.equal(nodeA.status, NODE_STATUS.SUCCEEDED);
+    assert.equal(nodeB.status, NODE_STATUS.SUCCEEDED);
+    assert.equal(nodeC.status, NODE_STATUS.SUCCEEDED);
 
     // Execute D after all deps
     await executeNode(nodeD.id, 10);
-    expect(nodeD.status).toBe(NODE_STATUS.SUCCEEDED);
+    assert.equal(nodeD.status, NODE_STATUS.SUCCEEDED);
 
     // Verify D started after all A, B, C finished
-    expect(startTimes[nodeD.id]).toBeGreaterThanOrEqual(
+    assert.ok(startTimes[nodeD.id] >=
       Math.max(endTimes[nodeA.id], endTimes[nodeB.id], endTimes[nodeC.id])
     );
   });
@@ -238,7 +241,7 @@ describe("TaskGraph — Failure Propagation", () => {
     const allDepsMet = nodeC_deps.every(
       (d) => d.status === NODE_STATUS.SUCCEEDED
     );
-    expect(allDepsMet).toBe(false);
+    assert.ok(!allDepsMet);
 
     if (!allDepsMet) {
       nodeMap.get(nodeC.id).status = NODE_STATUS.CANCELLED;
@@ -249,12 +252,12 @@ describe("TaskGraph — Failure Propagation", () => {
     const dDepsMet = nodeD_deps.every(
       (d) => d.status === NODE_STATUS.SUCCEEDED
     );
-    expect(dDepsMet).toBe(true);
+    assert.ok(dDepsMet);
     nodeMap.get(nodeD.id).status = NODE_STATUS.SUCCEEDED;
     nodeMap.get(nodeD.id).result = "D completed with partial results";
 
-    expect(nodeMap.get(nodeC.id).status).toBe(NODE_STATUS.CANCELLED);
-    expect(nodeMap.get(nodeD.id).status).toBe(NODE_STATUS.SUCCEEDED);
+    assert.equal(nodeMap.get(nodeC.id).status, NODE_STATUS.CANCELLED);
+    assert.equal(nodeMap.get(nodeD.id).status, NODE_STATUS.SUCCEEDED);
   });
 });
 
@@ -289,10 +292,10 @@ describe("TaskGraph — Retry Logic", () => {
 
     await executeWithRetry(node);
 
-    expect(attempts).toBe(3); // initial + 2 retries
-    expect(node.retryCount).toBe(2);
-    expect(node.status).toBe(NODE_STATUS.FAILED);
-    expect(node.error).toContain("all retries");
+    assert.equal(attempts, 3); // initial + 2 retries
+    assert.equal(node.retryCount, 2);
+    assert.equal(node.status, NODE_STATUS.FAILED);
+    assert.ok(node.error.includes("all retries"));
   });
 
   it("succeeds on retry after initial failure", async () => {
@@ -320,9 +323,9 @@ describe("TaskGraph — Retry Logic", () => {
 
     await executeWithRetry(node);
 
-    expect(attempts).toBe(3);
-    expect(node.status).toBe(NODE_STATUS.SUCCEEDED);
-    expect(node.result).toBe("Finally worked");
+    assert.equal(attempts, 3);
+    assert.equal(node.status, NODE_STATUS.SUCCEEDED);
+    assert.equal(node.result, "Finally worked");
   });
 });
 
@@ -360,10 +363,10 @@ describe("TaskGraph — Cancel", () => {
 
     cancelGraph(graph);
 
-    expect(nodeA.status).toBe(NODE_STATUS.SUCCEEDED); // Already done — not cancelled
-    expect(nodeB.status).toBe(NODE_STATUS.CANCELLED);
-    expect(nodeC.status).toBe(NODE_STATUS.CANCELLED);
-    expect(graph.status).toBe(NODE_STATUS.CANCELLED);
+    assert.equal(nodeA.status, NODE_STATUS.SUCCEEDED); // Already done — not cancelled
+    assert.equal(nodeB.status, NODE_STATUS.CANCELLED);
+    assert.equal(nodeC.status, NODE_STATUS.CANCELLED);
+    assert.equal(graph.status, NODE_STATUS.CANCELLED);
   });
 });
 
@@ -372,32 +375,34 @@ describe("TaskGraph — Cancel", () => {
 describe("TaskNode — Creation & Validation", () => {
   it("creates a valid task node with defaults", () => {
     const node = createTaskNode({ goal: "Fix the bug" });
-    expect(node.id).toMatch(/^node_/);
-    expect(node.goal).toBe("Fix the bug");
-    expect(node.status).toBe(NODE_STATUS.QUEUED);
-    expect(node.retryCount).toBe(0);
-    expect(node.maxRetries).toBe(2);
-    expect(node.patches).toEqual([]);
-    expect(node.artifacts).toEqual([]);
+    assert.match(node.id, /^node_/);
+    assert.equal(node.goal, "Fix the bug");
+    assert.equal(node.status, NODE_STATUS.QUEUED);
+    assert.equal(node.retryCount, 0);
+    assert.equal(node.maxRetries, 2);
+    assert.deepStrictEqual(node.patches, []);
+    assert.deepStrictEqual(node.artifacts, []);
   });
 
   it("rejects empty goal", () => {
-    expect(() => createTaskNode({ goal: "" })).toThrow(/goal is required/i);
+    assert.throws(() => createTaskNode({ goal: "" }), /goal is required/i);
   });
 
   it("rejects goal exceeding 10000 chars", () => {
-    expect(() =>
-      createTaskNode({ goal: "x".repeat(10001) })
-    ).toThrow(/exceeds 10000/);
+    assert.throws(
+      () => createTaskNode({ goal: "x".repeat(10001) }),
+      /exceeds 10000/
+    );
   });
 
   it("rejects invalid permission types", () => {
-    expect(() =>
-      createTaskNode({
+    assert.throws(
+      () => createTaskNode({
         goal: "test",
         requiredPermissions: ["invalid_perm_type"],
-      })
-    ).toThrow(/Invalid permission type/);
+      }),
+      /Invalid permission type/
+    );
   });
 
   it("accepts valid required permissions", () => {
@@ -405,7 +410,7 @@ describe("TaskNode — Creation & Validation", () => {
       goal: "write files",
       requiredPermissions: ["file_write", "command_run"],
     });
-    expect(node.requiredPermissions).toEqual(["file_write", "command_run"]);
+    assert.deepStrictEqual(node.requiredPermissions, ["file_write", "command_run"]);
   });
 });
 
@@ -439,8 +444,8 @@ describe("TaskGraph — Metadata tracking", () => {
       (n) => n.status === NODE_STATUS.CANCELLED
     ).length;
 
-    expect(graph.metadata.nodesCompleted).toBe(1);
-    expect(graph.metadata.nodesFailed).toBe(1);
-    expect(graph.metadata.nodesCancelled).toBe(1);
+    assert.equal(graph.metadata.nodesCompleted, 1);
+    assert.equal(graph.metadata.nodesFailed, 1);
+    assert.equal(graph.metadata.nodesCancelled, 1);
   });
 });

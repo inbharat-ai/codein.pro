@@ -103,7 +103,7 @@ export function LocalModulesBootstrapBanner() {
             type="button"
             onClick={handleRetry}
             disabled={isRetrying}
-            className="bg-vsc-button text-vsc-button-foreground rounded px-3 py-1 text-xs font-semibold disabled:opacity-60"
+            className="bg-codin-indigo-700 rounded px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
           >
             {isRetrying ? "Retrying..." : "Retry install"}
           </button>
@@ -111,7 +111,7 @@ export function LocalModulesBootstrapBanner() {
             <button
               type="button"
               onClick={() => setShowDetails((prev) => !prev)}
-              className="bg-vsc-input-background text-vsc-foreground rounded px-3 py-1 text-xs font-semibold"
+              className="bg-codin-bg-surface text-codin-fg rounded px-3 py-1 text-xs font-semibold"
             >
               {showDetails ? "Hide details" : "Show details"}
             </button>
@@ -121,7 +121,7 @@ export function LocalModulesBootstrapBanner() {
           </span>
         </div>
         {showDetails && status.details && (
-          <div className="bg-vsc-input-background text-description rounded p-2 text-xs">
+          <div className="bg-codin-bg-surface text-description rounded p-2 text-xs">
             <ul className="list-disc space-y-1 pl-4">
               {formatDetails(status.details).map((line) => (
                 <li key={line}>{line}</li>

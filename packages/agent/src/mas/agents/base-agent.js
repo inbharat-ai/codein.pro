@@ -48,12 +48,15 @@ class BaseAgent {
 
     this.descriptor.status = AGENT_STATUS.IDLE;
 
-    // Initialize circuit breaker for LLM calls
-    // Reset timeout (90s) > LLM call timeout (30s) to allow in-flight calls to finish
-    // Half-open attempts = 2 for smoother recovery
+    // LLM call timeout (configurable per-agent via opts)
+    this._llmTimeout = opts.llmTimeout || 30000; // 30s default
+
+    // Initialize circuit breaker for LLM calls.
+    // Reset timeout = 1.5x the LLM timeout so the agent retries quickly
+    // after failures instead of being stuck for an extra 60s doing nothing.
     this._llmCircuitBreaker = new CircuitBreaker({
       failureThreshold: 5,
-      timeout: 90000, // 90 seconds — aligned with LLM timeout (30s) + retry window
+      timeout: Math.round(this._llmTimeout * 1.5), // 45s default — aligned with LLM timeout
       successThreshold: 2,
       halfOpenAttempts: 2,
       windowSize: 10,
@@ -111,7 +114,7 @@ class BaseAgent {
    */
   async callLLM(userPrompt, opts = {}) {
     const start = Date.now();
-    const timeout = opts.timeout || 30000; // 30 second default
+    const timeout = opts.timeout || this._llmTimeout; // Use agent-level timeout
     const maxRetries = opts.maxRetries || 2;
 
     try {

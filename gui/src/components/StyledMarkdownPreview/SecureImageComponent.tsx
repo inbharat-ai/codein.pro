@@ -26,7 +26,7 @@ const WarningText = styled.div`
 `;
 
 const UrlDisplay = styled.div`
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--codin-font-mono, monospace);
   font-size: 12px;
   color: ${vscForeground};
   word-break: break-all;
@@ -37,7 +37,7 @@ const UrlDisplay = styled.div`
 `;
 
 const QueryParamsDisplay = styled.div`
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--codin-font-mono, monospace);
   font-size: 11px;
   color: ${vscForeground};
   margin: 8px 0;

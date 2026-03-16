@@ -8,6 +8,7 @@
  * - Graceful error handling on closed connections
  */
 "use strict";
+const { describe, it, beforeEach, after } = require("node:test");
 
 const assert = require("node:assert/strict");
 const path = require("node:path");
@@ -33,7 +34,7 @@ function cleanupTestDir() {
   }
 }
 
-afterAll(() => {
+after(() => {
   cleanupTestDir();
 });
 
@@ -51,7 +52,7 @@ describe("SqliteTaskQueue", () => {
     queue = new SqliteTaskQueue({ workspaceHash: TEST_WORKSPACE_HASH });
   });
 
-  afterAll(() => {
+  after(() => {
     if (queue) {
       try { queue.close(); } catch { /* ignore */ }
     }
@@ -195,7 +196,7 @@ describe("SqliteMemoryStore", () => {
     });
   });
 
-  afterAll(() => {
+  after(() => {
     if (store) {
       try { store.close(); } catch { /* ignore */ }
     }
@@ -315,7 +316,7 @@ describe("Blackboard with SqliteMemoryStore persistence", () => {
     });
   });
 
-  afterAll(() => {
+  after(() => {
     if (store) {
       try { store.close(); } catch { /* ignore */ }
     }
