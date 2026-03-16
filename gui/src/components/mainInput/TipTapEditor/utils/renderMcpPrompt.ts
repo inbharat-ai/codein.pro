@@ -6,7 +6,7 @@ export async function renderMcpPrompt(
   ideMessenger: IIdeMessenger,
   userInput?: string,
 ) {
-  // TODO add support for mcp prompt args using command.mcpArgs
+  // TRACKED: Add interactive support for MCP prompt args via command.mcpArgs
   const args: { [key: string]: string } = {};
   if (command.mcpArgs) {
     command.mcpArgs.forEach((arg, i) => {

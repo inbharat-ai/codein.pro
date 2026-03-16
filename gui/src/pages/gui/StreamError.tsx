@@ -231,7 +231,7 @@ const StreamErrorDialog = ({ error }: StreamErrorProps) => {
             <code>{selectedModel.underlyingProviderName}</code>
           </span>
         ) : null}
-        {/* TODO: status page links for providers? */}
+        {/* TRACKED: Add status page links for providers */}
       </div>
     );
   }

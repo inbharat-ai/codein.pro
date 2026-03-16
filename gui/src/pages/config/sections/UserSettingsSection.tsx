@@ -59,7 +59,7 @@ export function UserSettingsSection() {
     handleUpdate({ enableStaticContextualization: value });
   };
 
-  // TODO defaults are in multiple places, should be consolidated and probably not explicit here
+  // TRACKED: Consolidate UI config defaults into a single source of truth
   const showSessionTabs = config.ui?.showSessionTabs ?? false;
   const continueAfterToolRejection =
     config.ui?.continueAfterToolRejection ?? false;

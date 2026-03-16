@@ -102,11 +102,7 @@ const OSRContextMenu = () => {
           !!(isEditable && selectedTextRef.current && isClickWithinSelection),
         );
 
-        // TODO only can paste if there is text in clipboard?
         setCanPaste(isEditable);
-        //   navigator.clipboard.readText().then((text) => {
-        //     setCanPaste(text || null);
-        //   });
 
         // Open towards inside of window from click
         const toRight = event.clientX > window.innerWidth / 2;

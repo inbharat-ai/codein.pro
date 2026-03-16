@@ -34,7 +34,7 @@ export async function preprocessToolCalls(
       }
       if (errorReason) {
         posthog.capture("tool_call_outcome", {
-          // model: , TODO
+          // TRACKED: Include model name in tool_call_outcome analytics event
           succeeded: false,
           toolName: tcState.toolCall.function.name,
           errorReason,

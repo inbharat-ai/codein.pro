@@ -19,8 +19,7 @@ export function ToolCallStatusMessage({
   const futureMessage: string = tool.wouldLikeTo
     ? Mustache.render(tool.wouldLikeTo, toolCallState.parsedArgs)
     : `use the ${defaultToolDescription}`;
-  // TODO go back and replace arg string values and tool names with <code> tags
-  // to make them more readable
+  // TRACKED: Wrap arg string values and tool names in <code> tags for readability
 
   let intro = getStatusIntro(toolCallState.status, tool.isInstant);
   let message = "";

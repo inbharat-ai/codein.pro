@@ -275,7 +275,7 @@ export const useFindWidget = (
       >
         Aa
       </HeaderButtonWithToolTip>
-      {/* TODO - add useRegex functionality */}
+      {/* TRACKED: Add useRegex search functionality */}
       <HeaderButton
         inverted={false}
         onClick={() => setOpen(false)}

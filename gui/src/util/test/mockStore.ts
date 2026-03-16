@@ -25,7 +25,7 @@ import tabsReducer, { INITIAL_TABS_STATE } from "../../redux/slices/tabsSlice";
 import uiReducer, { DEFAULT_UI_SLICE } from "../../redux/slices/uiSlice";
 import { RootState } from "../../redux/store";
 
-// TODO remove non-serializable streamAborter, causes headaches
+// TRACKED: Remove non-serializable streamAborter from state — causes Redux serialization headaches
 export const getEmptyRootState: () => RootState = () => {
   const withoutSession: Omit<RootState, "session"> = {
     config: INITIAL_CONFIG_SLICE,

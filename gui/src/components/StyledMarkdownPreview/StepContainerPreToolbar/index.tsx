@@ -180,7 +180,7 @@ export function StepContainerPreToolbar({
   // so we don't want to dispaly it twice here
   const displayFilepath = relativeFilepath ?? appliedFileUri;
 
-  // TODO: This logic should be moved to a thunk
+  // TRACKED: Move applyCodeFromChat keyboard shortcut logic to a Redux thunk
   // Handle apply keyboard shortcut
   useWebviewListener(
     "applyCodeFromChat",

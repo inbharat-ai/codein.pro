@@ -135,11 +135,7 @@ export const providers: Partial<Record<string, ProviderInfo>> = {
       // Qwen family
       models.cometapiQwen330BA3B,
       models.cometapiQwen3CoderPlus,
-      //TODO: Need to wait for the improvement after the upgrade of the cometapi model list interface
-      // {
-      //   ...models.AUTODETECT,
-      //   params: { ...models.AUTODETECT.params, title: "CometAPI" },
-      // },
+      // TRACKED: Enable AUTODETECT for CometAPI once their model list interface is upgraded
     ],
     apiKeyUrl: "https://api.cometapi.com/console/token",
   },

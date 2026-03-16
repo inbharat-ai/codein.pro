@@ -23,7 +23,7 @@ function DocsIndexingPeek({ status }: DocsIndexingPeekProps) {
     <div
       className="text-lightgray flex cursor-pointer flex-row items-center gap-2 rounded-md px-1 hover:bg-gray-700/10"
       onClick={() => {
-        // navigate("/more"); TODO
+        // TRACKED: Navigate to docs detail page when route is available
         dispatch(setShowDialog(false));
         dispatch(setDialogMessage(undefined));
       }}

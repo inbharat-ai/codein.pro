@@ -68,7 +68,7 @@ export const searchWithinContainer = (
   // One node can have several matches
   const newMatches: SearchMatch[] = [];
   textNodes.forEach((textNode, idx) => {
-    // Hacky way to detect code blocks that be wider than client and cause absolute positioning to fail
+    // Detect code blocks that may be wider than the client, causing absolute positioning to fail
     const highlightFullLine =
       textNode.parentElement?.className.includes("hljs");
 

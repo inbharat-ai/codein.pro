@@ -9,7 +9,6 @@ export type ConfigTab =
   | "settings"
   | "help";
 
-// TODO: Move all the routes here
 export const ROUTES = {
   HOME: "/",
   HOME_INDEX: "/index.html",

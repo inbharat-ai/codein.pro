@@ -104,8 +104,7 @@ export const PromptBlock = Node.create<PromptBlockOptions>({
             .run();
         },
 
-      // TODO: This could probably be greatly simplified with something along the lines of
-      // `editor.commands.deleteNode(this.name)`, but was unable to get it working
+      // TRACKED: Simplify with editor.commands.deleteNode(this.name) if possible
       clearPrompt:
         () =>
         ({ state, commands }) => {

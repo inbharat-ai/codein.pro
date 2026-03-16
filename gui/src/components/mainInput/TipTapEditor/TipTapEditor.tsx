@@ -39,8 +39,7 @@ export interface TipTapEditorProps {
   placeholder?: string;
   historyKey: string;
 
-  // TODO: This isn't actually used anywhere in this component, but it appears
-  // to be pulled into some of our TipTap extensions.
+  // Used by TipTap extensions, not directly by this component.
   inputId: string;
 }
 

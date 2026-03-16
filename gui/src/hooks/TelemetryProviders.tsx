@@ -23,7 +23,7 @@ const TelemetryProviders = ({ children }: PropsWithChildren) => {
   );
   const { session } = useAuth();
 
-  // TODO: Remove Continue team member check once Sentry is ready for all users
+  // TRACKED: Remove Continue team member check once Sentry is ready for all users
   const hasContinueEmail = isContinueTeamMember(
     (session as HubSessionInfo)?.account?.id,
   );

@@ -146,7 +146,7 @@ export const enterEdit = createAsyncThunk<
     await dispatch(
       saveCurrentSession({
         openNewSession: true,
-        // Because this causes a lag before Edit is focused. TODO just have that happen in background
+        // TRACKED: Run generateTitle in background so it doesn't block Edit focus
         generateTitle: false,
       }),
     );

@@ -16,7 +16,7 @@ export function UpdateNotification() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const api = (window as any).electron;
+    const api = window.electron;
     if (!api?.ipcRenderer) return;
 
     const { ipcRenderer } = api;
@@ -49,12 +49,12 @@ export function UpdateNotification() {
   if (state.status === "idle" || dismissed) return null;
 
   const handleDownload = () => {
-    const api = (window as any).electron;
+    const api = window.electron;
     api?.ipcRenderer?.send("download-update");
   };
 
   const handleInstall = () => {
-    const api = (window as any).electron;
+    const api = window.electron;
     api?.ipcRenderer?.send("quit-and-install");
   };
 
