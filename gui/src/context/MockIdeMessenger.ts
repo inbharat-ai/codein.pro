@@ -207,13 +207,8 @@ export class MockIdeMessenger implements IIdeMessenger {
   ): AsyncGenerator<ChatMessage[], PromptLog | undefined> {
     for (const response of this.chatResponse) {
       if (cancelToken.aborted) {
-        console.log("MockIdeMessenger: Stream aborted");
         return undefined;
       }
-      console.log(
-        "MockIdeMessenger: Yielding chunk",
-        JSON.stringify(response, null, 2),
-      );
       yield [response];
       if (this.chatStreamDelay > 0) {
         await new Promise((resolve) =>
@@ -251,7 +246,6 @@ export class MockIdeMessenger implements IIdeMessenger {
         done: true,
       };
     }
-    console.error(messageType);
     throw new Error(
       "MockIdeMessenger: No response handler or response defined for " +
         messageType,

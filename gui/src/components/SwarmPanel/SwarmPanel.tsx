@@ -10,7 +10,7 @@ import {
   type SwarmEvent,
 } from "../../redux/slices/swarmSlice";
 import { ErrorBoundary } from "../ErrorBoundary";
-import { getAgentBaseUrl } from "../../util/agentConfig";
+import { getAgentV1BaseUrl } from "../../util/agentConfig";
 import { SwarmAgents } from "./SwarmAgents";
 import { SwarmAnalytics } from "./SwarmAnalytics";
 import { SwarmBackgroundTasks } from "./SwarmBackgroundTasks";
@@ -25,6 +25,14 @@ import { SwarmTimeline } from "./SwarmTimeline";
 import { SwarmWorkspaceIntel } from "./SwarmWorkspaceIntel";
 
 type DashboardTab = "overview" | "analytics" | "extensions" | "workspace";
+
+// Stable constant — avoids re-creating on every render
+const DASHBOARD_TABS: { key: DashboardTab; label: string }[] = [
+  { key: "overview", label: "Overview" },
+  { key: "analytics", label: "Analytics" },
+  { key: "extensions", label: "Extensions" },
+  { key: "workspace", label: "Workspace" },
+];
 
 export function SwarmPanel() {
   const dispatch = useAppDispatch();
@@ -46,7 +54,7 @@ export function SwarmPanel() {
   // SSE connection
   useEffect(() => {
     if (!isActive) return;
-    const es = new EventSource(`${getAgentBaseUrl()}/swarm/events`);
+    const es = new EventSource(`${getAgentV1BaseUrl()}/swarm/events`);
     evtSourceRef.current = es;
 
     es.onopen = () => dispatch(setSseConnected(true));
@@ -66,13 +74,6 @@ export function SwarmPanel() {
     };
   }, [isActive, dispatch]);
 
-  const tabs: { key: DashboardTab; label: string }[] = [
-    { key: "overview", label: "Overview" },
-    { key: "analytics", label: "Analytics" },
-    { key: "extensions", label: "Extensions" },
-    { key: "workspace", label: "Workspace" },
-  ];
-
   return (
     <div className="bg-codin-bg flex h-full flex-col overflow-hidden">
       <SwarmHeader />
@@ -80,7 +81,7 @@ export function SwarmPanel() {
         <>
           {/* Tab bar */}
           <div className="border-codin-border flex gap-1 border-b px-3 py-1.5">
-            {tabs.map((t) => (
+            {DASHBOARD_TABS.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}

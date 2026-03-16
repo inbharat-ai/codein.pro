@@ -133,9 +133,37 @@ interface CodinAPI {
   window: CodinWindowAPI;
 }
 
+/* ── Electron IPC ─────────────────────────────────────────── */
+interface ElectronIpcRenderer {
+  invoke(channel: string, ...args: any[]): Promise<any>;
+  send(channel: string, ...args: any[]): void;
+  on(channel: string, listener: (...args: any[]) => void): void;
+}
+
+interface ElectronAPI {
+  ipcRenderer: ElectronIpcRenderer;
+}
+
 declare global {
   interface Window {
     codinAPI: CodinAPI;
+
+    /** Electron IPC bridge (present when running inside Electron) */
+    electron?: ElectronAPI;
+
+    /** Speech Recognition API (standard + webkit prefix) */
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+
+    /** Global override for the CodeIn agent HTTP base URL */
+    CODIN_AGENT_URL?: string;
+
+    /** JetBrains IDE integration properties */
+    windowId?: string;
+    serverUrl?: string;
+    workspacePaths?: string[];
+    vscMachineId?: string;
+    vscMediaUrl?: string;
   }
 }
 

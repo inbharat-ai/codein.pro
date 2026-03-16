@@ -31,7 +31,7 @@ export default function List({ llmLog, onClickInteraction }: ListProps) {
 
   return (
     <ul
-      tabIndex={1}
+      tabIndex={0}
       ref={topRef}
       className="border-[color:var(--codin-border, #2a2845)] group m-0 w-[150px] flex-none list-none overflow-auto border-0 border-r-2 border-solid p-0"
     >

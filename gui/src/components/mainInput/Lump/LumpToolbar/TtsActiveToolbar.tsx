@@ -1,37 +1,23 @@
 import { useContext } from "react";
-import styled from "styled-components";
 import { IdeMessengerContext } from "../../../../context/IdeMessenger";
 import { getFontSize } from "../../../../util";
 import { GeneratingIndicator } from "./GeneratingIndicator";
-
-const Container = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-`;
-
-const StopButton = styled.div`
-  font-size: ${getFontSize() - 3}px;
-  padding: 2px;
-  padding-right: 4px;
-  cursor: pointer;
-`;
 
 export function TtsActiveToolbar() {
   const ideMessenger = useContext(IdeMessengerContext);
 
   return (
-    <Container>
+    <div className="flex w-full items-center justify-between">
       <GeneratingIndicator />
-      <StopButton
-        className="text-description"
+      <div
+        className="text-description cursor-pointer py-0.5 pr-1"
+        style={{ fontSize: `${getFontSize() - 3}px` }}
         onClick={() => {
           ideMessenger.post("tts/kill", undefined);
         }}
       >
         ■ Stop TTS
-      </StopButton>
-    </Container>
+      </div>
+    </div>
   );
 }

@@ -1,25 +1,6 @@
 import { useAppDispatch } from "../redux/hooks";
 import { streamSwarmTask } from "../redux/thunks/streamSwarmTask";
 import { useCallback, useRef, useState } from "react";
-import styled from "styled-components";
-
-const DropZone = styled.div<{ $isDragging: boolean }>`
-  border: 2px dashed
-    ${(p) =>
-      p.$isDragging
-        ? "var(--codin-accent, #e8a849)"
-        : "var(--codin-border, #2a2845)"};
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 0.2s;
-  margin: 1rem;
-
-  &:hover {
-    border-color: var(--codin-accent, #e8a849);
-  }
-`;
 
 export function VibeModeView() {
   const dispatch = useAppDispatch();
@@ -91,8 +72,8 @@ export function VibeModeView() {
         Drop a screenshot or describe what you want to build
       </p>
 
-      <DropZone
-        $isDragging={isDragging}
+      <div
+        className={`m-4 cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-[border-color] duration-200 hover:border-[var(--codin-accent,#e8a849)] ${isDragging ? "border-[var(--codin-accent,#e8a849)]" : "border-[var(--codin-border,#2a2845)]"}`}
         onDragOver={(e) => {
           e.preventDefault();
           setIsDragging(true);
@@ -113,7 +94,7 @@ export function VibeModeView() {
             <p className="mt-2 text-xs opacity-50">or click to upload</p>
           </div>
         )}
-      </DropZone>
+      </div>
 
       <input
         ref={fileInputRef}

@@ -120,6 +120,9 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <div className="ide-shell">
+      <a href="#main-content" className="codin-skip-link">
+        Skip to content
+      </a>
       {/* Activity Bar */}
       <ErrorBoundary>
         <div className="ide-activity-bar">
@@ -180,12 +183,14 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
 
       {/* Main Content Area */}
       <ErrorBoundary>
-        <div className="ide-main">{children}</div>
+        <main id="main-content" className="ide-main">
+          {children}
+        </main>
       </ErrorBoundary>
 
       {/* Status Bar */}
       <ErrorBoundary>
-        <div className="ide-status-bar">
+        <footer className="ide-status-bar">
           <div className="ide-status-left">
             <span className="ide-status-item">
               <svg
@@ -217,7 +222,7 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
               {t("statusBar.language")}
             </span>
           </div>
-        </div>
+        </footer>
       </ErrorBoundary>
     </div>
   );

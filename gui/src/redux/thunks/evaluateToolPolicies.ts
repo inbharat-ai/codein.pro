@@ -44,7 +44,7 @@ async function evaluateToolPolicy(
 
   // Evaluate the policy dynamically
   if (result.status === "error") {
-    console.error(`Error evaluating tool policy for ${toolName}`, result.error);
+    // Tool policy evaluation failed, defaulting to disabled
     return { policy: "disabled", toolCallState };
   }
 

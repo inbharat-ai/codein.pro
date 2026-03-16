@@ -42,7 +42,6 @@ function resolveParagraph(p: JSONContent): [string, GetContextRequest[]] {
           return child.attrs?.renderInlineAs ?? child.attrs?.label;
 
         default:
-          console.warn("Unexpected child type", child.type);
           return "";
       }
     })
@@ -79,7 +78,6 @@ export function processEditorContent(editorState: JSONContent) {
         break;
       case CodeBlock.name:
         if (!p.attrs?.item) {
-          console.warn("codeBlock has no item attribute");
           break;
         }
 
@@ -111,7 +109,7 @@ export function processEditorContent(editorState: JSONContent) {
         });
         break;
       default: {
-        console.warn("Unexpected content type", p.type);
+        // Unexpected content type, ignored
       }
     }
   }

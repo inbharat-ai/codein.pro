@@ -83,7 +83,8 @@ runs:
       shell: bash
       run: |
         cd packages/extension
-        npm ci
+        rm -f package-lock.json
+        npm install --no-audit --no-fund
       env:
         # https://github.com/microsoft/vscode-ripgrep/issues/9#issuecomment-643965333
         GITHUB_TOKEN: ${{ inputs.github-token }}
@@ -92,13 +93,15 @@ runs:
       shell: bash
       run: |
         cd gui
-        npm ci
+        rm -f package-lock.json
+        npm install --no-audit --no-fund
 
     - name: Install core dependencies
       shell: bash
       run: |
         cd core
-        npm ci
+        rm -f package-lock.json
+        npm install --no-audit --no-fund
         npm i vectordb
 
     - name: Build GUI

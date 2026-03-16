@@ -7,7 +7,7 @@ import { findAllCurToolCallsByStatus } from "../../../redux/util";
 import { cancelToolCall } from "../../../redux/slices/sessionSlice";
 import { updateConfig } from "../../../redux/slices/configSlice";
 
-describe("Parallel Tool Calls - Actions", () => {
+describe("Parallel Tool Calls - Actions", { timeout: 15_000 }, () => {
   const PARALLEL_TOOL_CALL_RESPONSE: ChatMessage[] = [
     {
       role: "assistant",

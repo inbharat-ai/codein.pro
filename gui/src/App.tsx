@@ -8,9 +8,13 @@ import { ToastProvider } from "./components/ui/Toast";
 import { SubmenuContextProvidersProvider } from "./context/SubmenuContextProviders";
 import { VscThemeProvider } from "./context/VscTheme";
 import ParallelListeners from "./hooks/ParallelListeners";
+import { initializeTheme } from "./hooks/useTheme";
 import Chat from "./pages/gui";
 import ErrorPage from "./pages/error";
 import { ROUTES } from "./util/navigation";
+
+// Apply theme before first paint to prevent flash
+initializeTheme();
 
 // ── Lazy-loaded routes (code-split) ──────────────────────────────────
 const ConfigPage = React.lazy(() => import("./pages/config"));
@@ -56,9 +60,11 @@ function lazySuspense(
   message?: string,
 ) {
   return (
-    <Suspense fallback={<LoadingPanel message={message ?? "Loading..."} />}>
-      <Component />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingPanel message={message ?? "Loading..."} />}>
+        <Component />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

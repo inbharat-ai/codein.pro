@@ -70,6 +70,7 @@ export function UserSetting(props: UserSettingProps) {
             disabled={disabled}
             onToggle={() => props.onChange(!props.value)}
             text=""
+            aria-label={title}
           />
         );
 
@@ -78,6 +79,7 @@ export function UserSetting(props: UserSettingProps) {
           <div className="border-command-border bg-codin-bg-surface focus-within:border-border-focus focus-within:ring-border-focus flex w-20 items-center rounded-md border border-solid focus-within:ring-1">
             <input
               type="number"
+              aria-label={title}
               value={props.value}
               onChange={(e) => {
                 const value = Number(e.target.value);
@@ -128,7 +130,10 @@ export function UserSetting(props: UserSettingProps) {
             onChange={props.onChange}
             disabled={disabled}
           >
-            <ListboxButton className="border-command-border !w-20 w-20 !flex-none justify-between !rounded-md px-2 py-1">
+            <ListboxButton
+              aria-label={title}
+              className="border-command-border !w-20 w-20 !flex-none justify-between !rounded-md px-2 py-1"
+            >
               {props.options.find((opt) => opt.value === props.value)?.label ||
                 props.value}
               <ChevronDownIcon className="h-3 w-3" />
@@ -164,6 +169,7 @@ export function UserSetting(props: UserSettingProps) {
                 >
                   <input
                     type="text"
+                    aria-label={title}
                     value={props.value}
                     onChange={(e) => props.onChange(e.target.value)}
                     placeholder={props.placeholder}
@@ -195,6 +201,7 @@ export function UserSetting(props: UserSettingProps) {
           >
             <input
               type="text"
+              aria-label={title}
               value={props.value}
               onChange={(e) => props.onChange(e.target.value)}
               disabled={disabled}

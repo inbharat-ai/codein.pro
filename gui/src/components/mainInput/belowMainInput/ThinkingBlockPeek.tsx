@@ -3,17 +3,9 @@ import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { ChevronUpIcon } from "@heroicons/react/24/solid";
 import { ChatHistoryItem } from "core";
 import { useEffect, useState } from "react";
-import styled from "styled-components";
-
 import { AnimatedEllipsis } from "../../AnimatedEllipsis";
 import StyledMarkdownPreview from "../../StyledMarkdownPreview";
 import { Button } from "../../ui";
-
-const MarkdownWrapper = styled.div`
-  & > div > *:first-child {
-    margin-top: 0 !important;
-  }
-`;
 
 interface ThinkingBlockPeekProps {
   content: string;
@@ -97,13 +89,13 @@ function ThinkingBlockPeek({
               Thinking content redacted due to safety reasons.
             </div>
           ) : (
-            <MarkdownWrapper>
+            <div className="codin-markdown-wrapper">
               <StyledMarkdownPreview
                 isRenderingInStepContainer
                 source={content}
                 itemIndex={index}
               />
-            </MarkdownWrapper>
+            </div>
           )}
         </div>
       </div>

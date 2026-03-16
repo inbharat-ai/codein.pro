@@ -1,6 +1,6 @@
 /** IPC / HTTP bridge for the media service. */
 
-const ipc = (window as any).electron?.ipcRenderer;
+const ipc = window.electron?.ipcRenderer;
 
 export async function mediaInvoke(
   channel: string,

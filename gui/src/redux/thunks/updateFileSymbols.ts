@@ -62,7 +62,7 @@ export const updateFileSymbolsFromFiles = createAsyncThunk<
         dispatch(updateFileSymbols(result.content));
       }
     } catch (e) {
-      console.error("Error updating file symbols from filepaths", e, filepaths);
+      // File symbols update failed, non-critical
     }
   },
 );
@@ -108,6 +108,6 @@ export const updateFileSymbolsFromHistory = createAsyncThunk<
     }
   } catch (e) {
     // Catch all - don't want file symbols to break the chat experience for now
-    console.error("Error updating file symbols from context items", e);
+    // File symbols update from context items failed, non-critical
   }
 });

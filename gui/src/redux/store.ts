@@ -48,9 +48,8 @@ const saveSubsetFilters = [
     // Persist edit mode in case closes in middle
     "mode",
 
-    // higher risk to persist
-    // codeBlockApplyStates
-    // symbols
+    // Persist chat history across restarts (pruned to last 50 messages in migration)
+    "history",
   ]),
   createFilter("editModeState", [
     "returnToMode",
@@ -73,6 +72,8 @@ const saveSubsetFilters = [
     "organizations",
   ]),
 ];
+
+const MAX_PERSISTED_HISTORY = 50;
 
 const migrations: MigrationManifest = {
   "0": (state) => {
@@ -98,10 +99,28 @@ const migrations: MigrationManifest = {
       _persist: oldState?._persist,
     };
   },
+  "2": (state) => {
+    const oldState = state as any;
+    // Prune history to last 50 messages and strip non-serializable fields
+    const history = Array.isArray(oldState?.session?.history)
+      ? oldState.session.history.slice(-MAX_PERSISTED_HISTORY)
+      : [];
+
+    return {
+      ...oldState,
+      session: {
+        ...oldState?.session,
+        history,
+        // Reset streaming state on migration — can't be mid-stream across restart
+        isStreaming: false,
+        streamAborter: undefined,
+      },
+    };
+  },
 };
 
 const persistConfig = {
-  version: 1,
+  version: 2,
   key: "root",
   storage,
   transforms: [...saveSubsetFilters],

@@ -442,9 +442,6 @@ describe("processEditorContent", () => {
       ],
     };
 
-    // Spy on console.warn to verify it's called
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
     const result = processEditorContent(editorState);
 
     // Only the normal paragraph should be processed
@@ -454,14 +451,6 @@ describe("processEditorContent", () => {
         text: "Normal text",
       },
     ]);
-
-    // Console.warn should be called for the unknown type
-    expect(warnSpy).toHaveBeenCalledWith(
-      "Unexpected content type",
-      "unknown-type",
-    );
-
-    warnSpy.mockRestore();
   });
 
   test("processEditorContent should handle missing attrs in code blocks", () => {
@@ -476,19 +465,11 @@ describe("processEditorContent", () => {
       ],
     };
 
-    // Spy on console.warn to verify it's called
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
     const result = processEditorContent(editorState);
 
     // No parts should be created
     expect(result.parts).toEqual([]);
     expect(result.selectedCode).toEqual([]);
-
-    // Console.warn should be called for the missing item attribute
-    expect(warnSpy).toHaveBeenCalledWith("codeBlock has no item attribute");
-
-    warnSpy.mockRestore();
   });
 
   test("processEditorContent should handle paragraphs with unexpected child types", () => {
@@ -512,9 +493,6 @@ describe("processEditorContent", () => {
       ],
     };
 
-    // Spy on console.warn to verify it's called
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-
     const result = processEditorContent(editorState);
 
     // Only the normal text should be processed
@@ -524,13 +502,5 @@ describe("processEditorContent", () => {
         text: "Normal text ",
       },
     ]);
-
-    // Console.warn should be called for the unknown child type
-    expect(warnSpy).toHaveBeenCalledWith(
-      "Unexpected child type",
-      "unknown-child",
-    );
-
-    warnSpy.mockRestore();
   });
 });

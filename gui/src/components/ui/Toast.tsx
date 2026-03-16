@@ -113,8 +113,8 @@ function ToastEntry({
 
   return (
     <div
-      role="alert"
-      aria-live="polite"
+      role={item.variant === "error" ? "alert" : "status"}
+      aria-live={item.variant === "error" ? "assertive" : "polite"}
       style={{
         background: style.bg,
         borderLeft: `3px solid ${style.border}`,
@@ -232,6 +232,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
       {/* Toast container — fixed top-right */}
       <div
+        role="region"
         aria-label="Notifications"
         className="pointer-events-none fixed right-4 top-4 z-[100001] flex flex-col items-end"
       >

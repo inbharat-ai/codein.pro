@@ -11,6 +11,7 @@ type ToggleSwitchProps = {
   showIfToggled?: ReactNode;
   disabled?: boolean;
   tooltip?: string;
+  "aria-label"?: string;
 };
 
 const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
@@ -21,6 +22,7 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   showIfToggled,
   disabled = false,
   tooltip,
+  "aria-label": ariaLabel,
 }) => {
   return (
     <div
@@ -37,6 +39,10 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
       <div className="flex flex-row items-center gap-1">
         {isToggled && !!showIfToggled && showIfToggled}
         <div
+          role="switch"
+          aria-checked={isToggled}
+          aria-label={ariaLabel}
+          tabIndex={disabled ? -1 : 0}
           className={`border-command-border bg-codin-bg-surface relative flex items-center rounded-full border border-solid`}
           onClick={
             disabled
@@ -44,6 +50,16 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
               : (e) => {
                   e.stopPropagation();
                   onToggle();
+                }
+          }
+          onKeyDown={
+            disabled
+              ? undefined
+              : (e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onToggle();
+                  }
                 }
           }
           style={{

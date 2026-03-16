@@ -44,7 +44,7 @@ export async function renderSlashCommandPrompt(
       isLegacy: command.isLegacy,
     });
   } catch (e) {
-    console.error(e);
+    // Posthog capture failed silently
   }
 
   const nonTextParts = parts.filter((part) => part.type !== "text");
@@ -90,7 +90,6 @@ export async function renderSlashCommandPrompt(
     case "yaml-prompt-block":
     case "invokable-rule":
       if (!command.prompt) {
-        console.warn(`Invalid/empty prompt from slash command ${command.name}`);
         break;
       }
       let renderedPrompt: string;
@@ -118,17 +117,12 @@ export async function renderSlashCommandPrompt(
           type: "text",
           text: renderedPrompt, // Includes user input
         });
-      } else {
-        console.warn(
-          `Invalid/empty prompt + input from slash command ${command.name}`,
-        );
       }
 
       break;
     case "built-in":
     case "json-custom-command":
       if (!command.prompt) {
-        console.warn(`Slash command ${command.name} is missing prompt`);
         break;
       }
       let rendered = command.prompt;
@@ -140,10 +134,6 @@ export async function renderSlashCommandPrompt(
           type: "text",
           text: rendered,
         });
-      } else {
-        console.warn(
-          `Invalid/empty prompt + input from slash command ${command.name}`,
-        );
       }
     default:
       break;

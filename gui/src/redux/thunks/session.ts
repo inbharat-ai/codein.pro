@@ -269,7 +269,7 @@ export const saveCurrentSession = createAsyncThunk<
               title = result.content;
             }
           } catch (e) {
-            console.error("Error generating chat title", e);
+            // Chat title generation failed, using fallback
           }
         }
       }

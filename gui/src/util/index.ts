@@ -1,8 +1,18 @@
 import { ProfileDescription } from "core/config/ProfileLifecycleManager";
-import { KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  KeyboardEvent as ReactKeyboardEvent,
+  MouseEvent as ReactMouseEvent,
+} from "react";
 import { getLocalStorage } from "./localStorage";
 
 export type Platform = "mac" | "linux" | "windows" | "unknown";
+
+/** Any browser/React event that carries modifier-key flags. */
+type ModifierKeyEvent =
+  | KeyboardEvent
+  | MouseEvent
+  | ReactKeyboardEvent
+  | ReactMouseEvent;
 
 export function getPlatform(): Platform {
   const platform = window.navigator.platform.toUpperCase();
@@ -20,7 +30,7 @@ export function getPlatform(): Platform {
 export function isMetaEquivalentKeyPressed({
   metaKey,
   ctrlKey,
-}: KeyboardEvent | ReactKeyboardEvent): boolean {
+}: ModifierKeyEvent): boolean {
   const platform = getPlatform();
   switch (platform) {
     case "mac":
@@ -72,9 +82,6 @@ export function isWebEnvironment(): boolean {
 export function isPrerelease() {
   const extensionVersion = getLocalStorage("extensionVersion");
   if (!extensionVersion) {
-    console.warn(
-      `Could not find extension version in local storage, assuming it's a prerelease`,
-    );
     return true;
   }
   const minor = parseInt(extensionVersion.split(".")[1], 10);

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { agentFetch as baseAgentFetch } from "../util/agentConfig";
+import { EmptyState } from "./ui/EmptyState";
+import { LoadingPanel } from "./ui/LoadingState";
 import "./panels.css";
 
 interface GitStatus {
@@ -161,63 +163,170 @@ export default function GitPanel() {
         </div>
       </section>
 
-      {status && (
-        <>
-          <section className="panel-section">
-            <h3>Status: {status.branch}</h3>
-            {status.modified.length > 0 && (
-              <div className="git-section">
-                <h4>Modified ({status.modified.length})</h4>
-                <ul className="file-list">
-                  {status.modified.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {status.untracked.length > 0 && (
-              <div className="git-section">
-                <h4>Untracked ({status.untracked.length})</h4>
-                <ul className="file-list">
-                  {status.untracked.slice(0, 5).map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </section>
-
-          <section className="panel-section">
-            <h3>Commit Changes</h3>
-            <textarea
-              placeholder="Commit message"
-              value={commitMessage}
-              onChange={(e) => setCommitMessage(e.target.value)}
-              rows={3}
-            />
-            <button onClick={handleCommit} disabled={loading}>
-              Commit
-            </button>
-          </section>
-
-          <section className="panel-section">
-            <h3>Create Branch</h3>
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Branch name"
-                value={branchName}
-                onChange={(e) => setBranchName(e.target.value)}
-              />
-              <button onClick={handleCreateBranch} disabled={loading}>
-                Create & Checkout
-              </button>
-            </div>
-          </section>
-        </>
+      {/* Loading State */}
+      {loading && !status && (
+        <LoadingPanel
+          message="Fetching repository status..."
+          className="py-8"
+        />
       )}
 
-      {error && <div className="error-message">{error}</div>}
+      {/* Error State */}
+      {error && (
+        <div
+          className="error-message"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span>{error}</span>
+          <button
+            onClick={handleGetStatus}
+            style={{
+              marginLeft: 8,
+              textDecoration: "underline",
+              background: "none",
+              border: "none",
+              color: "inherit",
+              cursor: "pointer",
+              fontSize: "inherit",
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Empty State - before first status check */}
+      {!loading && !status && !error && (
+        <EmptyState
+          icon={
+            <svg
+              className="h-10 w-10"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+          }
+          title="No Repository Status"
+          message="Enter a repository path above and click 'Check Status' to get started."
+        />
+      )}
+
+      {/* Empty state - repo has no changes */}
+      {!loading &&
+        status &&
+        status.modified.length === 0 &&
+        status.staged.length === 0 &&
+        status.untracked.length === 0 && (
+          <>
+            <section className="panel-section">
+              <h3>Status: {status.branch}</h3>
+              <EmptyState
+                icon={
+                  <svg
+                    className="h-8 w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                }
+                title="Working Tree Clean"
+                message="No modified, staged, or untracked files."
+              />
+            </section>
+
+            <section className="panel-section">
+              <h3>Create Branch</h3>
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Branch name"
+                  value={branchName}
+                  onChange={(e) => setBranchName(e.target.value)}
+                />
+                <button onClick={handleCreateBranch} disabled={loading}>
+                  Create & Checkout
+                </button>
+              </div>
+            </section>
+          </>
+        )}
+
+      {status &&
+        (status.modified.length > 0 ||
+          status.staged.length > 0 ||
+          status.untracked.length > 0) && (
+          <>
+            <section className="panel-section">
+              <h3>Status: {status.branch}</h3>
+              {status.modified.length > 0 && (
+                <div className="git-section">
+                  <h4>Modified ({status.modified.length})</h4>
+                  <ul className="file-list">
+                    {status.modified.map((f) => (
+                      <li key={f}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {status.untracked.length > 0 && (
+                <div className="git-section">
+                  <h4>Untracked ({status.untracked.length})</h4>
+                  <ul className="file-list">
+                    {status.untracked.slice(0, 5).map((f) => (
+                      <li key={f}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
+
+            <section className="panel-section">
+              <h3>Commit Changes</h3>
+              <textarea
+                placeholder="Commit message"
+                value={commitMessage}
+                onChange={(e) => setCommitMessage(e.target.value)}
+                rows={3}
+              />
+              <button onClick={handleCommit} disabled={loading}>
+                Commit
+              </button>
+            </section>
+
+            <section className="panel-section">
+              <h3>Create Branch</h3>
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Branch name"
+                  value={branchName}
+                  onChange={(e) => setBranchName(e.target.value)}
+                />
+                <button onClick={handleCreateBranch} disabled={loading}>
+                  Create & Checkout
+                </button>
+              </div>
+            </section>
+          </>
+        )}
     </div>
   );
 }

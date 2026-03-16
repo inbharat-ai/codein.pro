@@ -296,8 +296,6 @@ describe("DocsIndexingStatus", () => {
   });
 
   it("handles error when fetching indexed pages", async () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
     const storeState = {
       indexing: {
         indexing: {
@@ -317,15 +315,10 @@ describe("DocsIndexingStatus", () => {
     };
     await renderComponent({}, storeState, mockMessenger);
 
+    // Component should still render without crashing even if page fetch fails
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(
-          "Unable to fetch pages list for https://example.com",
-        ),
-      );
+      expect(screen.getByText("Loading site info...")).toBeInTheDocument();
     });
-
-    consoleSpy.mockRestore();
   });
 
   it("returns null when hasDeleted is true", async () => {

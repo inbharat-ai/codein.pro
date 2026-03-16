@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { agentFetch as baseAgentFetch } from "../util/agentConfig";
+import { EmptyState } from "./ui/EmptyState";
+import { LoadingPanel } from "./ui/LoadingState";
 import "./panels.css";
 
 interface QueueItem {
@@ -24,6 +26,20 @@ export default function PermissionsPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [workspacePath, setWorkspacePath] = useState(".");
+  // Tracks in-flight POST actions. Uses requestId for per-item actions,
+  // or a sentinel string ("grant" | "revoke" | "reset") for global actions.
+  const [actionInProgress, setActionInProgress] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const markAction = (key: string) =>
+    setActionInProgress((prev) => new Set(prev).add(key));
+  const clearAction = (key: string) =>
+    setActionInProgress((prev) => {
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
 
   useEffect(() => {
     void loadPermissions();
@@ -59,6 +75,7 @@ export default function PermissionsPanel() {
     requestId: string,
     response: boolean,
   ) => {
+    markAction(requestId);
     try {
       await baseAgentFetch("/permissions/respond", {
         method: "POST",
@@ -70,10 +87,14 @@ export default function PermissionsPanel() {
       setError(
         err instanceof Error ? err.message : "Permission request failed",
       );
+    } finally {
+      clearAction(requestId);
     }
   };
 
   const handleToggleExtendedAccess = async (grant: boolean) => {
+    const key = grant ? "grant" : "revoke";
+    markAction(key);
     try {
       await baseAgentFetch("/permissions/extended-access", {
         method: "POST",
@@ -85,10 +106,13 @@ export default function PermissionsPanel() {
       setError(
         err instanceof Error ? err.message : "Failed to update extended access",
       );
+    } finally {
+      clearAction(key);
     }
   };
 
   const handleResetPolicy = async () => {
+    markAction("reset");
     try {
       await baseAgentFetch("/permissions/reset", {
         method: "POST",
@@ -98,6 +122,8 @@ export default function PermissionsPanel() {
       void loadPermissions();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reset policy");
+    } finally {
+      clearAction("reset");
     }
   };
 
@@ -114,6 +140,7 @@ export default function PermissionsPanel() {
             type="text"
             value={workspacePath}
             placeholder="Workspace path"
+            aria-label="Workspace path"
             onChange={(e) => setWorkspacePath(e.target.value)}
           />
           <button onClick={() => void loadPermissions()} disabled={loading}>
@@ -136,34 +163,71 @@ export default function PermissionsPanel() {
           <div className="permission-actions">
             <button
               onClick={() => void handleToggleExtendedAccess(true)}
+              disabled={actionInProgress.has("grant")}
               className="btn-primary"
             >
-              Grant Extended Access
+              {actionInProgress.has("grant")
+                ? "Granting…"
+                : "Grant Extended Access"}
             </button>
             <button
               onClick={() => void handleToggleExtendedAccess(false)}
+              disabled={actionInProgress.has("revoke")}
               className="btn-secondary"
             >
-              Revoke Extended Access
+              {actionInProgress.has("revoke")
+                ? "Revoking…"
+                : "Revoke Extended Access"}
             </button>
             <button
               onClick={() => void handleResetPolicy()}
+              disabled={actionInProgress.has("reset")}
               className="btn-secondary"
             >
-              Reset Policy
+              {actionInProgress.has("reset") ? "Resetting…" : "Reset Policy"}
             </button>
           </div>
         </section>
       )}
 
       {loading ? (
-        <div className="loading">Loading permissions...</div>
+        <LoadingPanel message="Loading permissions..." />
       ) : error ? (
-        <div className="error-message">{error}</div>
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="error-message"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span>{error}</span>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={() => setError("")}
+              className="btn-secondary"
+              style={{ fontSize: "12px", padding: "2px 8px" }}
+            >
+              Dismiss
+            </button>
+            <button
+              onClick={() => void loadPermissions()}
+              className="btn-primary"
+              style={{ fontSize: "12px", padding: "2px 8px" }}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
       ) : (
         <div className="permissions-list">
           {queue.length === 0 && (
-            <div className="result-card">No pending requests</div>
+            <EmptyState
+              title="No pending permissions"
+              message="Permission requests will appear here when agents need approval."
+            />
           )}
           {queue.map((perm) => (
             <div key={perm.requestId} className="permission-card">
@@ -177,14 +241,16 @@ export default function PermissionsPanel() {
                   onClick={() =>
                     void handleRespondPermission(perm.requestId, true)
                   }
+                  disabled={actionInProgress.has(perm.requestId)}
                   className="btn-primary"
                 >
-                  Allow
+                  {actionInProgress.has(perm.requestId) ? "Working…" : "Allow"}
                 </button>
                 <button
                   onClick={() =>
                     void handleRespondPermission(perm.requestId, false)
                   }
+                  disabled={actionInProgress.has(perm.requestId)}
                   className="btn-secondary"
                 >
                   Deny

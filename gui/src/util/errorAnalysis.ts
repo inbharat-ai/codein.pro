@@ -37,7 +37,12 @@ export function analyzeError(
   error: unknown,
   selectedModel: any,
 ): ErrorAnalysis {
-  const errorMessage = (error as any)?.message;
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? (error as { message: unknown }).message
+        : undefined;
   const parsedError = parseErrorMessage(
     typeof errorMessage === "string" ? errorMessage : "",
   );

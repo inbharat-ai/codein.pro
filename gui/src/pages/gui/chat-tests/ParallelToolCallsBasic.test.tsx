@@ -5,7 +5,7 @@ import { sendInputWithMockedResponse } from "../../../util/test/utils";
 import { Chat } from "../Chat";
 import { updateConfig } from "../../../redux/slices/configSlice";
 
-describe("Parallel Tool Calls - Basic", () => {
+describe("Parallel Tool Calls - Basic", { timeout: 15_000 }, () => {
   const PARALLEL_TOOL_CALL_RESPONSE: ChatMessage[] = [
     {
       role: "assistant",

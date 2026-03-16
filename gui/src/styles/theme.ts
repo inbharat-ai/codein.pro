@@ -230,9 +230,6 @@ export const setDocumentStylesFromTheme = (
   Object.entries(theme).forEach(([colorName, value]) => {
     const themeVals = THEME_COLORS[colorName as keyof typeof THEME_COLORS];
     if (!themeVals) {
-      console.warn(
-        `Receieved theme color ${colorName} which is not used by the theme`,
-      );
       return;
     }
   });

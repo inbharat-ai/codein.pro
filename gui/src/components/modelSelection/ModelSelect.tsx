@@ -172,7 +172,7 @@ function ModelSelect() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.key === "'" &&
-        isMetaEquivalentKeyPressed(event as any) &&
+        isMetaEquivalentKeyPressed(event) &&
         !event.shiftKey // To prevent collisions w/ assistant toggle logic
       ) {
         if (!selectedProfile) {
@@ -308,7 +308,7 @@ function ModelSelect() {
                   <ListboxOption
                     key={options.length}
                     onClick={onClickAddModel}
-                    value={"addModel" as any}
+                    value="addModel"
                     fontSizeModifier={-2}
                     className="px-2 py-2"
                   >

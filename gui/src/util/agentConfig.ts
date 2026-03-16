@@ -1,15 +1,15 @@
+export { getAgentBaseUrl as getAgentV1BaseUrl };
+
 export function getAgentBaseUrl(): string {
   // Prefer Vite env if provided
-  const viteUrl = (import.meta as any).env?.VITE_AGENT_URL as
-    | string
-    | undefined;
+  const viteUrl = import.meta.env?.VITE_AGENT_URL as string | undefined;
   if (viteUrl) {
     return viteUrl.replace(/\/$/, "");
   }
 
   // Allow window-level override when embedded
-  if (typeof window !== "undefined" && (window as any).CODIN_AGENT_URL) {
-    return String((window as any).CODIN_AGENT_URL).replace(/\/$/, "");
+  if (typeof window !== "undefined" && window.CODIN_AGENT_URL) {
+    return String(window.CODIN_AGENT_URL).replace(/\/$/, "");
   }
 
   // Fallback to local default

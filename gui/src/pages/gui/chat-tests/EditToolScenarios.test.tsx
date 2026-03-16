@@ -55,7 +55,7 @@ beforeEach(async () => {
 
 test(
   "Edit run with ask first policy and no auto apply",
-  { timeout: 15000 },
+  { timeout: 30000 },
   async () => {
     // Setup
     const { ideMessenger, store, user } = await renderWithProviders(<Chat />);

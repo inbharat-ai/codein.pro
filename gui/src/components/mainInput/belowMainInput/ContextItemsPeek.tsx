@@ -139,7 +139,7 @@ export function ContextItemsPeekItem({
                   e.stopPropagation();
                   ideMessenger.post("openUrl", contextItem.uri.value);
                 } else {
-                  console.error("Couldn't open url", contextItem.uri);
+                  // URL not available to open
                 }
               }
             : undefined

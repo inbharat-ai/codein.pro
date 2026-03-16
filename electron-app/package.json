@@ -30,6 +30,7 @@
     "fix-path": "^3.0.0",
     "monaco-editor": "^0.45.0",
     "node-pty": "^1.0.0",
+    "electron-updater": "^6.1.7",
     "simple-git": "^3.25.0",
     "uuid": "^9.0.1",
     "xterm": "^5.3.0",
@@ -129,6 +130,13 @@
     "rpm": {
       "afterInstall": "build/linux-after-install.sh"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "AIS-Developers",
+        "repo": "codin"
+      }
+    ],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

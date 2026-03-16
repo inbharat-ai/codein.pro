@@ -28,7 +28,7 @@ export function useCreditStatus() {
         setCreditStatus(resp.content);
       }
     } catch (error) {
-      console.error("Failed to refresh credit status", error);
+      // Credit status refresh failed
     }
   }, [ideMessenger]);
 

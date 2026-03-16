@@ -3,11 +3,12 @@
  * Entry point for the standalone Electron application
  */
 
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import { buildAppMenu } from "./AppMenu";
 import { WindowManager } from "./WindowManager";
 import { IpcHandler } from "./ipc/IpcHandler";
 import { AgentService } from "./services/AgentService";
+import { AutoUpdateService } from "./services/AutoUpdateService";
 import { ComputeLocalService } from "./services/ComputeLocalService";
 import { FileSystemService } from "./services/FileSystemService";
 import { GitService } from "./services/GitService";
@@ -36,6 +37,7 @@ class CodeInApp {
   private llmBootstrapService: LLMBootstrapService | null = null;
   private localModulesBootstrapService: LocalModulesBootstrapService | null =
     null;
+  private autoUpdateService: AutoUpdateService | null = null;
 
   constructor() {
     this.setupApp();
@@ -87,6 +89,15 @@ class CodeInApp {
       } catch (serviceError) {
         console.warn("CodeIn: Some services failed to start:", serviceError);
       }
+
+      // Initialize auto-update (non-blocking)
+      this.autoUpdateService = new AutoUpdateService();
+      const mainWin = this.windowManager.getMainWindow();
+      if (mainWin) {
+        this.autoUpdateService.setMainWindow(mainWin);
+      }
+      this.registerAutoUpdateIpc();
+      this.autoUpdateService.checkForUpdates();
     } catch (error) {
       console.error("CodeIn: Failed to create window:", error);
       app.quit();

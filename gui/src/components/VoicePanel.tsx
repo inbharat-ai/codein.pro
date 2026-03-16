@@ -21,13 +21,6 @@ const LANGUAGES = [
   { label: "English US", code: "en-US", flag: "🇺🇸", native: "English" },
 ];
 
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
-
 export function VoicePanel() {
   const dispatch = useAppDispatch();
   const [isOpen, setIsOpen] = useState(false);
@@ -62,8 +55,7 @@ export function VoicePanel() {
     }
 
     const SpeechRecognitionImpl =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognitionImpl();
     recognition.lang = selectedLang.code;
     recognition.interimResults = true;

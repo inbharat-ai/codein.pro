@@ -1,4 +1,4 @@
-import { getAgentBaseUrl } from "./agentConfig";
+import { getAgentV1BaseUrl } from "./agentConfig";
 
 let _accessToken: string | null = null;
 let _refreshToken: string | null = null;
@@ -14,7 +14,7 @@ export async function ensureAuth(): Promise<string> {
   // Try refresh first if we have a refresh token
   if (_refreshToken) {
     try {
-      const base = getAgentBaseUrl();
+      const base = getAgentV1BaseUrl();
       const res = await fetch(`${base}/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -33,7 +33,7 @@ export async function ensureAuth(): Promise<string> {
   }
 
   // Fresh login
-  const base = getAgentBaseUrl();
+  const base = getAgentV1BaseUrl();
   const res = await fetch(`${base}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

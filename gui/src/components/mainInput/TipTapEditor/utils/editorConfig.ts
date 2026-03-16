@@ -388,6 +388,8 @@ export function createEditorConfig(options: {
           : `editor-input-${props.inputId}`,
         class: "ProseMirror outline-none overflow-hidden",
         style: `font-size: ${getFontSize()}px;`,
+        "aria-label": "Message input",
+        "aria-multiline": "true",
       },
     },
     content: props.editorState,

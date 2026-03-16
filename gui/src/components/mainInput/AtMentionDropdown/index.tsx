@@ -15,15 +15,7 @@ import {
   useState,
 } from "react";
 import { useDispatch } from "react-redux";
-import styled from "styled-components";
-import {
-  defaultBorderRadius,
-  lightGray,
-  vscForeground,
-  vscListActiveBackground,
-  vscListActiveForeground,
-  vscQuickInputBackground,
-} from "../..";
+import { lightGray } from "../..";
 import { IdeMessengerContext } from "../../../context/IdeMessenger";
 import { useAppSelector } from "../../../redux/hooks";
 import { setDialogMessage, setShowDialog } from "../../../redux/slices/uiSlice";
@@ -79,59 +71,6 @@ function DropdownIcon(props: { className?: string; item: ComboBoxItem }) {
     />
   );
 }
-
-const ItemsDiv = styled.div`
-  border-radius: ${defaultBorderRadius};
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.05),
-    0px 10px 20px rgba(0, 0, 0, 0.1);
-  font-size: ${fontSize(-2)};
-  overflow-x: hidden;
-  overflow-y: auto;
-  max-height: 330px;
-  padding: 0.2rem;
-  position: relative; // absolute to test tippy.js bug
-
-  background-color: ${vscQuickInputBackground};
-  /* backdrop-filter: blur(12px); */
-`;
-
-const ItemDiv = styled.div`
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 0.4rem;
-  display: block;
-  margin: 0;
-  padding: 2px 4px;
-  text-align: left;
-  width: 100%;
-  color: ${vscForeground};
-  font-size: ${fontSize(-2)};
-
-  &.is-selected {
-    background-color: ${vscListActiveBackground};
-    color: ${vscListActiveForeground};
-  }
-`;
-
-const QueryInput = styled.textarea`
-  background-color: #fff1;
-  border: 1px solid ${lightGray};
-  border-radius: ${defaultBorderRadius};
-  overflow: hidden;
-
-  padding: 0.2rem 0.4rem;
-  width: 240px;
-
-  color: ${vscForeground};
-
-  &:focus {
-    outline: none;
-  }
-
-  font-family: inherit;
-  resize: none;
-`;
 
 interface AtMentionDropdownProps {
   items: ComboBoxItem[];
@@ -457,10 +396,11 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
   }, [allItems]);
 
   return (
-    <ItemsDiv>
+    <div className="codin-at-items-div" style={{ fontSize: fontSize(-2) }}>
       {querySubmenuItem ? (
         <span className="flex items-center gap-x-1">
-          <QueryInput
+          <textarea
+            className="codin-at-query-input"
             wrap="off"
             onClick={(e) => {
               e.stopPropagation();
@@ -508,9 +448,19 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
         </span>
       ) : (
         <>
-          {subMenuTitle && <ItemDiv className="mb-2">{subMenuTitle}</ItemDiv>}
+          {subMenuTitle && (
+            <div
+              className="codin-at-item-div mb-2"
+              style={{ fontSize: fontSize(-2) }}
+            >
+              {subMenuTitle}
+            </div>
+          )}
           {loadingSubmenuItem && (
-            <ItemDiv>
+            <div
+              className="codin-at-item-div"
+              style={{ fontSize: fontSize(-2) }}
+            >
               <span className="flex w-full items-center justify-between">
                 <div className="flex items-center justify-center">
                   <DropdownIcon item={loadingSubmenuItem} className="mr-2" />
@@ -529,16 +479,16 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
                   {loadingSubmenuItem.description}
                 </span>
               </span>
-            </ItemDiv>
+            </div>
           )}
           {allItems.length ? (
             allItems.map((item, index) => {
               const isSelected = index === selectedIndex;
               return (
-                <ItemDiv
-                  as="button"
+                <button
                   ref={(el) => (itemRefs.current[index] = el)}
-                  className={`item cursor-pointer ${isSelected ? "is-selected" : ""}`}
+                  className={`codin-at-item-div item cursor-pointer ${isSelected ? "is-selected" : ""}`}
+                  style={{ fontSize: fontSize(-2) }}
                   key={index}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -608,15 +558,20 @@ const AtMentionDropdown = forwardRef((props: AtMentionDropdownProps, ref) => {
                       })}
                     </span>
                   </span>
-                </ItemDiv>
+                </button>
               );
             })
           ) : (
-            <ItemDiv className="item whitespace-nowrap">No results</ItemDiv>
+            <div
+              className="codin-at-item-div item whitespace-nowrap"
+              style={{ fontSize: fontSize(-2) }}
+            >
+              No results
+            </div>
           )}
         </>
       )}
-    </ItemsDiv>
+    </div>
   );
 });
 export default AtMentionDropdown;
