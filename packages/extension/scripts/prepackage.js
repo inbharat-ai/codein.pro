@@ -277,19 +277,18 @@ void (async () => {
   // );
 
   // textmate-syntaxes
+  const textmateSrc = path.join(__dirname, "../textmate-syntaxes");
+  const textmateDest = path.join(__dirname, "../gui/textmate-syntaxes");
+  fs.mkdirSync(textmateDest, { recursive: true });
   await new Promise((resolve, reject) => {
-    ncp(
-      path.join(__dirname, "../textmate-syntaxes"),
-      path.join(__dirname, "../gui/textmate-syntaxes"),
-      (error) => {
-        if (error) {
-          console.warn("[error] Error copying textmate-syntaxes", error);
-          reject(error);
-        } else {
-          resolve();
-        }
-      },
-    );
+    ncp(textmateSrc, textmateDest, (error) => {
+      if (error) {
+        console.warn("[error] Error copying textmate-syntaxes", error);
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
   });
 
   const lancedbPackagesByTarget = {
