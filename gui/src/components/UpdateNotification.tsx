@@ -39,10 +39,13 @@ export function UpdateNotification() {
     ipcRenderer.on("update-error", onError);
 
     return () => {
-      ipcRenderer.removeListener("update-available", onAvailable);
-      ipcRenderer.removeListener("update-download-progress", onProgress);
-      ipcRenderer.removeListener("update-downloaded", onDownloaded);
-      ipcRenderer.removeListener("update-error", onError);
+      (ipcRenderer as any).removeListener("update-available", onAvailable);
+      (ipcRenderer as any).removeListener(
+        "update-download-progress",
+        onProgress,
+      );
+      (ipcRenderer as any).removeListener("update-downloaded", onDownloaded);
+      (ipcRenderer as any).removeListener("update-error", onError);
     };
   }, []);
 

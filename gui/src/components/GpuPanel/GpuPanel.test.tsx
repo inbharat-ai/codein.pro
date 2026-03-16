@@ -9,7 +9,7 @@ const mockSession = {
   pods: [],
   isOffline: false,
   loading: false,
-  error: null,
+  error: null as string | null,
   setError: vi.fn(),
   connect: vi.fn(),
   stop: vi.fn().mockResolvedValue(true),

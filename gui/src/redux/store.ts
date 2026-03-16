@@ -75,19 +75,17 @@ const saveSubsetFilters = [
 
 const MAX_PERSISTED_HISTORY = 50;
 
+// Migrations operate on loosely-typed persisted state from previous schema
+// versions, so we use `as any` intentionally — the shapes don't match current types.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const migrations: MigrationManifest = {
-  "0": (state) => {
-    const oldState = state as Record<string, unknown> | undefined;
-    const oldInnerState = oldState?.["state"] as
-      | Record<string, unknown>
-      | undefined;
-
+  "0": (state: any) => {
     return {
       config: {
-        defaultModelTitle: oldInnerState?.["defaultModelTitle"] ?? undefined,
+        defaultModelTitle: state?.state?.defaultModelTitle ?? undefined,
       },
       session: {
-        id: oldInnerState?.["sessionId"] ?? "",
+        id: state?.state?.sessionId ?? "",
       },
       tabs: {
         tabs: [
@@ -99,23 +97,19 @@ const migrations: MigrationManifest = {
           },
         ],
       },
-      _persist: oldState?.["_persist"],
+      _persist: state?._persist,
     };
   },
-  "2": (state) => {
-    const oldState = state as Record<string, unknown> | undefined;
-    const oldSession = oldState?.["session"] as
-      | Record<string, unknown>
-      | undefined;
+  "2": (state: any) => {
     // Prune history to last 50 messages and strip non-serializable fields
-    const history = Array.isArray(oldSession?.["history"])
-      ? (oldSession["history"] as unknown[]).slice(-MAX_PERSISTED_HISTORY)
+    const history = Array.isArray(state?.session?.history)
+      ? state.session.history.slice(-MAX_PERSISTED_HISTORY)
       : [];
 
     return {
-      ...oldState,
+      ...state,
       session: {
-        ...oldSession,
+        ...state?.session,
         history,
         // Reset streaming state on migration — can't be mid-stream across restart
         isStreaming: false,
