@@ -26,8 +26,18 @@ export default defineConfig({
       },
       output: {
         entryFileNames: `assets/[name].js`,
-        chunkFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name]-[hash].js`,
         assetFileNames: `assets/[name].[ext]`,
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-redux": ["@reduxjs/toolkit", "react-redux"],
+          "vendor-markdown": ["react-markdown", "rehype-highlight"],
+          "vendor-tiptap": [
+            "@tiptap/core",
+            "@tiptap/react",
+            "@tiptap/starter-kit",
+          ],
+        },
       },
     },
   },

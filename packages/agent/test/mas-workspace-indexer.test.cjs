@@ -1,6 +1,7 @@
 /**
  * MAS — Workspace Indexer Smoke Tests
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 let indexer;

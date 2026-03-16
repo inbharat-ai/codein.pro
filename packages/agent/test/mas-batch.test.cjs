@@ -4,6 +4,7 @@
  * Covers BatchPlanner grouping, parallel-safety, same-file sequential writes,
  * and BatchExecutor parallel/sequential execution.
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 const {

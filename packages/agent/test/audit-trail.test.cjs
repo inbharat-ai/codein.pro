@@ -3,6 +3,7 @@
  * Jest-compatible format with describe/it globals + require("node:assert")
  */
 "use strict";
+const { describe, it, afterEach } = require("node:test");
 
 const assert = require("node:assert");
 const { AuditTrail, AUDIT_ACTION } = require("../src/mas/audit-trail");

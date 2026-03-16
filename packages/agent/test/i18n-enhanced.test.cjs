@@ -1,3 +1,4 @@
+const { test } = require("node:test");
 /**
  * @fileoverview Test suite for Multilingual TTS/STT and Technical Term Preservation
  * Tests: term preservator, cloud voice providers, glossary coverage,

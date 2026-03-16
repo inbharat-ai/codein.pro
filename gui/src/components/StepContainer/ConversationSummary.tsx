@@ -28,7 +28,7 @@ export default function ConversationSummary(props: ConversationSummaryProps) {
   if (isLoading) {
     return (
       <div className="mx-1.5 mb-4 mt-2">
-        <div className="bg-vsc-input-background rounded-md shadow-sm">
+        <div className="bg-codin-bg-surface rounded-md shadow-sm">
           <div className="text-description flex items-center justify-start px-3 py-2 text-xs">
             <span>Generating conversation summary</span>
             <AnimatedEllipsis />
@@ -41,7 +41,7 @@ export default function ConversationSummary(props: ConversationSummaryProps) {
   // Normal state with content
   return (
     <div className="mx-1.5 mb-4 mt-2">
-      <div className="bg-vsc-input-background rounded-md shadow-sm">
+      <div className="bg-codin-bg-surface rounded-md shadow-sm">
         <div
           className="text-description flex cursor-pointer items-center gap-2 px-3 py-2 text-xs transition-colors duration-200 hover:brightness-105"
           onClick={() => setOpen(!open)}

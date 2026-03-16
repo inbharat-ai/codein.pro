@@ -512,8 +512,7 @@ export function UnifiedTerminalCommand({
           <div
             className="text-description flex items-center px-2 pb-2 pt-2 text-xs"
             style={{
-              borderTop:
-                "1px solid var(--vscode-commandCenter-inactiveBorder, #555555)",
+              borderTop: "1px solid var(--codin-border, #2a2845)",
             }}
           >
             <StatusIcon status={statusType} />

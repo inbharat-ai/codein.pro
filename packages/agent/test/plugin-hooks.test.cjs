@@ -2,6 +2,7 @@
  * Tests for PluginHookManager — expanded lifecycle hooks
  */
 "use strict";
+const { describe, it } = require("node:test");
 
 const assert = require("node:assert");
 

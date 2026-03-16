@@ -12,7 +12,7 @@ export function ConversationStarterCard({
 }: ConversationStarterCardProps) {
   return (
     <div
-      className="bg-vsc-input-background mb-2 w-full rounded-md shadow-md hover:cursor-pointer hover:brightness-110"
+      className="bg-codin-bg-surface mb-2 w-full rounded-md shadow-md transition-all duration-200 hover:cursor-pointer hover:brightness-110"
       onClick={() => onClick(command)}
     >
       <div className="flex px-3 py-1.5">

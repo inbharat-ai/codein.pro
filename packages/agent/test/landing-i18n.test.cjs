@@ -1,3 +1,4 @@
+const { test } = require("node:test");
 /**
  * Landing Page Translation Coverage Test
  * 

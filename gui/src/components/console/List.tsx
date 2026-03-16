@@ -33,7 +33,7 @@ export default function List({ llmLog, onClickInteraction }: ListProps) {
     <ul
       tabIndex={1}
       ref={topRef}
-      className="group m-0 w-[150px] flex-none list-none overflow-auto border-0 border-r-2 border-solid border-[color:var(--vscode-panel-border)] p-0"
+      className="border-[color:var(--codin-border, #2a2845)] group m-0 w-[150px] flex-none list-none overflow-auto border-0 border-r-2 border-solid p-0"
     >
       {llmLog.order.map((id) => (
         <ListItem

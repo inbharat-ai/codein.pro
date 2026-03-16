@@ -10,6 +10,7 @@
  * - Circuit breaker half-open safety
  */
 "use strict";
+const { test, describe } = require("node:test");
 
 const assert = require("node:assert/strict");
 

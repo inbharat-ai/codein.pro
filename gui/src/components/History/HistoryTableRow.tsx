@@ -152,7 +152,7 @@ export function HistoryTableRow({
                   sessionMetadata.messageCount === 1 ? " is" : "s are"
                 } present in this session`}
               >
-                <span className="bg-vsc-background text-secondary-foreground ml-auto inline-flex items-center rounded-full px-2 py-1 text-xs font-medium">
+                <span className="bg-codin-bg text-secondary-foreground ml-auto inline-flex items-center rounded-full px-2 py-1 text-xs font-medium">
                   {sessionMetadata.messageCount}
                 </span>
               </ToolTip>

@@ -175,7 +175,7 @@ export function EnhancedRunPanel() {
       </div>
 
       {/* Project Info */}
-      <div className="border-vsc-input-border rounded border border-solid p-3">
+      <div className="border-codin-border rounded border border-solid p-3">
         <div className="text-sm font-medium">Configuration</div>
         <div className="mt-2 text-xs opacity-70">
           {project.profile.installCmd && (
@@ -192,7 +192,7 @@ export function EnhancedRunPanel() {
           <button
             onClick={install}
             disabled={status === "running"}
-            className="bg-vsc-input-background rounded px-3 py-2 text-sm disabled:opacity-50"
+            className="bg-codin-bg-surface rounded px-3 py-2 text-sm disabled:opacity-50"
           >
             Install Dependencies
           </button>
@@ -200,14 +200,14 @@ export function EnhancedRunPanel() {
         {status === "stopped" ? (
           <button
             onClick={start}
-            className="bg-vsc-button text-vsc-button-foreground rounded px-3 py-2 text-sm"
+            className="bg-codin-indigo-700 rounded px-3 py-2 text-sm text-white"
           >
             Start
           </button>
         ) : (
           <button
             onClick={stop}
-            className="bg-vsc-input-background rounded px-3 py-2 text-sm"
+            className="bg-codin-bg-surface rounded px-3 py-2 text-sm"
           >
             Stop
           </button>
@@ -215,7 +215,7 @@ export function EnhancedRunPanel() {
         {previewUrl && (
           <button
             onClick={openPreview}
-            className="bg-vsc-button text-vsc-button-foreground rounded px-3 py-2 text-sm"
+            className="bg-codin-indigo-700 rounded px-3 py-2 text-sm text-white"
           >
             Open Preview
           </button>
@@ -236,7 +236,7 @@ export function EnhancedRunPanel() {
       {logs.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="text-sm font-medium">Logs</div>
-          <div className="border-vsc-input-border bg-vsc-input-background max-h-64 overflow-y-auto rounded border border-solid p-2 font-mono text-xs">
+          <div className="border-codin-border bg-codin-bg-surface max-h-64 overflow-y-auto rounded border border-solid p-2 font-mono text-xs">
             {logs.map((log, index) => (
               <div key={index}>{log}</div>
             ))}
@@ -249,7 +249,7 @@ export function EnhancedRunPanel() {
       {previewUrl && status === "running" && (
         <div className="flex flex-col gap-2">
           <div className="text-sm font-medium">Preview</div>
-          <div className="border-vsc-input-border h-96 rounded border border-solid">
+          <div className="border-codin-border h-96 rounded border border-solid">
             <iframe
               src={previewUrl}
               className="h-full w-full"

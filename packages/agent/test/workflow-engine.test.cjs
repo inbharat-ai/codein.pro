@@ -5,6 +5,7 @@
  * and execution delegation.
  */
 "use strict";
+const { describe, it } = require("node:test");
 
 const assert = require("node:assert/strict");
 const { WorkflowEngine, extractPlaceholders, replacePlaceholders, deepReplace } = require("../src/mas/workflow-engine");

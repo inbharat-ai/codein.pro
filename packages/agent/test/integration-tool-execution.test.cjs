@@ -5,6 +5,8 @@
  * tool chaining, and permission gating.
  */
 "use strict";
+const { describe, it, after } = require("node:test");
+const assert = require("node:assert/strict");
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -25,7 +27,7 @@ function createTmpDir() {
   return dir;
 }
 
-afterAll(() => {
+after(() => {
   for (const dir of tmpDirs) {
     try {
       fs.rmSync(dir, { recursive: true, force: true });
@@ -104,15 +106,15 @@ describe("Integration — File Read Tool", () => {
 
     const tools = createFileTools(dir);
     const content = await tools.read_file.execute({ path: "hello.txt" });
-    expect(content).toBe("Hello World");
+    assert.equal(content, "Hello World");
   });
 
   it("throws when reading non-existent file", async () => {
     const dir = createTmpDir();
     const tools = createFileTools(dir);
-    await expect(
-      tools.read_file.execute({ path: "nonexistent.txt" })
-    ).rejects.toThrow();
+    await assert.rejects(
+      () => tools.read_file.execute({ path: "nonexistent.txt" })
+    );
   });
 });
 
@@ -126,9 +128,9 @@ describe("Integration — File Write Tool", () => {
       content: "Test output content",
     });
 
-    expect(result).toContain("19 bytes");
+    assert.ok(result.includes("19 bytes"));
     const onDisk = fs.readFileSync(path.join(dir, "output.txt"), "utf-8");
-    expect(onDisk).toBe("Test output content");
+    assert.equal(onDisk, "Test output content");
   });
 
   it("creates subdirectories as needed", async () => {
@@ -140,9 +142,10 @@ describe("Integration — File Write Tool", () => {
       content: "nested",
     });
 
-    expect(
-      fs.readFileSync(path.join(dir, "sub/deep/file.txt"), "utf-8")
-    ).toBe("nested");
+    assert.equal(
+      fs.readFileSync(path.join(dir, "sub/deep/file.txt"), "utf-8"),
+      "nested"
+    );
   });
 });
 
@@ -151,7 +154,7 @@ describe("Integration — Command Run Tool", () => {
     const dir = createTmpDir();
     const tools = createFileTools(dir);
     const result = await tools.run_command.execute({ command: "echo hello" });
-    expect(result).toContain("hello");
+    assert.ok(result.includes("hello"));
   });
 
   it("executes node -e and gets output", async () => {
@@ -160,7 +163,7 @@ describe("Integration — Command Run Tool", () => {
     const result = await tools.run_command.execute({
       command: 'node -e "console.log(2+2)"',
     });
-    expect(result.trim()).toBe("4");
+    assert.equal(result.trim(), "4");
   });
 });
 
@@ -180,7 +183,7 @@ describe("Integration — Tool Chain (write -> read -> verify)", () => {
     const readBack = await tools.read_file.execute({ path: "chain.txt" });
 
     // Verify
-    expect(readBack).toBe(testContent);
+    assert.equal(readBack, testContent);
   });
 });
 
@@ -210,11 +213,11 @@ describe("Integration — Agent Tool Loop with Real File Tools", () => {
       { maxIterations: 5, iterationTimeout: 10000, totalTimeout: 30000 }
     );
 
-    expect(result.toolLog).toHaveLength(2);
-    expect(result.toolLog[0].tool).toBe("write_file");
-    expect(result.toolLog[1].tool).toBe("read_file");
-    expect(result.toolLog[1].result).toBe("agent wrote this");
-    expect(result.answer).toContain("agent wrote this");
+    assert.equal(result.toolLog.length, 2);
+    assert.equal(result.toolLog[0].tool, "write_file");
+    assert.equal(result.toolLog[1].tool, "read_file");
+    assert.equal(result.toolLog[1].result, "agent wrote this");
+    assert.ok(result.answer.includes("agent wrote this"));
   });
 });
 
@@ -233,8 +236,8 @@ describe("Integration — Permission Gate with Tools", () => {
       action: "Read config.json",
     });
 
-    expect(result.decision).toBe("approved");
-    expect(result.reason).toContain("Auto-approved");
+    assert.equal(result.decision, "approved");
+    assert.ok(result.reason.includes("Auto-approved"));
 
     // Cleanup
     gate.destroy();
@@ -258,14 +261,14 @@ describe("Integration — Permission Gate with Tools", () => {
 
     // Verify it's pending
     const pending = gate.getPendingRequests();
-    expect(pending).toHaveLength(1);
-    expect(pending[0].permissionType).toBe("command_run");
+    assert.equal(pending.length, 1);
+    assert.equal(pending[0].permissionType, "command_run");
 
     // Deny it
     gate.respondToRequest(pending[0].id, "deny");
 
     const result = await permPromise;
-    expect(result.decision).toBe("denied");
+    assert.equal(result.decision, "denied");
 
     // Cleanup
     gate.destroy();
@@ -289,7 +292,7 @@ describe("Integration — Permission Gate with Tools", () => {
     const pending1 = gate.getPendingRequests();
     gate.respondToRequest(pending1[0].id, "approve_once");
     const r1 = await p1;
-    expect(r1.decision).toBe("approved");
+    assert.equal(r1.decision, "approved");
 
     // Second request with same permission type — should block again
     const p2 = gate.requestPermission({
@@ -299,11 +302,11 @@ describe("Integration — Permission Gate with Tools", () => {
       action: "Write to another-file.txt",
     });
     const pending2 = gate.getPendingRequests();
-    expect(pending2).toHaveLength(1); // Still needs approval
+    assert.equal(pending2.length, 1); // Still needs approval
 
     gate.respondToRequest(pending2[0].id, "deny");
     const r2 = await p2;
-    expect(r2.decision).toBe("denied");
+    assert.equal(r2.decision, "denied");
 
     // Cleanup
     gate.destroy();

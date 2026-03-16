@@ -5,10 +5,22 @@
  * event emission, graceful shutdown, and subsystem integration.
  */
 "use strict";
+const { describe, it, beforeEach, afterEach } = require("node:test");
 
-const assert = require("node:assert");
+const assert = require("node:assert/strict");
 
 const { SwarmManager, SWARM_STATE } = require("../src/mas/swarm-manager");
+
+// ─── Mock helper ────────────────────────────────────────────
+
+function createMock(impl) {
+  const fn = (...args) => { fn.calls.push(args); return impl ? impl(...args) : fn._returnValue; };
+  fn.calls = [];
+  fn._returnValue = undefined;
+  fn.mockReturnValue = (v) => { fn._returnValue = v; return fn; };
+  fn.mockReset = () => { fn.calls = []; fn._returnValue = undefined; };
+  return fn;
+}
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -59,43 +71,43 @@ describe("SwarmManager — Lifecycle", () => {
   it("starts in IDLE state before init", () => {
     mgr = createManager();
     const status = mgr.swarmStatus();
-    expect(status.state).toBe("idle");
+    assert.equal(status.state, "idle");
   });
 
   it("swarmInit transitions to ACTIVE with default config", () => {
     mgr = createManager();
     const result = mgr.swarmInit({});
-    expect(result.status).toBe("active");
-    expect(result.config).toBeDefined();
-    expect(result.config.topology).toBeDefined();
-    expect(result.config.maxAgents).toBeGreaterThanOrEqual(1);
-    expect(result.config.concurrency).toBeGreaterThanOrEqual(1);
+    assert.equal(result.status, "active");
+    assert.ok(result.config);
+    assert.ok(result.config.topology);
+    assert.ok(result.config.maxAgents >= 1);
+    assert.ok(result.config.concurrency >= 1);
   });
 
   it("swarmInit accepts custom topology and maxAgents", () => {
     mgr = createManager();
     const result = mgr.swarmInit({ topology: "star", maxAgents: 8 });
-    expect(result.config.topology).toBe("star");
-    expect(result.config.maxAgents).toBe(8);
+    assert.equal(result.config.topology, "star");
+    assert.equal(result.config.maxAgents, 8);
   });
 
   it("double init throws error", () => {
     mgr = createManager();
     mgr.swarmInit({});
-    expect(() => mgr.swarmInit({})).toThrow(/already active/i);
+    assert.throws(() => mgr.swarmInit({}), /already active/i);
   });
 
   it("swarmShutdown transitions to shutdown", () => {
     mgr = createManager();
     mgr.swarmInit({});
     const result = mgr.swarmShutdown();
-    expect(result.status).toBe("shutdown");
+    assert.equal(result.status, "shutdown");
   });
 
   it("shutdown on uninitialized swarm returns gracefully", () => {
     mgr = createManager();
     const result = mgr.swarmShutdown();
-    expect(result).toBeDefined();
+    assert.ok(result);
     // Should not throw
   });
 
@@ -104,19 +116,19 @@ describe("SwarmManager — Lifecycle", () => {
     mgr.swarmInit({});
     mgr.swarmShutdown();
     const result = mgr.swarmInit({});
-    expect(result.status).toBe("active");
+    assert.equal(result.status, "active");
   });
 
   it("swarmStatus returns comprehensive state", () => {
     mgr = createManager();
     mgr.swarmInit({});
     const status = mgr.swarmStatus();
-    expect(status.state).toBe("active");
-    expect(Array.isArray(status.agents)).toBe(true);
-    expect(typeof status.activeTasks).toBe("number");
-    expect(status.memory).toBeDefined();
-    expect(status.gpu).toBeDefined();
-    expect(typeof status.pendingPermissions).toBe("number");
+    assert.equal(status.state, "active");
+    assert.ok(Array.isArray(status.agents));
+    assert.equal(typeof status.activeTasks, "number");
+    assert.ok(status.memory !== undefined);
+    assert.ok(status.gpu !== undefined);
+    assert.equal(typeof status.pendingPermissions, "number");
   });
 });
 
@@ -140,19 +152,19 @@ describe("SwarmManager — Agent Pool Management", () => {
 
   it("spawns a coder agent with valid descriptor", () => {
     const desc = mgr.agentSpawn("coder");
-    expect(desc).toBeDefined();
-    expect(desc.id).toMatch(/^agent_/);
-    expect(desc.type).toBe("coder");
-    expect(desc.status).toBeDefined();
-    expect(desc.metrics).toBeDefined();
+    assert.ok(desc);
+    assert.match(desc.id, /^agent_/);
+    assert.equal(desc.type, "coder");
+    assert.ok(desc.status !== undefined);
+    assert.ok(desc.metrics !== undefined);
   });
 
   it("spawns agents of different types", () => {
     const types = ["coder", "tester", "debugger", "reviewer", "docs"];
     const descriptors = types.map((t) => mgr.agentSpawn(t));
-    expect(descriptors).toHaveLength(5);
+    assert.equal(descriptors.length, 5);
     const uniqueIds = new Set(descriptors.map((d) => d.id));
-    expect(uniqueIds.size).toBe(5);
+    assert.equal(uniqueIds.size, 5);
   });
 
   it("lists all agents", () => {
@@ -160,7 +172,7 @@ describe("SwarmManager — Agent Pool Management", () => {
     mgr.agentSpawn("tester");
     mgr.agentSpawn("coder");
     const agents = mgr.agentList();
-    expect(agents.length).toBeGreaterThanOrEqual(3);
+    assert.ok(agents.length >= 3);
   });
 
   it("filters agents by type", () => {
@@ -168,23 +180,23 @@ describe("SwarmManager — Agent Pool Management", () => {
     mgr.agentSpawn("tester");
     mgr.agentSpawn("coder");
     const coders = mgr.agentList({ type: "coder" });
-    expect(coders.length).toBeGreaterThanOrEqual(2);
-    coders.forEach((a) => expect(a.type).toBe("coder"));
+    assert.ok(coders.length >= 2);
+    coders.forEach((a) => assert.equal(a.type, "coder"));
   });
 
   it("throws on invalid agent type", () => {
-    expect(() => mgr.agentSpawn("nonexistent_agent_type")).toThrow();
+    assert.throws(() => mgr.agentSpawn("nonexistent_agent_type"));
   });
 
   it("returns agent metrics", () => {
     mgr.agentSpawn("coder");
     const metrics = mgr.agentMetrics();
-    expect(metrics).toBeDefined();
+    assert.ok(metrics);
   });
 
   it("throws when spawning agents on inactive swarm", () => {
     mgr.swarmShutdown();
-    expect(() => mgr.agentSpawn("coder")).toThrow(/not active|idle|shutdown/i);
+    assert.throws(() => mgr.agentSpawn("coder"), /not active|idle|shutdown/i);
   });
 });
 
@@ -208,16 +220,16 @@ describe("SwarmManager — Event System", () => {
 
   it("event log contains init event after swarmInit", () => {
     const events = mgr.getEventLog();
-    expect(events.length).toBeGreaterThanOrEqual(1);
+    assert.ok(events.length >= 1);
     const initEvent = events.find((e) => e.type === "swarm_init");
-    expect(initEvent).toBeDefined();
+    assert.ok(initEvent);
   });
 
   it("event log contains shutdown event after swarmShutdown", () => {
     mgr.swarmShutdown();
     const events = mgr.getEventLog();
     const shutdownEvent = events.find((e) => e.type === "swarm_shutdown");
-    expect(shutdownEvent).toBeDefined();
+    assert.ok(shutdownEvent);
   });
 
   it("event log respects limit parameter", () => {
@@ -225,24 +237,24 @@ describe("SwarmManager — Event System", () => {
     mgr.agentSpawn("coder");
     mgr.agentSpawn("tester");
     const limited = mgr.getEventLog(1);
-    expect(limited.length).toBeLessThanOrEqual(1);
+    assert.ok(limited.length <= 1);
   });
 
   it("subscribe/unsubscribe for SSE does not throw", () => {
-    const mockRes = { write: jest.fn(), on: jest.fn() };
-    expect(() => mgr.subscribe(mockRes)).not.toThrow();
-    expect(() => mgr.unsubscribe(mockRes)).not.toThrow();
+    const mockRes = { write: createMock(), on: createMock() };
+    assert.doesNotThrow(() => mgr.subscribe(mockRes));
+    assert.doesNotThrow(() => mgr.unsubscribe(mockRes));
   });
 
   it("SSE subscriber receives events", () => {
-    const mockRes = { write: jest.fn(), on: jest.fn() };
+    const mockRes = { write: createMock(), on: createMock() };
     mgr.subscribe(mockRes);
 
     // Spawning an agent should emit an event to subscribers
     mgr.agentSpawn("coder");
 
     // Check that write was called (SSE data)
-    expect(mockRes.write).toHaveBeenCalled();
+    assert.ok(mockRes.write.calls.length > 0);
     mgr.unsubscribe(mockRes);
   });
 });
@@ -267,10 +279,10 @@ describe("SwarmManager — Memory", () => {
 
   it("memoryUsage returns three-tier summary", () => {
     const usage = mgr.memoryUsage();
-    expect(usage).toBeDefined();
-    expect(usage.shortTerm).toBeDefined();
-    expect(usage.working).toBeDefined();
-    expect(usage.longTerm).toBeDefined();
+    assert.ok(usage);
+    assert.ok(usage.shortTerm !== undefined);
+    assert.ok(usage.working !== undefined);
+    assert.ok(usage.longTerm !== undefined);
   });
 
   it("memoryUsage returns null when swarm is inactive", () => {
@@ -278,7 +290,7 @@ describe("SwarmManager — Memory", () => {
     // Re-create without init
     mgr = createManager();
     const usage = mgr.memoryUsage();
-    expect(usage).toBeNull();
+    assert.equal(usage, null);
   });
 });
 
@@ -302,14 +314,14 @@ describe("SwarmManager — Permissions", () => {
 
   it("getPendingPermissions returns empty array initially", () => {
     const pending = mgr.getPendingPermissions();
-    expect(Array.isArray(pending)).toBe(true);
-    expect(pending).toHaveLength(0);
+    assert.ok(Array.isArray(pending));
+    assert.equal(pending.length, 0);
   });
 
   it("respondToPermission returns error for non-existent request", () => {
     const result = mgr.respondToPermission("nonexistent_id", "approve_once");
-    expect(result.success).toBe(false);
-    expect(result.error).toBeDefined();
+    assert.ok(!result.success);
+    assert.ok(result.error);
   });
 });
 
@@ -333,14 +345,14 @@ describe("SwarmManager — Task Status (sync)", () => {
 
   it("taskStatus returns null for non-existent task", () => {
     const status = mgr.taskStatus("nonexistent-id");
-    expect(status).toBeNull();
+    assert.equal(status, null);
   });
 
   it("taskCancel returns failure for non-existent task", () => {
     const result = mgr.taskCancel("nonexistent");
-    expect(result).toBeDefined();
+    assert.ok(result);
     // Should indicate failure — either success:false or error message
-    expect(result.success === false || result.error).toBeTruthy();
+    assert.ok(result.success === false || result.error);
   });
 });
 
@@ -364,37 +376,37 @@ describe("SwarmManager — Optional Modules (graceful fallbacks)", () => {
 
   it("getBudgetStatus returns value or null", () => {
     const budget = mgr.getBudgetStatus();
-    expect(budget === null || typeof budget === "object").toBe(true);
+    assert.ok(budget === null || typeof budget === "object");
   });
 
   it("listPlugins returns array", () => {
     const plugins = mgr.listPlugins();
-    expect(Array.isArray(plugins)).toBe(true);
+    assert.ok(Array.isArray(plugins));
   });
 
   it("listSkills returns array", () => {
     const skills = mgr.listSkills();
-    expect(Array.isArray(skills)).toBe(true);
+    assert.ok(Array.isArray(skills));
   });
 
   it("getProjectProfile returns value or null", () => {
     const profile = mgr.getProjectProfile();
-    expect(profile === null || typeof profile === "object").toBe(true);
+    assert.ok(profile === null || typeof profile === "object");
   });
 
   it("getConventions returns array", () => {
     const conventions = mgr.getConventions();
-    expect(Array.isArray(conventions)).toBe(true);
+    assert.ok(Array.isArray(conventions));
   });
 
   it("listBackgroundTasks returns array", () => {
     const tasks = mgr.listBackgroundTasks();
-    expect(Array.isArray(tasks)).toBe(true);
+    assert.ok(Array.isArray(tasks));
   });
 
   it("getBackgroundTaskStatus returns null for non-existent task", () => {
     const status = mgr.getBackgroundTaskStatus("nonexistent");
-    expect(status === null || status === undefined).toBe(true);
+    assert.ok(status === null || status === undefined);
   });
 });
 
@@ -405,13 +417,13 @@ describe("SwarmManager — Graceful Shutdown", () => {
     const mgr = createManager();
     mgr.swarmInit({});
     const mockRes = {
-      write: jest.fn(),
-      on: jest.fn(),
-      end: jest.fn(),
+      write: createMock(),
+      on: createMock(),
+      end: createMock(),
     };
     mgr.subscribe(mockRes);
     mgr.swarmShutdown();
-    expect(mockRes.end).toHaveBeenCalled();
+    assert.ok(mockRes.end.calls.length > 0);
   });
 
   it("shutdown cancels pending tasks", () => {
@@ -434,7 +446,7 @@ describe("SwarmManager — Graceful Shutdown", () => {
     mgr.swarmInit({});
     const r1 = mgr.swarmShutdown();
     const r2 = mgr.swarmShutdown();
-    expect(r1.status).toBe("shutdown");
-    expect(r2.status).toBe("already_shutdown");
+    assert.equal(r1.status, "shutdown");
+    assert.equal(r2.status, "already_shutdown");
   });
 });

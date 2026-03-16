@@ -4,6 +4,7 @@
  * Validates body size limits, input validation, and task timeout.
  */
 "use strict";
+const { describe, it, beforeEach } = require("node:test");
 
 const assert = require("node:assert/strict");
 const { registerSwarmRoutes } = require("../src/routes/swarm");

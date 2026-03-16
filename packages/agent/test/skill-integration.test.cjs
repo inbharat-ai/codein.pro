@@ -12,6 +12,7 @@
  * - Error handling and validation
  */
 "use strict";
+const { describe, it, beforeEach } = require("node:test");
 
 const assert = require("node:assert");
 const fs = require("node:fs");

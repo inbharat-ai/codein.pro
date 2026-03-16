@@ -1,6 +1,7 @@
 /**
  * @fileoverview Runtime router payload normalization tests
  */
+const { test } = require("node:test");
 
 const assert = require("node:assert/strict");
 const path = require("node:path");

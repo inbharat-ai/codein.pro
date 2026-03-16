@@ -6,6 +6,9 @@
  * timeout enforcement, blocked APIs, context injection, and safe builtins.
  */
 "use strict";
+const { test, describe, it } = require("node:test");
+const assert = require("node:assert/strict");
+const looseAssert = require("node:assert");
 
 const vm = require("node:vm");
 const path = require("node:path");
@@ -163,44 +166,44 @@ async function runInSandbox(code, context = {}, timeoutMs = DEFAULT_TIMEOUT_MS) 
 describe("Sandbox — Basic Execution", () => {
   it("executes console.log and captures stdout", async () => {
     const result = await runInSandbox("console.log('hello');");
-    expect(result.success).toBe(true);
-    expect(result.logs).toContain("hello");
+    assert.ok(result.success);
+    assert.ok(result.logs.includes("hello"));
   });
 
   it("returns the result of an expression", async () => {
     const result = await runInSandbox("return 2 + 2;");
-    expect(result.success).toBe(true);
-    expect(result.result).toBe(4);
+    assert.ok(result.success);
+    assert.equal(result.result, 4);
   });
 
   it("supports async/await", async () => {
     const result = await runInSandbox(
       "const val = await Promise.resolve(42); return val;"
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe(42);
+    assert.ok(result.success);
+    assert.equal(result.result, 42);
   });
 
   it("returns null for void expressions", async () => {
     const result = await runInSandbox("const x = 1;");
-    expect(result.success).toBe(true);
-    expect(result.result).toBeNull();
+    assert.ok(result.success);
+    assert.equal(result.result, null);
   });
 
   it("captures multiple console.log calls", async () => {
     const result = await runInSandbox(
       "console.log('a'); console.log('b'); console.log('c');"
     );
-    expect(result.logs).toEqual(["a", "b", "c"]);
+    assert.deepStrictEqual(result.logs, ["a", "b", "c"]);
   });
 });
 
 describe("Sandbox — Timeout Enforcement", () => {
   it("times out on infinite sync loop", async () => {
     const result = await runInSandbox("while(true) {}", {}, 200);
-    expect(result.success).toBe(false);
-    expect(result.error.name).toBe("TimeoutError");
-    expect(result.error.message).toContain("timed out");
+    assert.ok(!result.success);
+    assert.equal(result.error.name, "TimeoutError");
+    assert.ok(result.error.message.includes("timed out"));
   });
 
   it("times out on long async operation", async () => {
@@ -209,8 +212,8 @@ describe("Sandbox — Timeout Enforcement", () => {
       {},
       500
     );
-    expect(result.success).toBe(false);
-    expect(result.error.message).toContain("timed out");
+    assert.ok(!result.success);
+    assert.ok(result.error.message.includes("timed out"));
   });
 });
 
@@ -221,8 +224,8 @@ describe("Sandbox — Blocked APIs", () => {
       {},
       2000
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe("undefined");
+    assert.ok(result.success);
+    assert.equal(result.result, "undefined");
   });
 
   it("cannot access require('fs')", async () => {
@@ -231,8 +234,8 @@ describe("Sandbox — Blocked APIs", () => {
       {},
       2000
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toContain("blocked");
+    assert.ok(result.success);
+    assert.ok(result.result.includes("blocked"));
   });
 
   it("process is undefined", async () => {
@@ -241,8 +244,8 @@ describe("Sandbox — Blocked APIs", () => {
       {},
       2000
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe("undefined");
+    assert.ok(result.success);
+    assert.equal(result.result, "undefined");
   });
 
   it("cannot call process.exit()", async () => {
@@ -252,8 +255,8 @@ describe("Sandbox — Blocked APIs", () => {
       2000
     );
     // Either blocked or errored — should not exit the test process
-    expect(result.success).toBe(true);
-    expect(result.result).not.toBe("escaped");
+    assert.ok(result.success);
+    assert.notEqual(result.result, "escaped");
   });
 
   it("Buffer is undefined", async () => {
@@ -262,8 +265,8 @@ describe("Sandbox — Blocked APIs", () => {
       {},
       2000
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe("undefined");
+    assert.ok(result.success);
+    assert.equal(result.result, "undefined");
   });
 
   it("setInterval is undefined", async () => {
@@ -272,8 +275,8 @@ describe("Sandbox — Blocked APIs", () => {
       {},
       2000
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe("undefined");
+    assert.ok(result.success);
+    assert.equal(result.result, "undefined");
   });
 
   it("eval is blocked via codeGeneration: strings=false", async () => {
@@ -282,9 +285,9 @@ describe("Sandbox — Blocked APIs", () => {
       {},
       2000
     );
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
     // Should be blocked by codeGeneration.strings = false
-    expect(result.result).toContain("blocked");
+    assert.ok(result.result.includes("blocked"));
   });
 
   it("new Function is blocked via codeGeneration", async () => {
@@ -293,8 +296,8 @@ describe("Sandbox — Blocked APIs", () => {
       {},
       2000
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe("blocked");
+    assert.ok(result.success);
+    assert.equal(result.result, "blocked");
   });
 });
 
@@ -304,8 +307,8 @@ describe("Sandbox — Context Injection", () => {
       "return name + ' is ' + age + ' years old';",
       { name: "Alice", age: 30 }
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe("Alice is 30 years old");
+    assert.ok(result.success);
+    assert.equal(result.result, "Alice is 30 years old");
   });
 
   it("injected arrays work", async () => {
@@ -313,8 +316,8 @@ describe("Sandbox — Context Injection", () => {
       "return items.length;",
       { items: [1, 2, 3, 4, 5] }
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe(5);
+    assert.ok(result.success);
+    assert.equal(result.result, 5);
   });
 
   it("injected objects work", async () => {
@@ -322,8 +325,8 @@ describe("Sandbox — Context Injection", () => {
       "return config.host + ':' + config.port;",
       { config: { host: "localhost", port: 3000 } }
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe("localhost:3000");
+    assert.ok(result.success);
+    assert.equal(result.result, "localhost:3000");
   });
 });
 
@@ -332,56 +335,56 @@ describe("Sandbox — Safe Builtins", () => {
     const result = await runInSandbox(
       'const obj = JSON.parse(\'{"a":1}\'); return JSON.stringify({...obj, b:2});'
     );
-    expect(result.success).toBe(true);
-    expect(JSON.parse(result.result)).toEqual({ a: 1, b: 2 });
+    assert.ok(result.success);
+    looseAssert.deepEqual(JSON.parse(result.result), { a: 1, b: 2 });
   });
 
   it("Math operations work", async () => {
     const result = await runInSandbox(
       "return Math.max(1, 2, 3) + Math.floor(3.7);"
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe(6); // 3 + 3
+    assert.ok(result.success);
+    assert.equal(result.result, 6); // 3 + 3
   });
 
   it("Array methods work", async () => {
     const result = await runInSandbox(
       "return [1,2,3,4,5].filter(n => n > 3).map(n => n * 2);"
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toEqual([8, 10]);
+    assert.ok(result.success);
+    looseAssert.deepEqual(result.result, [8, 10]);
   });
 
   it("Map and Set work", async () => {
     const result = await runInSandbox(
       "const s = new Set([1,2,2,3]); return s.size;"
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe(3);
+    assert.ok(result.success);
+    assert.equal(result.result, 3);
   });
 
   it("RegExp works", async () => {
     const result = await runInSandbox(
       "return /hello/.test('hello world');"
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe(true);
+    assert.ok(result.success);
+    assert.equal(result.result, true);
   });
 
   it("Date works", async () => {
     const result = await runInSandbox(
       "return typeof new Date().toISOString();"
     );
-    expect(result.success).toBe(true);
-    expect(result.result).toBe("string");
+    assert.ok(result.success);
+    assert.equal(result.result, "string");
   });
 });
 
 describe("Sandbox — Error Handling", () => {
   it("catches syntax errors", async () => {
     const result = await runInSandbox("const x = {;", {}, 2000);
-    expect(result.success).toBe(false);
-    expect(result.error).toBeDefined();
+    assert.ok(!result.success);
+    assert.ok(result.error);
   });
 
   it("catches runtime errors", async () => {
@@ -390,8 +393,8 @@ describe("Sandbox — Error Handling", () => {
       {},
       2000
     );
-    expect(result.success).toBe(false);
-    expect(result.error.message).toBeDefined();
+    assert.ok(!result.success);
+    assert.ok(result.error.message);
   });
 
   it("catches thrown errors", async () => {
@@ -400,18 +403,18 @@ describe("Sandbox — Error Handling", () => {
       {},
       2000
     );
-    expect(result.success).toBe(false);
-    expect(result.error.message).toContain("intentional error");
+    assert.ok(!result.success);
+    assert.ok(result.error.message.includes("intentional error"));
   });
 });
 
 describe("Sandbox — Heap Usage Tracking", () => {
   it("reports heap usage before and after execution", async () => {
     const result = await runInSandbox("return 1;");
-    expect(result.heapUsed).toBeDefined();
-    expect(typeof result.heapUsed.before).toBe("number");
-    expect(typeof result.heapUsed.after).toBe("number");
-    expect(result.heapUsed.before).toBeGreaterThan(0);
-    expect(result.heapUsed.after).toBeGreaterThan(0);
+    assert.ok(result.heapUsed);
+    assert.equal(typeof result.heapUsed.before, "number");
+    assert.equal(typeof result.heapUsed.after, "number");
+    assert.ok(result.heapUsed.before > 0);
+    assert.ok(result.heapUsed.after > 0);
   });
 });

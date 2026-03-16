@@ -32,7 +32,19 @@ export function ConversationStarterCards() {
   }
 
   if (bookmarkedSlashCommands.length === 0) {
-    return null;
+    return (
+      <div className="flex flex-col items-center py-4 text-center">
+        <p
+          className="text-sm font-medium"
+          style={{ color: "var(--codin-fg-primary)" }}
+        >
+          Welcome to CodeIn
+        </p>
+        <p className="mt-1 text-xs" style={{ color: "var(--codin-fg-muted)" }}>
+          Type a message below to start coding with AI
+        </p>
+      </div>
+    );
   }
 
   const visibleCommands = showAll

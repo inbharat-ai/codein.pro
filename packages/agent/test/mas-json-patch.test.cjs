@@ -3,6 +3,7 @@
  *
  * Covers RFC 6902 operations, validation, auto-repair, pointer parsing.
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 const {

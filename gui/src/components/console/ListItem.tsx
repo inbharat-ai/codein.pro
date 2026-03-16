@@ -36,11 +36,11 @@ export default function ListItem({
       className={
         "w-full cursor-pointer pb-[3px] pl-[4px] pr-[4px] pt-[3px] " +
         (selected
-          ? "bg-[color:var(--vscode-list-inactiveSelectionBackground)]" +
-            " text-[color:var(--vscode-list-inctiveSelectionForeground)]" +
-            " group-focus-within:bg-[color:var(--vscode-list-activeSelectionBackground)]" +
-            " group-focus-within:text-[color:var(--vscode-list-activeSelectionForeground)]"
-          : "hover:bg-[color:var(--vscode-list-inactiveSelectionBackground)]")
+          ? "bg-[color:var(--codin-bg-active, #312e81)]" +
+            " text-[color:var(--codin-fg-primary, #e8e6f0)]" +
+            " group-focus-within:bg-[color:var(--codin-bg-active, #312e81)]" +
+            " group-focus-within:text-[color:var(--codin-fg-primary, #e8e6f0)]"
+          : "hover:bg-[color:var(--codin-bg-active, #312e81)]")
       }
       key={interactionId}
       onClick={() => onClickInteraction(interactionId)}

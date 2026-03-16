@@ -578,8 +578,40 @@ class PermissionGate {
     this._pending.clear();
   }
 
+  /**
+   * Clear all session-scoped approve_always grants from working memory
+   * and remove the persisted permissions file. Called during swarm
+   * shutdown/reset to prevent permission leaks across sessions.
+   */
+  clearSessionGrants() {
+    // Clear in-memory grants
+    this._memory.working.clearPermissionGrants();
+
+    // Remove persisted grants file so they don't reload on next init
+    if (this._persistPath) {
+      try {
+        const fs = require("node:fs");
+        if (fs.existsSync(this._persistPath)) {
+          fs.unlinkSync(this._persistPath);
+        }
+      } catch {
+        // Non-fatal — fail-closed means grants won't auto-approve
+      }
+    }
+
+    this._audit({
+      nodeId: null,
+      agentId: null,
+      permissionType: "ALL",
+      action: "clearSessionGrants",
+      decision: "cleared",
+      reason: "Session grants cleared on shutdown/reset",
+    });
+  }
+
   async destroy() {
     this.cancelAllPending();
+    this.clearSessionGrants();
     await this.stopAllGpuPods();
     this._auditLog = [];
   }

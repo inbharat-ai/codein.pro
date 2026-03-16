@@ -5,8 +5,6 @@ import {
 } from "@heroicons/react/24/outline";
 // @ts-ignore
 import Panzoom from "@panzoom/panzoom";
-// @ts-ignore
-import mermaid from "mermaid";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedEffect } from "../find/useDebounce";
 import { ToolTip } from "../gui/Tooltip";
@@ -61,16 +59,25 @@ const MERMAID_THEME_COLORS = {
   fillType7: "#4d8bf0",
 };
 
-mermaid.initialize({
-  startOnLoad: false,
-  securityLevel: "loose",
-  theme: "dark",
-  themeVariables: {
-    ...MERMAID_THEME_COLORS,
-    fontSize: "14px",
-    fontFamily: "var(--vscode-font-family)",
-  },
-});
+// ── Lazy mermaid loading (~800 KB deferred from initial bundle) ──────
+let mermaidInstance: typeof import("mermaid") | null = null;
+
+async function getMermaid() {
+  if (!mermaidInstance) {
+    mermaidInstance = await import("mermaid");
+    mermaidInstance.default.initialize({
+      startOnLoad: false,
+      securityLevel: "loose",
+      theme: "dark",
+      themeVariables: {
+        ...MERMAID_THEME_COLORS,
+        fontSize: "14px",
+        fontFamily: "var(--codin-font-family, system-ui)",
+      },
+    });
+  }
+  return mermaidInstance.default;
+}
 
 export default function MermaidDiagram({ code }: { code: string }) {
   const mermaidRenderContainerRef = useRef<HTMLDivElement>(null);
@@ -94,6 +101,7 @@ export default function MermaidDiagram({ code }: { code: string }) {
       void (async () => {
         if (!mermaidRenderContainerRef.current) return;
         try {
+          const mermaid = await getMermaid();
           await mermaid.parse(code);
           const renderedSVG = await mermaid.render(diagramId, code);
           mermaidRenderContainerRef.current.innerHTML = renderedSVG.svg;
@@ -136,7 +144,7 @@ export default function MermaidDiagram({ code }: { code: string }) {
   return (
     <>
       {isLoading && (
-        <div className="text-vsc-foreground text-xs">Generating diagram...</div>
+        <div className="text-codin-fg text-xs">Generating diagram...</div>
       )}
       {!!error ? (
         <div className="text-error whitespace-pre text-sm">{error}</div>

@@ -1,6 +1,7 @@
 /**
  * MAS — MCP Tools Smoke Tests
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 let mcpTools;

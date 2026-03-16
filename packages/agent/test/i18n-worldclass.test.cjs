@@ -1,3 +1,4 @@
+const { test } = require("node:test");
 /**
  * WORLD-CLASS TEST SUITE: I18N Translation, TTS, STT
  * 

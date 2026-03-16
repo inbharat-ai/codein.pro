@@ -3,6 +3,7 @@
  *
  * Tests the module loads and gracefully handles missing better-sqlite3.
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 let persistence;

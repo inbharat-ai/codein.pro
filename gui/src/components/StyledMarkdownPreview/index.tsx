@@ -81,7 +81,7 @@ const StyledMarkdown = styled.div<{
     border-radius: 0.3125rem;
     background-color: ${vscEditorBackground};
     font-size: ${getFontSize() - 2}px;
-    font-family: var(--vscode-editor-font-family);
+    font-family: var(--codin-font-mono, monospace);
   }
 
   ul ul,
@@ -105,12 +105,12 @@ const StyledMarkdown = styled.div<{
   }
 
   code:not(pre > code) {
-    font-family: var(--vscode-editor-font-family);
+    font-family: var(--codin-font-mono, monospace);
   }
 
   background-color: ${(props) => props.bgColor};
   font-family:
-    var(--vscode-font-family),
+    var(--codin-font-family, system-ui),
     system-ui,
     -apple-system,
     BlinkMacSystemFont,

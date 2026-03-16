@@ -1,4 +1,5 @@
 "use strict";
+const { test } = require("node:test");
 
 /**
  * Regression tests for bugs fixed in the March 2026 review.
@@ -225,4 +226,180 @@ test("PermissionGate loads persisted permissions on init", () => {
   // Cleanup
   fs.rmSync(tmpDir, { recursive: true, force: true });
   mm.destroy();
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// NEW REGRESSION TESTS — Bug fixes from March 2026 hardening review
+// ═════════════════════════════════════════════════════════════════════
+
+// ─── Bug 1 (extended): clearSessionGrants on PermissionGate.destroy ──
+
+test("PermissionGate.destroy() clears session grants from working memory", async () => {
+  const { PermissionGate } = require("../src/mas/permissions");
+  const mm = new MemoryManager({
+    workspaceHash: "test_destroy_grants",
+    longTermEnabled: false,
+  });
+
+  const gate = new PermissionGate({
+    memory: mm,
+    emitEvent: () => {},
+    persistPath: null,
+  });
+
+  // Simulate storing approve_always grants
+  mm.working.setPermissionGrant("file_write", "approve_always");
+  mm.working.setPermissionGrant("git_push", "approve_always");
+  mm.working.setPermissionGrant("network", "approve_always");
+
+  assert.equal(mm.working.getPermissionGrant("file_write"), "approve_always");
+  assert.equal(mm.working.getPermissionGrant("git_push"), "approve_always");
+
+  await gate.destroy();
+
+  // All grants must be cleared
+  assert.equal(mm.working.getPermissionGrant("file_write"), null,
+    "file_write grant should be cleared after destroy");
+  assert.equal(mm.working.getPermissionGrant("git_push"), null,
+    "git_push grant should be cleared after destroy");
+  assert.equal(mm.working.getPermissionGrant("network"), null,
+    "network grant should be cleared after destroy");
+
+  mm.destroy();
+});
+
+test("PermissionGate.clearSessionGrants removes persisted file from disk", () => {
+  const tmpDir = path.join(os.tmpdir(), `codin-test-clear-${Date.now()}`);
+  const persistPath = path.join(tmpDir, "permissions.json");
+
+  const { PermissionGate } = require("../src/mas/permissions");
+  const mm = new MemoryManager({
+    workspaceHash: "test_clear_disk",
+    longTermEnabled: false,
+  });
+
+  const gate = new PermissionGate({
+    memory: mm,
+    persistPath,
+  });
+
+  // Write a permission to disk
+  gate._persistPermission("file_write");
+  assert.ok(fs.existsSync(persistPath), "Permission file should exist");
+
+  // Clear session grants
+  gate.clearSessionGrants();
+
+  // File should be deleted
+  assert.ok(!fs.existsSync(persistPath),
+    "Permission file should be deleted after clearSessionGrants");
+
+  // Cleanup
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  mm.destroy();
+});
+
+// ─── Bug 2: Circuit breaker timeout aligned with LLM timeout ──────
+
+test("BaseAgent circuit breaker timeout defaults to 1.5x LLM timeout (45s)", () => {
+  const { BaseAgent } = require("../src/mas/agents/base-agent");
+  const { AGENT_TYPE } = require("../src/mas/types");
+
+  const agent = new BaseAgent(
+    { type: AGENT_TYPE.CODER },
+    {
+      permissionGate: { requestPermission: async () => ({ decision: "approved" }) },
+      memory: {
+        shortTerm: { set: () => {}, get: () => undefined },
+        working: { set: () => {}, get: () => undefined, recordDecision: () => {} },
+      },
+      emitEvent: () => {},
+      runLLM: async () => "ok",
+    },
+  );
+
+  // Default: 30s LLM timeout * 1.5 = 45s circuit breaker timeout
+  assert.equal(agent._llmTimeout, 30000, "Default LLM timeout should be 30s");
+  assert.equal(agent._llmCircuitBreaker.timeout, 45000,
+    "CB timeout should be 45s (1.5x LLM timeout)");
+});
+
+test("BaseAgent circuit breaker timeout scales with custom LLM timeout", () => {
+  const { BaseAgent } = require("../src/mas/agents/base-agent");
+  const { AGENT_TYPE } = require("../src/mas/types");
+
+  const agent = new BaseAgent(
+    { type: AGENT_TYPE.CODER, llmTimeout: 60000 },
+    {
+      permissionGate: { requestPermission: async () => ({ decision: "approved" }) },
+      memory: {
+        shortTerm: { set: () => {}, get: () => undefined },
+        working: { set: () => {}, get: () => undefined, recordDecision: () => {} },
+      },
+      emitEvent: () => {},
+      runLLM: async () => "ok",
+    },
+  );
+
+  assert.equal(agent._llmTimeout, 60000, "Custom LLM timeout should be 60s");
+  assert.equal(agent._llmCircuitBreaker.timeout, 90000,
+    "CB timeout should be 90s (1.5x 60s LLM timeout)");
+});
+
+// ─── Bug 3: retryCount logic in state-machine.js ─────────────────
+
+test("State machine: retryCount NOT incremented on initial failure (isRetry=false)", () => {
+  const { ComputeStateMachine } = require("../src/compute/state-machine");
+  const { createJob, createStep, STEP_STATUSES, JOB_STATUSES } = require("../src/compute/job-model");
+
+  const job = createJob({ goal: "test retryCount" });
+  const step = createStep({ description: "test step" });
+  job.steps.push(step);
+
+  const sm = new ComputeStateMachine();
+
+  sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  sm.transitionJob(job, JOB_STATUSES.RUNNING);
+
+  sm.transitionStep(job, step, STEP_STATUSES.RUNNING);
+  sm.transitionStep(job, step, STEP_STATUSES.FAILED, {
+    error: "initial failure",
+    isRetry: false,
+  });
+
+  assert.equal(step.retryCount, 0,
+    "retryCount should be 0 after initial failure (not a retry)");
+});
+
+test("State machine: retryCount IS incremented on retry (isRetry=true)", () => {
+  const { ComputeStateMachine } = require("../src/compute/state-machine");
+  const { createJob, createStep, STEP_STATUSES, JOB_STATUSES } = require("../src/compute/job-model");
+
+  const job = createJob({ goal: "test retryCount" });
+  const step = createStep({ description: "test step" });
+  job.steps.push(step);
+
+  const sm = new ComputeStateMachine();
+
+  sm.transitionJob(job, JOB_STATUSES.PLANNING);
+  sm.transitionJob(job, JOB_STATUSES.RUNNING);
+
+  // Initial failure
+  sm.transitionStep(job, step, STEP_STATUSES.RUNNING);
+  sm.transitionStep(job, step, STEP_STATUSES.FAILED, {
+    error: "fail",
+    isRetry: false,
+  });
+  assert.equal(step.retryCount, 0);
+
+  // Reset for retry
+  step.status = STEP_STATUSES.RUNNING;
+
+  // Retry failure
+  sm.transitionStep(job, step, STEP_STATUSES.FAILED, {
+    error: "fail again",
+    isRetry: true,
+  });
+  assert.equal(step.retryCount, 1,
+    "retryCount should be 1 after first retry");
 });

@@ -1,4 +1,5 @@
 "use strict";
+const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert");
 
 // Environment-gated: skip entirely if no keys present
@@ -28,12 +29,12 @@ try {
 describe("Live LLM Integration Tests", () => {
   let hub;
 
-  beforeAll(() => {
+  before(() => {
     hub = new AIHubManager();
     hub.initFromEnv();
   });
 
-  afterAll(() => {
+  after(() => {
     hub?.shutdown();
   });
 

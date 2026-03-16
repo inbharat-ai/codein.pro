@@ -57,7 +57,7 @@ interface DocsIndexingPeeksProps {
 
 function DocsIndexingPeekList({ statuses }: DocsIndexingPeeksProps) {
   return (
-    <div className="border-vsc-input-border mt-2 flex flex-col border-0 border-t border-solid pt-2">
+    <div className="border-codin-border mt-2 flex flex-col border-0 border-t border-solid pt-2">
       <div className="max-h-[100px] overflow-y-auto pr-2">
         {statuses.map((status) => {
           return <DocsIndexingPeek key={status.id} status={status} />;

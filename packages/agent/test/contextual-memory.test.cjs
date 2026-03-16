@@ -3,6 +3,7 @@
  * Jest-compatible format with describe/it globals + require("node:assert")
  */
 "use strict";
+const { describe, it } = require("node:test");
 
 const assert = require("node:assert");
 const { ContextualMemory } = require("../src/mas/contextual-memory");

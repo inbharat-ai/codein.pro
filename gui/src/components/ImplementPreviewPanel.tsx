@@ -33,7 +33,7 @@ export function ImplementPreviewPanel() {
         </div>
         <div className="flex gap-2">
           <button
-            className="bg-vsc-button text-vsc-button-foreground rounded px-2 py-1 text-xs"
+            className="bg-codin-indigo-700 rounded px-2 py-1 text-xs text-white"
             onClick={async () => {
               const response = await ideMessenger.request("contract/apply", {
                 contract,
@@ -48,7 +48,7 @@ export function ImplementPreviewPanel() {
           </button>
           {backupId && (
             <button
-              className="bg-vsc-input-background rounded px-2 py-1 text-xs"
+              className="bg-codin-bg-surface rounded px-2 py-1 text-xs"
               onClick={async () => {
                 await ideMessenger.request("contract/rollback", { backupId });
               }}
@@ -57,7 +57,7 @@ export function ImplementPreviewPanel() {
             </button>
           )}
           <button
-            className="bg-vsc-input-background rounded px-2 py-1 text-xs"
+            className="bg-codin-bg-surface rounded px-2 py-1 text-xs"
             onClick={() => dispatch(setPendingEditContract(undefined))}
           >
             Dismiss
@@ -80,7 +80,7 @@ export function ImplementPreviewPanel() {
         {contract.patches.map((patch, idx) => (
           <div
             key={`${patch.path}-${idx}`}
-            className="border-vsc-input-border rounded border border-solid p-2"
+            className="border-codin-border rounded border border-solid p-2"
           >
             <div className="flex items-center justify-between">
               <div className="font-semibold">{patch.path}</div>
@@ -97,7 +97,7 @@ export function ImplementPreviewPanel() {
               </button>
             </div>
             {expanded[idx] && (
-              <pre className="bg-vsc-input-background mt-2 whitespace-pre-wrap rounded p-2 text-[11px]">
+              <pre className="bg-codin-bg-surface mt-2 whitespace-pre-wrap rounded p-2 text-[11px]">
                 {patch.diff}
               </pre>
             )}
@@ -107,7 +107,7 @@ export function ImplementPreviewPanel() {
         {contract.new_files.map((file, idx) => (
           <div
             key={`${file.path}-${idx}`}
-            className="border-vsc-input-border rounded border border-solid p-2"
+            className="border-codin-border rounded border border-solid p-2"
           >
             <div className="flex items-center justify-between">
               <div className="font-semibold">{file.path}</div>
@@ -124,7 +124,7 @@ export function ImplementPreviewPanel() {
               </button>
             </div>
             {expanded[patchCount + idx] && (
-              <pre className="bg-vsc-input-background mt-2 whitespace-pre-wrap rounded p-2 text-[11px]">
+              <pre className="bg-codin-bg-surface mt-2 whitespace-pre-wrap rounded p-2 text-[11px]">
                 {file.content}
               </pre>
             )}

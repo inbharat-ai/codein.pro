@@ -15,7 +15,7 @@ export interface StartProps {
 
 export default function Start({ item }: StartProps) {
   return (
-    <div className="border-0 border-b-2 border-solid border-[color:var(--vscode-panel-border)] p-1">
+    <div className="border-[color:var(--codin-border, #2a2845)] border-0 border-b-2 border-solid p-1">
       {(() => {
         switch (item.kind) {
           case "startChat":

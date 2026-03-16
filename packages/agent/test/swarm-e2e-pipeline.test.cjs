@@ -5,6 +5,7 @@
  * Also validates tier-aware routing, SSE streaming, and cloud config validation.
  */
 "use strict";
+const { describe, it, beforeEach, afterEach } = require("node:test");
 
 const assert = require("node:assert/strict");
 

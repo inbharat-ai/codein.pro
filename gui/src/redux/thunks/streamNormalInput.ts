@@ -155,8 +155,9 @@ export const streamNormalInput = createAsyncThunk<
       systemToolsFramework,
     );
 
-    // TODO parallel tool calls will cause issues with this
-    // because there will be multiple tool messages, so which one should have applied rules?
+    // Applied rules are set on the assistant message that generated the tool calls.
+    // This is safe even with multiple tool calls since the index refers to the
+    // assistant message, not the tool response messages.
     dispatch(
       setAppliedRulesAtIndex({
         index: appliedRuleIndex,
@@ -369,19 +370,22 @@ export const streamNormalInput = createAsyncThunk<
         if (streamAborter.signal.aborted || !state4.session.isStreaming) {
           return;
         }
-        await Promise.all(
-          builtInReadonlyAutoApproved.map(async ({ toolCallState }) => {
-            unwrapResult(
-              await dispatch(
-                callToolById({
-                  toolCallId: toolCallState.toolCallId,
-                  isAutoApproved: true,
-                  depth: depth + 1,
-                }),
-              ),
-            );
-          }),
-        );
+        // Execute sequentially to prevent race conditions from parallel
+        // streamResponseAfterToolCall calls interleaving LLM responses.
+        for (const { toolCallState } of builtInReadonlyAutoApproved) {
+          if (streamAborter.signal.aborted || !getState().session.isStreaming) {
+            break;
+          }
+          unwrapResult(
+            await dispatch(
+              callToolById({
+                toolCallId: toolCallState.toolCallId,
+                isAutoApproved: true,
+                depth: depth + 1,
+              }),
+            ),
+          );
+        }
       }
 
       dispatch(setInactive());
@@ -393,19 +397,24 @@ export const streamNormalInput = createAsyncThunk<
         return;
       }
       if (generatedCalls4.length > 0) {
-        await Promise.all(
-          generatedCalls4.map(async ({ toolCallId }) => {
-            unwrapResult(
-              await dispatch(
-                callToolById({
-                  toolCallId,
-                  isAutoApproved: true,
-                  depth: depth + 1,
-                }),
-              ),
-            );
-          }),
-        );
+        // Execute tool calls sequentially to prevent race conditions.
+        // Each callToolById triggers streamResponseAfterToolCall which streams
+        // new LLM output; running these in parallel would interleave responses
+        // and corrupt the session history.
+        for (const { toolCallId } of generatedCalls4) {
+          if (streamAborter.signal.aborted || !getState().session.isStreaming) {
+            break;
+          }
+          unwrapResult(
+            await dispatch(
+              callToolById({
+                toolCallId,
+                isAutoApproved: true,
+                depth: depth + 1,
+              }),
+            ),
+          );
+        }
       } else {
         for (const { toolCallId } of originalToolCalls) {
           unwrapResult(

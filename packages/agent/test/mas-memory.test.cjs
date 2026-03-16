@@ -4,6 +4,7 @@
  * Covers all 3 tiers: ShortTermMemory, WorkingMemory, LongTermMemory,
  * plus MemoryManager lifecycle hooks and stripSecrets.
  */
+const { test } = require("node:test");
 const assert = require("node:assert/strict");
 
 const {

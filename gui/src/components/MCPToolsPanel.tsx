@@ -138,13 +138,13 @@ export function MCPToolsPanel() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowActivity(!showActivity)}
-            className="bg-vsc-input-background rounded px-3 py-1 text-sm"
+            className="bg-codin-bg-surface rounded px-3 py-1 text-sm"
           >
             {showActivity ? "Hide" : "Show"} Activity
           </button>
           <button
             onClick={() => setShowAddServer(!showAddServer)}
-            className="bg-vsc-button text-vsc-button-foreground rounded px-3 py-1 text-sm"
+            className="bg-codin-indigo-700 rounded px-3 py-1 text-sm text-white"
           >
             Add Server
           </button>
@@ -153,31 +153,31 @@ export function MCPToolsPanel() {
 
       {/* Add Server Form */}
       {showAddServer && (
-        <div className="border-vsc-input-border flex flex-col gap-2 rounded border border-solid p-3">
+        <div className="border-codin-border flex flex-col gap-2 rounded border border-solid p-3">
           <input
             type="text"
             placeholder="Server name"
             value={newServerName}
             onChange={(e) => setNewServerName(e.target.value)}
-            className="bg-vsc-input-background rounded px-2 py-1 text-sm"
+            className="bg-codin-bg-surface rounded px-2 py-1 text-sm"
           />
           <input
             type="text"
             placeholder="Command (e.g., npx @modelcontextprotocol/server-filesystem)"
             value={newServerCommand}
             onChange={(e) => setNewServerCommand(e.target.value)}
-            className="bg-vsc-input-background rounded px-2 py-1 text-sm"
+            className="bg-codin-bg-surface rounded px-2 py-1 text-sm"
           />
           <div className="flex gap-2">
             <button
               onClick={addServer}
-              className="bg-vsc-button text-vsc-button-foreground rounded px-3 py-1 text-sm"
+              className="bg-codin-indigo-700 rounded px-3 py-1 text-sm text-white"
             >
               Add
             </button>
             <button
               onClick={() => setShowAddServer(false)}
-              className="bg-vsc-input-background rounded px-3 py-1 text-sm"
+              className="bg-codin-bg-surface rounded px-3 py-1 text-sm"
             >
               Cancel
             </button>
@@ -189,14 +189,14 @@ export function MCPToolsPanel() {
       <div className="flex flex-col gap-2">
         <h3 className="text-sm font-medium opacity-70">Servers</h3>
         {servers.length === 0 ? (
-          <div className="border-vsc-input-border rounded border border-solid p-3 text-sm opacity-50">
+          <div className="border-codin-border rounded border border-solid p-3 text-sm opacity-50">
             No MCP servers configured
           </div>
         ) : (
           servers.map((server) => (
             <div
               key={server.name}
-              className="border-vsc-input-border flex flex-col gap-2 rounded border border-solid p-3"
+              className="border-codin-border flex flex-col gap-2 rounded border border-solid p-3"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -209,21 +209,21 @@ export function MCPToolsPanel() {
                   {server.status === "connected" ? (
                     <button
                       onClick={() => disconnectServer(server.name)}
-                      className="bg-vsc-input-background rounded px-2 py-1 text-xs"
+                      className="bg-codin-bg-surface rounded px-2 py-1 text-xs"
                     >
                       Disconnect
                     </button>
                   ) : (
                     <button
                       onClick={() => connectServer(server.name)}
-                      className="bg-vsc-button text-vsc-button-foreground rounded px-2 py-1 text-xs"
+                      className="bg-codin-indigo-700 rounded px-2 py-1 text-xs text-white"
                     >
                       Connect
                     </button>
                   )}
                   <button
                     onClick={() => removeServer(server.name)}
-                    className="bg-vsc-input-background rounded px-2 py-1 text-xs text-red-500"
+                    className="bg-codin-bg-surface rounded px-2 py-1 text-xs text-red-500"
                   >
                     Remove
                   </button>
@@ -241,7 +241,7 @@ export function MCPToolsPanel() {
           {tools.map((tool) => (
             <div
               key={`${tool.server}:${tool.name}`}
-              className="border-vsc-input-border rounded border border-solid p-2"
+              className="border-codin-border rounded border border-solid p-2"
             >
               <div className="text-sm font-medium">{tool.name}</div>
               {tool.description && (
@@ -257,14 +257,14 @@ export function MCPToolsPanel() {
       {showActivity && (
         <div className="flex flex-col gap-2">
           <h3 className="text-sm font-medium opacity-70">Recent Activity</h3>
-          <div className="border-vsc-input-border flex max-h-64 flex-col gap-1 overflow-y-auto rounded border border-solid p-2">
+          <div className="border-codin-border flex max-h-64 flex-col gap-1 overflow-y-auto rounded border border-solid p-2">
             {activity.length === 0 ? (
               <div className="text-xs opacity-50">No activity yet</div>
             ) : (
               activity.map((entry, index) => (
                 <div
                   key={index}
-                  className="border-vsc-input-border border-b border-solid pb-1 text-xs"
+                  className="border-codin-border border-b border-solid pb-1 text-xs"
                 >
                   <div className="font-medium">{entry.tool}</div>
                   <div className="opacity-70">

@@ -1,3 +1,4 @@
+const { test } = require("node:test");
 /**
  * @fileoverview Comprehensive test suite for MultilingualHardener
  * Tests: confidence detection, code-switching, ambiguity resolution,

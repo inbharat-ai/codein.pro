@@ -5,6 +5,8 @@
  * edge cases (empty files, multiple edits), backup/restore, and command running.
  */
 "use strict";
+const { describe, it, after } = require("node:test");
+const assert = require("node:assert/strict");
 
 const fs = require("node:fs");
 const fsp = require("node:fs/promises");
@@ -39,7 +41,7 @@ function readFile(p) {
   return fs.readFileSync(p, "utf-8");
 }
 
-afterAll(() => {
+after(() => {
   for (const dir of tmpDirs) {
     try {
       fs.rmSync(dir, { recursive: true, force: true });
@@ -53,28 +55,29 @@ afterAll(() => {
 
 describe("levenshteinDistance", () => {
   it("returns 0 for identical strings", () => {
-    expect(levenshteinDistance("abc", "abc")).toBe(0);
+    assert.equal(levenshteinDistance("abc", "abc"), 0);
   });
 
   it("returns length for empty vs non-empty", () => {
-    expect(levenshteinDistance("", "abc")).toBe(3);
-    expect(levenshteinDistance("xyz", "")).toBe(3);
+    assert.equal(levenshteinDistance("", "abc"), 3);
+    assert.equal(levenshteinDistance("xyz", ""), 3);
   });
 
   it("returns 0 for both empty", () => {
-    expect(levenshteinDistance("", "")).toBe(0);
+    assert.equal(levenshteinDistance("", ""), 0);
   });
 
   it("computes correct distance for kitten/sitting", () => {
-    expect(levenshteinDistance("kitten", "sitting")).toBe(3);
+    assert.equal(levenshteinDistance("kitten", "sitting"), 3);
   });
 
   it("computes correct distance for single char difference", () => {
-    expect(levenshteinDistance("abc", "axc")).toBe(1);
+    assert.equal(levenshteinDistance("abc", "axc"), 1);
   });
 
   it("is symmetric", () => {
-    expect(levenshteinDistance("hello", "world")).toBe(
+    assert.equal(
+      levenshteinDistance("hello", "world"),
       levenshteinDistance("world", "hello")
     );
   });
@@ -82,22 +85,22 @@ describe("levenshteinDistance", () => {
 
 describe("similarity", () => {
   it("returns 1 for identical strings", () => {
-    expect(similarity("hello", "hello")).toBe(1);
+    assert.equal(similarity("hello", "hello"), 1);
   });
 
   it("returns 1 for both empty", () => {
-    expect(similarity("", "")).toBe(1);
+    assert.equal(similarity("", ""), 1);
   });
 
   it("returns 0 for completely different strings", () => {
     // "abc" vs "xyz" => edit distance 3, max len 3, similarity = 0
-    expect(similarity("abc", "xyz")).toBe(0);
+    assert.equal(similarity("abc", "xyz"), 0);
   });
 
   it("returns value between 0 and 1 for partial matches", () => {
     const s = similarity("hello", "hallo");
-    expect(s).toBeGreaterThan(0);
-    expect(s).toBeLessThan(1);
+    assert.ok(s > 0);
+    assert.ok(s < 1);
   });
 });
 
@@ -115,10 +118,10 @@ describe("SmartApply — Replace Edit", () => {
       replacement: "const x = 42;",
     });
 
-    expect(result.success).toBe(true);
-    expect(result.linesChanged).toBeGreaterThan(0);
-    expect(readFile(fp)).toContain("const x = 42;");
-    expect(readFile(fp)).toContain("console.log(x);");
+    assert.ok(result.success);
+    assert.ok(result.linesChanged > 0);
+    assert.ok(readFile(fp).includes("const x = 42;"));
+    assert.ok(readFile(fp).includes("console.log(x);"));
   });
 
   it("uses fuzzy matching when exact match fails", async () => {
@@ -138,9 +141,9 @@ describe("SmartApply — Replace Edit", () => {
         'function greet(name) {\n  return `Hello ${name}!`;\n}',
     });
 
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
     const content = readFile(fp);
-    expect(content).toContain("Hello ${name}!");
+    assert.ok(content.includes("Hello ${name}!"));
   });
 
   it("fails when no match found (below threshold)", async () => {
@@ -154,7 +157,7 @@ describe("SmartApply — Replace Edit", () => {
       replacement: "new text",
     });
 
-    expect(result.success).toBe(false);
+    assert.ok(!result.success);
   });
 
   it("returns no-op when edit produces no change", async () => {
@@ -168,8 +171,8 @@ describe("SmartApply — Replace Edit", () => {
       replacement: "const x = 1;",
     });
 
-    expect(result.success).toBe(true);
-    expect(result.linesChanged).toBe(0);
+    assert.ok(result.success);
+    assert.equal(result.linesChanged, 0);
   });
 });
 
@@ -187,9 +190,9 @@ describe("SmartApply — Insert Edit", () => {
       replacement: "inserted_line",
     });
 
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
     const lines = readFile(fp).split("\n");
-    expect(lines[1]).toBe("inserted_line");
+    assert.equal(lines[1], "inserted_line");
   });
 
   it("inserts after a search pattern", async () => {
@@ -207,12 +210,12 @@ describe("SmartApply — Insert Edit", () => {
       replacement: "import path from 'path';",
     });
 
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
     const content = readFile(fp);
     const lines = content.split("\n");
     const fsIdx = lines.findIndex((l) => l.includes("import fs"));
     const pathIdx = lines.findIndex((l) => l.includes("import path"));
-    expect(pathIdx).toBe(fsIdx + 1);
+    assert.equal(pathIdx, fsIdx + 1);
   });
 
   it("appends to end when no lineNumber or search given", async () => {
@@ -225,8 +228,8 @@ describe("SmartApply — Insert Edit", () => {
       replacement: "appended_line",
     });
 
-    expect(result.success).toBe(true);
-    expect(readFile(fp).trimEnd().endsWith("appended_line")).toBe(true);
+    assert.ok(result.success);
+    assert.ok(readFile(fp).trimEnd().endsWith("appended_line"));
   });
 });
 
@@ -247,10 +250,10 @@ describe("SmartApply — Delete Edit", () => {
       search: "delete this line\n",
     });
 
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
     const content = readFile(fp);
-    expect(content).not.toContain("delete this line");
-    expect(content).toContain("keep this");
+    assert.ok(!content.includes("delete this line"));
+    assert.ok(content.includes("keep this"));
   });
 });
 
@@ -271,11 +274,11 @@ describe("SmartApply — Batch Edits", () => {
       { type: "replace", search: "const c = 3;", replacement: "const c = 30;" },
     ]);
 
-    expect(result.success).toBe(true);
+    assert.ok(result.success);
     const content = readFile(fp);
-    expect(content).toContain("const a = 10;");
-    expect(content).toContain("const b = 2;"); // unchanged
-    expect(content).toContain("const c = 30;");
+    assert.ok(content.includes("const a = 10;"));
+    assert.ok(content.includes("const b = 2;")); // unchanged
+    assert.ok(content.includes("const c = 30;"));
   });
 
   it("rolls back all edits if one fails", async () => {
@@ -293,9 +296,9 @@ describe("SmartApply — Batch Edits", () => {
       },
     ]);
 
-    expect(result.success).toBe(false);
+    assert.ok(!result.success);
     // File should be rolled back to original
-    expect(readFile(fp)).toBe(original);
+    assert.equal(readFile(fp), original);
   });
 });
 
@@ -313,7 +316,7 @@ describe("SmartApply — Edge Cases", () => {
       replacement: "other",
     });
 
-    expect(result.success).toBe(false);
+    assert.ok(!result.success);
   });
 
   it("handles insert into empty file at line 1", async () => {
@@ -327,8 +330,8 @@ describe("SmartApply — Edge Cases", () => {
       replacement: "// first line",
     });
 
-    expect(result.success).toBe(true);
-    expect(readFile(fp)).toContain("// first line");
+    assert.ok(result.success);
+    assert.ok(readFile(fp).includes("// first line"));
   });
 
   it("resolves relative paths against workspace root", async () => {
@@ -342,8 +345,8 @@ describe("SmartApply — Edge Cases", () => {
       replacement: "updated",
     });
 
-    expect(result.success).toBe(true);
-    expect(readFile(path.join(dir, "sub/test.js"))).toContain("updated");
+    assert.ok(result.success);
+    assert.ok(readFile(path.join(dir, "sub/test.js")).includes("updated"));
   });
 });
 
@@ -358,16 +361,16 @@ describe("SmartApply — Unified Diff Generation", () => {
       "test.js"
     );
 
-    expect(diff).toContain("--- a/test.js");
-    expect(diff).toContain("+++ b/test.js");
-    expect(diff).toContain("-line2");
-    expect(diff).toContain("+modified");
+    assert.ok(diff.includes("--- a/test.js"));
+    assert.ok(diff.includes("+++ b/test.js"));
+    assert.ok(diff.includes("-line2"));
+    assert.ok(diff.includes("+modified"));
   });
 
   it("returns empty string for identical content", () => {
     const sa = new SmartApply();
     const diff = sa.generateUnifiedDiff("same\n", "same\n", "file.js");
-    expect(diff).toBe("");
+    assert.equal(diff, "");
   });
 });
 
@@ -377,14 +380,14 @@ describe("SmartApply — Syntax Validation", () => {
   it("validates correct JSON", () => {
     const sa = new SmartApply();
     const result = sa.validateSyntax("config.json", '{"key":"value"}');
-    expect(result.valid).toBe(true);
+    assert.ok(result.valid);
   });
 
   it("catches invalid JSON", () => {
     const sa = new SmartApply();
     const result = sa.validateSyntax("config.json", "{broken json}");
-    expect(result.valid).toBe(false);
-    expect(result.errors.length).toBeGreaterThan(0);
+    assert.ok(!result.valid);
+    assert.ok(result.errors.length > 0);
   });
 
   it("validates balanced braces in JS", () => {
@@ -393,14 +396,14 @@ describe("SmartApply — Syntax Validation", () => {
       "test.js",
       'function f() { if (true) { return 1; } }'
     );
-    expect(valid.valid).toBe(true);
+    assert.ok(valid.valid);
   });
 
   it("catches unbalanced braces in JS", () => {
     const sa = new SmartApply();
     const invalid = sa.validateSyntax("test.js", "function f() { if (true) {");
-    expect(invalid.valid).toBe(false);
-    expect(invalid.errors.some((e) => e.includes("Unclosed"))).toBe(true);
+    assert.ok(!invalid.valid);
+    assert.ok(invalid.errors.some((e) => e.includes("Unclosed")));
   });
 
   it("ignores braces inside strings", () => {
@@ -409,13 +412,13 @@ describe("SmartApply — Syntax Validation", () => {
       "test.js",
       'const s = "a { b }"; function f() {}'
     );
-    expect(result.valid).toBe(true);
+    assert.ok(result.valid);
   });
 
   it("returns valid for unknown file types", () => {
     const sa = new SmartApply();
     const result = sa.validateSyntax("readme.md", "# { not code }");
-    expect(result.valid).toBe(true);
+    assert.ok(result.valid);
   });
 });
 
@@ -428,15 +431,15 @@ describe("SmartApply — Backup & Restore", () => {
     const sa = new SmartApply({ workspaceRoot: dir });
 
     const backupPath = await sa.createBackup(fp);
-    expect(fs.existsSync(backupPath)).toBe(true);
-    expect(readFile(backupPath)).toBe("original content\n");
+    assert.ok(fs.existsSync(backupPath));
+    assert.equal(readFile(backupPath), "original content\n");
 
     // Modify the file
     fs.writeFileSync(fp, "modified content\n");
 
     // Restore
     await sa.restoreBackup(fp, backupPath);
-    expect(readFile(fp)).toBe("original content\n");
+    assert.equal(readFile(fp), "original content\n");
   });
 });
 
@@ -447,18 +450,18 @@ describe("CommandRunner", () => {
     const runner = new CommandRunner({ timeout: 10000 });
     const result = await runner.run("echo hello");
 
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout.join(" ")).toContain("hello");
-    expect(result.duration).toBeGreaterThanOrEqual(0);
-    expect(result.command).toBe("echo hello");
+    assert.equal(result.exitCode, 0);
+    assert.ok(result.stdout.join(" ").includes("hello"));
+    assert.ok(result.duration >= 0);
+    assert.equal(result.command, "echo hello");
   });
 
   it("captures non-zero exit code", async () => {
     const runner = new CommandRunner({ timeout: 5000 });
     const result = await runner.run("node -e \"process.exit(1)\"");
     // On Windows through cmd.exe, exit codes may differ; just check it ran
-    expect(typeof result.exitCode).toBe("number");
-    expect(result.command).toContain("process.exit");
+    assert.equal(typeof result.exitCode, "number");
+    assert.ok(result.command.includes("process.exit"));
   });
 
   it("parses Jest output format", () => {
@@ -469,9 +472,9 @@ describe("CommandRunner", () => {
       "Time:        2.5 s",
     ];
     const parsed = runner.parseOutput(lines, "jest");
-    expect(parsed.passed).toBe(5);
-    expect(parsed.failed).toBe(1);
-    expect(parsed.total).toBe(6);
+    assert.equal(parsed.passed, 5);
+    assert.equal(parsed.failed, 1);
+    assert.equal(parsed.total, 6);
   });
 
   it("parses ESLint output format", () => {
@@ -481,9 +484,9 @@ describe("CommandRunner", () => {
       "/src/bar.js:20:3: warning Unexpected console statement (no-console)",
     ];
     const parsed = runner.parseOutput(lines, "eslint");
-    expect(parsed.errorCount).toBe(1);
-    expect(parsed.warningCount).toBe(1);
-    expect(parsed.errors).toHaveLength(2);
+    assert.equal(parsed.errorCount, 1);
+    assert.equal(parsed.warningCount, 1);
+    assert.equal(parsed.errors.length, 2);
   });
 
   it("parses TypeScript compiler output", () => {
@@ -492,7 +495,7 @@ describe("CommandRunner", () => {
       "src/foo.ts(10,5): error TS2322: Type 'string' is not assignable to type 'number'.",
     ];
     const parsed = runner.parseOutput(lines, "tsc");
-    expect(parsed.errorCount).toBe(1);
-    expect(parsed.errors[0].code).toBe("TS2322");
+    assert.equal(parsed.errorCount, 1);
+    assert.equal(parsed.errors[0].code, "TS2322");
   });
 });

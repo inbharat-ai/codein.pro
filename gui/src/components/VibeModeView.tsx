@@ -8,7 +8,7 @@ const DropZone = styled.div<{ $isDragging: boolean }>`
     ${(p) =>
       p.$isDragging
         ? "var(--codin-accent, #e8a849)"
-        : "var(--vscode-panel-border, #333)"};
+        : "var(--codin-border, #2a2845)"};
   border-radius: 12px;
   padding: 2rem;
   text-align: center;
@@ -129,9 +129,9 @@ export function VibeModeView() {
         placeholder="Describe what you want to build..."
         className="w-full rounded-lg border p-3 text-sm"
         style={{
-          backgroundColor: "var(--vscode-input-background)",
-          borderColor: "var(--vscode-input-border)",
-          color: "var(--vscode-input-foreground)",
+          backgroundColor: "var(--codin-bg-surface, #201e3a)",
+          borderColor: "var(--codin-border, #2a2845)",
+          color: "var(--codin-fg-primary, #e8e6f0)",
           resize: "vertical",
           minHeight: "80px",
         }}
@@ -157,7 +157,7 @@ export function VibeModeView() {
             if (fileInputRef.current) fileInputRef.current.value = "";
           }}
           className="text-xs opacity-50 hover:opacity-80"
-          style={{ color: "var(--vscode-foreground)" }}
+          style={{ color: "var(--codin-fg-primary, #e8e6f0)" }}
         >
           Clear image
         </button>

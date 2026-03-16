@@ -4,6 +4,7 @@
  * Validates workspace path traversal protection for /vibe/apply and /vibe/preview.
  */
 "use strict";
+const { describe, it, beforeEach } = require("node:test");
 
 const assert = require("node:assert/strict");
 const { registerVibeRoutes } = require("../src/routes/vibe");

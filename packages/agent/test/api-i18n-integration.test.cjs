@@ -1,3 +1,4 @@
+const { test } = require("node:test");
 /**
  * API Integration Tests for I18N (TTS/STT/Translation)
  * 

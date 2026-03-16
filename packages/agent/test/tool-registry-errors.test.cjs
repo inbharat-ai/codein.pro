@@ -2,6 +2,7 @@
  * Tests for Phase 0: Central Tool Registry, Error Types, and Structured Logger
  */
 "use strict";
+const { describe, it } = require("node:test");
 
 const assert = require("node:assert/strict");
 

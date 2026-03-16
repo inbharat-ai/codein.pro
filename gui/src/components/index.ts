@@ -1,33 +1,27 @@
 import styled from "styled-components";
-import { varWithFallback } from "../styles/theme";
 
-export const defaultBorderRadius = "0.5rem";
-export const lightGray = "#999998";
+export const defaultBorderRadius = "var(--codin-radius-md, 0.5rem)";
+export const lightGray = "var(--codin-fg-muted, #8b88ad)";
 export const greenButtonColor = "#189e72";
 
-export const vscInputBackground = varWithFallback("input-background");
-export const vscQuickInputBackground = varWithFallback("input-background");
-export const vscBackground = varWithFallback("background");
-export const vscForeground = varWithFallback("foreground");
-export const vscButtonBackground = varWithFallback("primary-background");
-export const vscButtonForeground = varWithFallback("primary-foreground");
-export const vscEditorBackground = varWithFallback("editor-background");
-export const vscTextCodeBlockBackground = varWithFallback(
-  "textCodeBlockBackground",
-);
-export const vscListActiveBackground = varWithFallback("list-active");
-export const vscFocusBorder = varWithFallback("border-focus");
-export const vscListActiveForeground = varWithFallback(
-  "list-active-foreground",
-);
-export const vscInputBorder = varWithFallback("input-border");
-export const vscInputBorderFocus = varWithFallback("border-focus");
-export const vscBadgeBackground = varWithFallback("badge-background");
-export const vscBadgeForeground = varWithFallback("badge-foreground");
-export const vscCommandCenterActiveBorder = varWithFallback(
-  "command-border-focus",
-);
-export const vscCommandCenterInactiveBorder = varWithFallback("command-border");
+export const vscInputBackground = "var(--codin-bg-surface, #201e3a)";
+export const vscQuickInputBackground = "var(--codin-bg-surface, #201e3a)";
+export const vscBackground = "var(--codin-bg-primary, #0f0e17)";
+export const vscForeground = "var(--codin-fg-primary, #e8e6f0)";
+export const vscButtonBackground = "var(--codin-accent-primary, #4338ca)";
+export const vscButtonForeground = "#ffffff";
+export const vscEditorBackground = "var(--codin-bg-surface, #201e3a)";
+export const vscTextCodeBlockBackground = "var(--codin-bg-surface, #201e3a)";
+export const vscListActiveBackground = "var(--codin-bg-active, #312e81)";
+export const vscFocusBorder = "var(--codin-border-focus, #f59e0b)";
+export const vscListActiveForeground = "var(--codin-fg-primary, #e8e6f0)";
+export const vscInputBorder = "var(--codin-border, #2a2845)";
+export const vscInputBorderFocus = "var(--codin-border-focus, #f59e0b)";
+export const vscBadgeBackground = "var(--codin-indigo-600, #4f46e5)";
+export const vscBadgeForeground = "var(--codin-fg-primary, #e8e6f0)";
+export const vscCommandCenterActiveBorder =
+  "var(--codin-border-focus, #f59e0b)";
+export const vscCommandCenterInactiveBorder = "var(--codin-border, #2a2845)";
 
 export const Button = styled.button`
   padding: 6px 12px;
