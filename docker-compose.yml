@@ -1,0 +1,34 @@
+# CodeIn Agent — Docker Compose
+# Usage: docker compose up -d
+# Docs:  https://github.com/inbharat-ai/codein.pro
+
+services:
+  agent:
+    build: .
+    container_name: codein-agent
+    ports:
+      - "43120:43120"
+    environment:
+      NODE_ENV: production
+      PORT: "43120"
+      # Provide your API keys via .env file or environment
+      # OPENAI_API_KEY: ""
+      # ANTHROPIC_API_KEY: ""
+    volumes:
+      - agent-data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:43120/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+
+volumes:
+  agent-data:

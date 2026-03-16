@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  unit-tests:
+  agent-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,3 +29,26 @@ jobs:
           npm install
           npm test
         working-directory: packages/media
+
+  gui-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install GUI dependencies
+        run: |
+          rm -f package-lock.json
+          npm install --no-audit --no-fund
+        working-directory: gui
+      - name: Run GUI unit tests
+        run: npx vitest run --reporter=verbose
+        working-directory: gui
+      - name: Build GUI
+        run: npm run build
+        working-directory: gui
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
