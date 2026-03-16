@@ -3,7 +3,7 @@ import { BaseSessionMetadata, Session } from "core";
 import type { RemoteSessionMetadata } from "core/control-plane/client";
 import { NEW_SESSION_TITLE } from "core/util/constants";
 import { v4 as uuidv4 } from "uuid";
-import { SessionState } from "./types";
+import { ChatHistoryItemWithMessageId, SessionState } from "./types";
 
 const sessionMetadataReducers = {
   newSession: (
@@ -23,7 +23,7 @@ const sessionMetadataReducers = {
     state.contextPercentage = undefined;
 
     if (payload) {
-      state.history = payload.history as any;
+      state.history = payload.history as ChatHistoryItemWithMessageId[];
       state.title = payload.title;
       state.id = payload.sessionId;
       if (payload.mode) {

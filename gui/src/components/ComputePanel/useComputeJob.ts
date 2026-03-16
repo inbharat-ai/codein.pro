@@ -24,9 +24,7 @@ export function useComputeJob() {
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   const computeBridge =
-    typeof window !== "undefined"
-      ? (window as any).codinAPI?.compute
-      : undefined;
+    typeof window !== "undefined" ? window.codinAPI?.compute : undefined;
   const useIpcCompute = Boolean(computeBridge);
 
   // ── Check agent availability ─────────────────────────────

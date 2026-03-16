@@ -41,7 +41,7 @@ export function EnhancedRunPanel() {
     setDetecting(true);
     setDetectError(null);
     try {
-      const workspacePath = (ideMessenger as any).workspacePath || ".";
+      const workspacePath = window.workspacePaths?.[0] ?? ".";
       const response = await agentFetch("/run/detect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

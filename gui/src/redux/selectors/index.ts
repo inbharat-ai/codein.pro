@@ -52,5 +52,5 @@ export const selectDefaultContextProviders = createSelector(
 
 export const selectUseActiveFile = createSelector(
   [(state: RootState) => state.config.config.experimental?.defaultContext],
-  (defaultContext) => defaultContext?.includes("activeFile" as any),
+  (defaultContext) => defaultContext?.some((p) => p.name === "activeFile"),
 );

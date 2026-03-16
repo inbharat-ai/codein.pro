@@ -88,7 +88,7 @@ function TipTapEditorInner(props: TipTapEditorProps) {
     const placeholder = getPlaceholderText(props.placeholder, historyLength);
     const placeholderExt = editor.extensionManager.extensions.find(
       (e) => e.name === "placeholder",
-    ) as any;
+    );
     if (placeholderExt) {
       placeholderExt.options["placeholder"] = placeholder;
       editor.view.dispatch(editor.state.tr);

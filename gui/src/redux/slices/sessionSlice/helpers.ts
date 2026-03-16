@@ -156,8 +156,7 @@ export function handleStreamingToolCallUpdates(
     lastItem.toolCallStates = updatedToolCallStates;
 
     // Update the message's toolCalls array to reflect current tool call states
-    (lastItem.message as any).toolCalls = updatedToolCallStates.map(
-      (state) => state.toolCall,
-    );
+    (lastItem.message as AssistantChatMessage).toolCalls =
+      updatedToolCallStates.map((state) => state.toolCall);
   }
 }

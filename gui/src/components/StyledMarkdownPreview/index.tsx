@@ -259,7 +259,8 @@ const StyledMarkdownPreview = memo(function StyledMarkdownPreview(
       },
     ],
     rehypePlugins: [
-      rehypeKatex as any,
+      // rehype-katex types are incompatible with unified's Plugin type
+      rehypeKatex as unknown as import("unified").Plugin,
       {},
       rehypeHighlightPlugin(),
       // Note: An empty obj is the default behavior, but leaving this here for scaffolding to

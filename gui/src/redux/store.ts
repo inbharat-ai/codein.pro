@@ -77,14 +77,17 @@ const MAX_PERSISTED_HISTORY = 50;
 
 const migrations: MigrationManifest = {
   "0": (state) => {
-    const oldState = state as any;
+    const oldState = state as Record<string, unknown> | undefined;
+    const oldInnerState = oldState?.["state"] as
+      | Record<string, unknown>
+      | undefined;
 
     return {
       config: {
-        defaultModelTitle: oldState?.state?.defaultModelTitle ?? undefined,
+        defaultModelTitle: oldInnerState?.["defaultModelTitle"] ?? undefined,
       },
       session: {
-        id: oldState?.state?.sessionId ?? "",
+        id: oldInnerState?.["sessionId"] ?? "",
       },
       tabs: {
         tabs: [
@@ -96,20 +99,23 @@ const migrations: MigrationManifest = {
           },
         ],
       },
-      _persist: oldState?._persist,
+      _persist: oldState?.["_persist"],
     };
   },
   "2": (state) => {
-    const oldState = state as any;
+    const oldState = state as Record<string, unknown> | undefined;
+    const oldSession = oldState?.["session"] as
+      | Record<string, unknown>
+      | undefined;
     // Prune history to last 50 messages and strip non-serializable fields
-    const history = Array.isArray(oldState?.session?.history)
-      ? oldState.session.history.slice(-MAX_PERSISTED_HISTORY)
+    const history = Array.isArray(oldSession?.["history"])
+      ? (oldSession["history"] as unknown[]).slice(-MAX_PERSISTED_HISTORY)
       : [];
 
     return {
       ...oldState,
       session: {
-        ...oldState?.session,
+        ...oldSession,
         history,
         // Reset streaming state on migration — can't be mid-stream across restart
         isStreaming: false,
