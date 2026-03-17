@@ -39,16 +39,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Build monorepo packages (required by core/ imports)
+        run: node scripts/build-packages.js
+      - name: Install core dependencies
+        run: |
+          rm -f package-lock.json
+          npm install --no-audit --no-fund
+        working-directory: core
       - name: Install GUI dependencies
         run: |
           rm -f package-lock.json
           npm install --no-audit --no-fund
         working-directory: gui
-      - name: Install core dependencies (required by GUI tests that import from core/)
-        run: |
-          rm -f package-lock.json
-          npm install --no-audit --no-fund
-        working-directory: core
       - name: Run GUI unit tests
         run: npx vitest run --reporter=verbose
         working-directory: gui
