@@ -100,6 +100,19 @@ jobs:
       - name: Install root dependencies
         run: npm ci --ignore-scripts
 
+      - name: Install dependency packages
+        run: |
+          cd packages/config-types && npm ci --ignore-scripts
+          cd ../config-yaml && npm ci --ignore-scripts
+          cd ../terminal-security && npm ci --ignore-scripts
+          cd ../fetch && npm ci --ignore-scripts
+          cd ../llm-info && npm ci --ignore-scripts
+          cd ../openai-adapters && npm ci --ignore-scripts
+
+      - name: Install core dependencies
+        working-directory: core
+        run: npm ci --ignore-scripts
+
       - name: Build GUI
         working-directory: gui
         run: |
@@ -155,6 +168,19 @@ jobs:
           path: electron-app/assets/llama/
 
       - name: Install root dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install dependency packages
+        run: |
+          cd packages/config-types && npm ci --ignore-scripts
+          cd ../config-yaml && npm ci --ignore-scripts
+          cd ../terminal-security && npm ci --ignore-scripts
+          cd ../fetch && npm ci --ignore-scripts
+          cd ../llm-info && npm ci --ignore-scripts
+          cd ../openai-adapters && npm ci --ignore-scripts
+
+      - name: Install core dependencies
+        working-directory: core
         run: npm ci --ignore-scripts
 
       - name: Build GUI
@@ -214,6 +240,19 @@ jobs:
           path: electron-app/assets/llama/
 
       - name: Install root dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install dependency packages
+        run: |
+          cd packages/config-types && npm ci --ignore-scripts
+          cd ../config-yaml && npm ci --ignore-scripts
+          cd ../terminal-security && npm ci --ignore-scripts
+          cd ../fetch && npm ci --ignore-scripts
+          cd ../llm-info && npm ci --ignore-scripts
+          cd ../openai-adapters && npm ci --ignore-scripts
+
+      - name: Install core dependencies
+        working-directory: core
         run: npm ci --ignore-scripts
 
       - name: Build GUI
