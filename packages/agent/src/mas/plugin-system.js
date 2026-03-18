@@ -16,6 +16,7 @@ const path = require("node:path");
 const os = require("node:os");
 const vm = require("node:vm");
 const { createLogger } = require("./logger");
+const { DocGenerator, _safeParseLLMJson } = require("./doc-generator");
 
 const log = createLogger("PluginSystem");
 
@@ -536,37 +537,8 @@ const skillLog = createLogger("SkillRegistry");
  */
 
 // ── Commit message rule-based helpers ────────────────────────────────────────
-
-function _inferCommitType(diff, files) {
-  const lower = diff.toLowerCase();
-  if (/test|spec|\.test\.|\.spec\./.test(files.join(" "))) return "test";
-  if (/readme|\.md$|docs?\//.test(files.join(" "))) return "docs";
-  if (/package\.json|yarn\.lock|package-lock/.test(files.join(" ")))
-    return "chore";
-  if (/style|\.css$|\.scss$|tailwind/.test(files.join(" "))) return "style";
-  if (/\+.*fix|bug|error|crash|null|undefined/.test(lower)) return "fix";
-  if (/\+.*refactor|rename|move|extract/.test(lower)) return "refactor";
-  if (files.some((f) => f.includes("config") || f.endsWith(".json")))
-    return "chore";
-  return "feat";
-}
-
-function _inferScope(files) {
-  if (!files.length) return null;
-  // Use the most common parent directory name or filename stem
-  const parts = files.map((f) => {
-    const segs = f.split("/");
-    // prefer the parent dir if nested (e.g. "components/KanbanBoard.tsx" → "components")
-    const seg = segs.length >= 2 ? segs[segs.length - 2] : segs[0];
-    return (seg || "").replace(/\.[^.]+$/, "");
-  });
-  const freq = {};
-  parts.forEach((p) => {
-    if (p) freq[p] = (freq[p] || 0) + 1;
-  });
-  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-  return sorted[0]?.[0] || null;
-}
+// Type + scope analysis is delegated to DocGenerator.analyzeCommitType().
+// This helper only builds the human-readable subject line.
 
 function _buildSubjectFallback(type, files, stats) {
   if (!files.length) {
@@ -750,13 +722,10 @@ class SkillRegistry {
             });
             const text = typeof raw === "string" ? raw : raw?.text || "";
 
-            // Extract JSON from response (handle markdown code fences)
-            const jsonMatch =
-              text.match(/```json\s*([\s\S]*?)\s*```/) ||
-              text.match(/```\s*([\s\S]*?)\s*```/) ||
-              text.match(/(\{[\s\S]*\})/);
-            const jsonStr = jsonMatch ? jsonMatch[1] : text.trim();
-            const parsed = JSON.parse(jsonStr);
+            // Delegate JSON extraction to the shared _safeParseLLMJson helper
+            // (handles markdown code fences and bare JSON objects)
+            const parsed = _safeParseLLMJson(text);
+            if (!parsed) throw new Error("LLM response was not valid JSON");
 
             const scope = parsed.scope ? `(${parsed.scope})` : "";
             const bang = parsed.breaking ? "!" : "";
@@ -777,9 +746,9 @@ class SkillRegistry {
           }
         }
 
-        // ── Rule-based fallback ────────────────────────────────────
-        const type = _inferCommitType(diff, filesChanged);
-        const scope = _inferScope(filesChanged);
+        // ── Rule-based fallback — delegate type+scope to DocGenerator ──────
+        const _docGen = new DocGenerator();
+        const { type, scope } = _docGen.analyzeCommitType(diff);
         const subject = _buildSubjectFallback(type, filesChanged, stats);
         return {
           suggestion: `${type}${scope ? `(${scope})` : ""}: ${subject}`,

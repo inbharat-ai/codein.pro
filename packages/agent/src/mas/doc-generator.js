@@ -1341,4 +1341,11 @@ function _buildRuleBasedREADME(name, description, packageJson, structure) {
 /*  Exports                                                            */
 /* ------------------------------------------------------------------ */
 
-module.exports = { DocGenerator, COMMIT_TYPES };
+module.exports = {
+  DocGenerator,
+  COMMIT_TYPES,
+  _safeParseLLMJson,
+  _deriveScope,
+  _extractFilePaths,
+  _diffStats,
+};

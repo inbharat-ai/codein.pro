@@ -34,11 +34,11 @@ const StatusDot = memo(function StatusDot({ status }: { status: string }) {
     healthy: "bg-green-500",
     untested: "bg-yellow-500",
     error: "bg-red-500",
-    unknown: "bg-zinc-500",
+    unknown: "bg-[var(--codin-fg-muted)]",
   };
   return (
     <span
-      className={`inline-block h-2.5 w-2.5 rounded-full ${colors[status] || "bg-zinc-500"}`}
+      className={`inline-block h-2.5 w-2.5 rounded-full ${colors[status] || "bg-[var(--codin-fg-muted)]"}`}
       title={status}
     />
   );
@@ -62,7 +62,7 @@ const CapabilityBadge = memo(function CapabilityBadge({
   };
   return (
     <span
-      className={`rounded px-1.5 py-0.5 text-[10px] ${capColors[label.toLowerCase()] || "bg-zinc-800 text-zinc-400"}`}
+      className={`rounded px-1.5 py-0.5 text-[10px] ${capColors[label.toLowerCase()] || "bg-[var(--codin-bg-tertiary)] text-[var(--codin-fg-muted)]"}`}
     >
       {label}
     </span>
@@ -205,7 +205,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
               {provider.displayName}
             </h4>
             {!provider.enabled && (
-              <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-500">
+              <span className="rounded bg-[var(--codin-bg-tertiary)] px-1.5 py-0.5 text-[10px] text-[var(--codin-fg-muted)]">
                 disabled
               </span>
             )}
@@ -220,7 +220,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
           onClick={handleToggleEnabled}
           disabled={isTogglingEnabled}
           className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-            provider.enabled ? "bg-blue-600" : "bg-zinc-700"
+            provider.enabled ? "bg-blue-600" : "bg-[var(--codin-bg-surface)]"
           } ${isTogglingEnabled ? "opacity-50" : ""}`}
           title={provider.enabled ? "Disable provider" : "Enable provider"}
         >
@@ -251,7 +251,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
           <div className="flex shrink-0 items-center gap-1">
             <button
               onClick={() => setShowKeyInput(!showKeyInput)}
-              className="rounded bg-zinc-700 px-2 py-0.5 text-[10px] text-zinc-300 hover:bg-zinc-600"
+              className="rounded bg-[var(--codin-bg-surface)] px-2 py-0.5 text-[10px] text-[var(--codin-fg-secondary)] hover:bg-[var(--codin-bg-hover)]"
             >
               {provider.hasKey ? "Update Key" : "Add Key"}
             </button>
@@ -262,7 +262,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
                 className={`rounded px-2 py-0.5 text-[10px] ${
                   confirmRemove
                     ? "bg-red-700 text-white"
-                    : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+                    : "bg-[var(--codin-bg-surface)] text-[var(--codin-fg-secondary)] hover:bg-[var(--codin-bg-hover)]"
                 }`}
               >
                 {isRemovingKey ? "..." : confirmRemove ? "Confirm" : "Remove"}
@@ -282,7 +282,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
                   dispatch(fetchProviderModels(provider.id));
                 }
               }}
-              className="rounded bg-zinc-700 px-2 py-0.5 text-[10px] text-zinc-300 hover:bg-zinc-600"
+              className="rounded bg-[var(--codin-bg-surface)] px-2 py-0.5 text-[10px] text-[var(--codin-fg-secondary)] hover:bg-[var(--codin-bg-hover)]"
             >
               {expanded ? "Hide Models" : "Models"}
             </button>
@@ -337,7 +337,7 @@ function ProviderCard({ provider }: { provider: ProviderStatus }) {
                 setKeyInput("");
                 setConfirmRemove(false);
               }}
-              className="rounded bg-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-600"
+              className="rounded bg-[var(--codin-bg-surface)] px-2 py-1 text-xs text-[var(--codin-fg-secondary)] hover:bg-[var(--codin-bg-hover)]"
             >
               Cancel
             </button>
@@ -467,7 +467,7 @@ export function AIHubPanel() {
         <button
           onClick={() => dispatch(fetchProviders())}
           disabled={loading}
-          className="flex items-center gap-1 rounded bg-zinc-700 px-2.5 py-1 text-xs text-zinc-300 hover:bg-zinc-600 disabled:opacity-50"
+          className="flex items-center gap-1 rounded bg-[var(--codin-bg-surface)] px-2.5 py-1 text-xs text-[var(--codin-fg-secondary)] hover:bg-[var(--codin-bg-hover)] disabled:opacity-50"
         >
           {loading ? <Spinner size="h-3 w-3" /> : null}
           {loading ? "Refreshing..." : "Refresh"}

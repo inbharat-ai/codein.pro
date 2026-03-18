@@ -561,12 +561,20 @@ function registerSwarmRoutes(router, deps) {
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
       // Normalise field aliases: gitDiff→diff, commitMessages→commits, branch→headBranch
-      const { gitDiff, commitMessages, branch, ...rest } = parsed.value;
+      const {
+        gitDiff,
+        commitMessages,
+        branch,
+        diff,
+        commits,
+        headBranch,
+        ...rest
+      } = parsed.value;
       const opts = {
         ...rest,
-        diff: gitDiff ?? parsed.value.diff ?? "",
-        commits: commitMessages ?? parsed.value.commits ?? [],
-        headBranch: branch ?? parsed.value.headBranch ?? "",
+        diff: gitDiff ?? diff ?? "",
+        commits: commitMessages ?? commits ?? [],
+        headBranch: branch ?? headBranch ?? "",
       };
       const result = await swarmManager.generatePRDescription(opts);
       sendJson(res, 200, result);

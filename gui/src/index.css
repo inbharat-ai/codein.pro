@@ -79,6 +79,31 @@ body {
   animation: fadeIn 0.3s ease-in-out;
 }
 
+/* AnimatedEllipsis — replaces the former styled-components implementation */
+@keyframes ellipsis-grow {
+  0% {
+    width: 0;
+  }
+  33% {
+    width: 0.33em;
+  }
+  66% {
+    width: 0.66em;
+  }
+  100% {
+    width: 1em;
+  }
+}
+
+.animated-ellipsis::after {
+  content: "...";
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: ellipsis-grow 2s infinite;
+  width: 0;
+}
+
 /* Unified thin scrollbar — alias both class names */
 .thin-scrollbar,
 .scrollbar-thin {

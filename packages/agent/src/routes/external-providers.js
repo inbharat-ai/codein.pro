@@ -294,14 +294,29 @@ function registerExternalProviderRoutes(router, deps) {
         const provider = body.provider;
         const messages = body.messages;
         // Support both flat body (OpenAI-style: model/temperature/max_tokens at top level)
-        // and nested options object { options: { model, ... } }
+        // and nested options object { options: { model, ... } }.
+        // Only forward known-safe keys to prevent arbitrary body fields leaking into provider calls.
+        const ALLOWED_OPTION_KEYS = new Set([
+          "model",
+          "temperature",
+          "maxTokens",
+          "max_tokens",
+          "topP",
+          "top_p",
+          "stop",
+          "n",
+          "stream",
+        ]);
         const {
           provider: _p,
           messages: _m,
           options: _opts,
-          ...topLevelOpts
+          ...bodyRest
         } = body;
-        const options = { ...topLevelOpts, ...(_opts || {}) };
+        const filteredTopLevel = Object.fromEntries(
+          Object.entries(bodyRest).filter(([k]) => ALLOWED_OPTION_KEYS.has(k)),
+        );
+        const options = { ...filteredTopLevel, ...(_opts || {}) };
 
         if (!provider || typeof provider !== "string") {
           jsonResponse(res, 400, { error: "provider is required" });
@@ -345,9 +360,27 @@ function registerExternalProviderRoutes(router, deps) {
     const body = parsed.value;
     const provider = body.provider;
     const messages = body.messages;
-    // Support flat body (OpenAI-style) and nested options
-    const { provider: _sp, messages: _sm, options: _sopts, ...sTopOpts } = body;
-    const options = { ...sTopOpts, ...(_sopts || {}) };
+    // Support flat body (OpenAI-style) and nested options — whitelist known keys.
+    const ALLOWED_STREAM_KEYS = new Set([
+      "model",
+      "temperature",
+      "maxTokens",
+      "max_tokens",
+      "topP",
+      "top_p",
+      "stop",
+      "n",
+    ]);
+    const {
+      provider: _sp,
+      messages: _sm,
+      options: _sopts,
+      ...sBodyRest
+    } = body;
+    const filteredStreamOpts = Object.fromEntries(
+      Object.entries(sBodyRest).filter(([k]) => ALLOWED_STREAM_KEYS.has(k)),
+    );
+    const options = { ...filteredStreamOpts, ...(_sopts || {}) };
 
     if (!provider || !externalProviders.isConfigured(provider)) {
       jsonResponse(res, 400, {

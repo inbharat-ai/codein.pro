@@ -32,7 +32,7 @@ function ChatIndexingPeek({ state }: ChatIndexingPeekProps) {
 
   if (hiddenPeeks[state.type]) return null;
   return (
-    <div className="flex flex-row items-center border-0 border-t border-solid border-t-zinc-700 px-3 py-0.5">
+    <div className="border-t-codin-border flex flex-row items-center border-0 border-t border-solid px-3 py-0.5">
       <div className="group flex flex-1 cursor-pointer flex-row items-center gap-2">
         <div className={`flex flex-row items-center gap-2`}>
           <p className="text-lightgray m-0 p-0 text-xs group-hover:underline">
