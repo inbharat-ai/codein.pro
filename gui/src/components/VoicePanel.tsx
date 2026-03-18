@@ -17,9 +17,28 @@ const LANGUAGES = [
   { label: "Odia", code: "or-IN", flag: "🇮🇳", native: "ଓଡ଼ିଆ" },
   { label: "Assamese", code: "as-IN", flag: "🇮🇳", native: "অসমীয়া" },
   { label: "Urdu", code: "ur-IN", flag: "🇮🇳", native: "اردو" },
+  { label: "Konkani", code: "kok-IN", flag: "🇮🇳", native: "कोंकणी" },
+  { label: "Manipuri", code: "mni-IN", flag: "🇮🇳", native: "মৈতৈলোন্" },
+  { label: "Dogri", code: "doi-IN", flag: "🇮🇳", native: "डोगरी" },
+  { label: "Bodo", code: "brx-IN", flag: "🇮🇳", native: "बड़ो" },
+  { label: "Santali", code: "sat-IN", flag: "🇮🇳", native: "ᱥᱟᱱᱛᱟᱲᱤ" },
   { label: "English", code: "en-IN", flag: "🇮🇳", native: "English (India)" },
   { label: "English US", code: "en-US", flag: "🇺🇸", native: "English" },
 ];
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, " code block ") // code blocks
+    .replace(/`([^`]+)`/g, "$1") // inline code
+    .replace(/\*\*([^*]+)\*\*/g, "$1") // bold
+    .replace(/\*([^*]+)\*/g, "$1") // italic
+    .replace(/#{1,6}\s/g, "") // headings
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // links
+    .replace(/[>\-*+]/g, "") // list markers, blockquotes
+    .replace(/\n{2,}/g, ". ") // paragraph breaks
+    .replace(/\n/g, " ") // line breaks
+    .trim();
+}
 
 export function VoicePanel() {
   const dispatch = useAppDispatch();
@@ -30,7 +49,9 @@ export function VoicePanel() {
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [confidence, setConfidence] = useState<number>(0);
+  const [micError, setMicError] = useState<string | null>(null);
   const recognitionRef = useRef<any | null>(null);
+  const intentionalStopRef = useRef(false);
 
   const lastAssistantMessage = useAppSelector((state) =>
     [...state.session.history]
@@ -84,13 +105,34 @@ export function VoicePanel() {
       setInterimTranscript(interim);
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (event: any) => {
+      if (event.error === "not-allowed") {
+        setMicError(
+          "Microphone access denied. Please allow microphone permission in your browser or system settings.",
+        );
+      } else if (event.error === "no-speech") {
+        // no-speech is non-fatal, don't stop recording
+        return;
+      } else {
+        setMicError(`Speech recognition error: ${event.error}`);
+      }
       setIsRecording(false);
+      intentionalStopRef.current = false;
     };
 
     recognition.onend = () => {
+      // Auto-restart if user hasn't intentionally stopped (continuous mode)
+      if (!intentionalStopRef.current && recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+          return; // keep isRecording true
+        } catch {
+          // Failed to restart — fall through to stop state
+        }
+      }
       setIsRecording(false);
       setInterimTranscript("");
+      intentionalStopRef.current = false;
     };
 
     recognitionRef.current = recognition;
@@ -101,17 +143,49 @@ export function VoicePanel() {
     };
   }, [selectedLang.code, speechSupported]);
 
-  const handleRecord = () => {
+  const handleRecord = async () => {
     if (!speechSupported || !recognitionRef.current) {
       return;
     }
     if (isRecording) {
+      intentionalStopRef.current = true;
       recognitionRef.current.stop();
       setIsRecording(false);
       setInterimTranscript("");
     } else {
+      setMicError(null);
+
+      // Check microphone permission before starting recognition
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        // Release the stream immediately — we only needed permission
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (err: any) {
+        if (
+          err.name === "NotAllowedError" ||
+          err.name === "PermissionDeniedError"
+        ) {
+          setMicError(
+            "Microphone access denied. Please allow microphone permission in your browser or system settings.",
+          );
+        } else if (
+          err.name === "NotFoundError" ||
+          err.name === "DevicesNotFoundError"
+        ) {
+          setMicError(
+            "No microphone device found. Please connect a microphone and try again.",
+          );
+        } else {
+          setMicError(`Microphone error: ${err.message || err.name}`);
+        }
+        return;
+      }
+
       setTranscript("");
       setConfidence(0);
+      intentionalStopRef.current = false;
       recognitionRef.current.lang = selectedLang.code;
       recognitionRef.current.start();
       setIsRecording(true);
@@ -157,7 +231,7 @@ export function VoicePanel() {
               .join(" ")
           : String(rawContent);
 
-    const utterance = new SpeechSynthesisUtterance(textContent);
+    const utterance = new SpeechSynthesisUtterance(stripMarkdown(textContent));
     utterance.lang = selectedLang.code;
     utterance.rate = 0.9;
     utterance.pitch = 1.0;
@@ -230,6 +304,9 @@ export function VoicePanel() {
                   </div>
                 ) : (
                   <>
+                    {micError && (
+                      <div className="warning-box">⚠️ {micError}</div>
+                    )}
                     <button
                       className={`record-btn ${isRecording ? "recording" : ""}`}
                       onClick={handleRecord}

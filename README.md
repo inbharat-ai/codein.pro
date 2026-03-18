@@ -36,7 +36,7 @@
 
 <br/>
 
-[**Get Started**](#-quick-start) · [**Features**](#-every-feature-in-detail) · [**Architecture**](#%EF%B8%8F-system-architecture) · [**Multi-Agent Swarm**](#-multi-agent-swarm-engine) · [**Contributing**](#-contributing)
+[**Get Started**](#-quick-start) · [**Features**](#-every-feature-in-detail) · [**Architecture**](#%EF%B8%8F-system-architecture) · [**Multi-Agent Swarm**](#-multi-agent-swarm-engine) · [**Skills**](#-skills--automation) · [**Contributing**](#-contributing)
 
 </div>
 
@@ -878,6 +878,55 @@ Toggle in **Settings > Appearance > Theme** or programmatically via the `useThem
 
 <br/>
 
+## Skills & Automation
+
+CodeIn ships with two categories of built-in skills that extend agent capabilities beyond raw LLM calls.
+
+### Agent Runtime Skills (12)
+
+Registered in the plugin system (`plugin-system.js`), these skills are available to all agents and can be invoked programmatically or through the swarm engine.
+
+| Skill                     | Description                                                 |
+| :------------------------ | :---------------------------------------------------------- |
+| `generate-commit-message` | LLM-enhanced conventional commit messages from staged diffs |
+| `generate-pr-description` | PR summaries generated from diff content and commit history |
+| `analyze-code`            | Code analysis with actionable improvement suggestions       |
+| `lint-check`              | Code linting analysis and style enforcement                 |
+| `detect-secrets`          | Scan for hardcoded secrets, API keys, and credentials       |
+| `estimate-complexity`     | Cyclomatic complexity estimation for functions and modules  |
+| `generate-docs`           | Documentation generation from source code                   |
+| `generate-test-file`      | Test file scaffolding with framework-appropriate structure  |
+| `search-codebase`         | Semantic code search across the workspace                   |
+| `explain-code`            | Code explanation for onboarding and knowledge transfer      |
+| `suggest-refactor`        | Refactoring suggestions with pattern-based recommendations  |
+| `review-security`         | Security vulnerability scanning (OWASP-aligned)             |
+
+Skills run inside the plugin sandbox with timeout protection (30s default), no network access, and no writes outside the workspace.
+
+### Claude Code IDE Skills (11)
+
+Located in `.claude/skills/`, these provide domain-specific guidance when using Claude Code as the AI backend within the IDE.
+
+| Skill                   | Category          | Description                                                        |
+| :---------------------- | :---------------- | :----------------------------------------------------------------- |
+| `code-reviewer`         | Quality           | Comprehensive code review for React/TypeScript/Node.js             |
+| `debug-helper`          | Debugging         | Systematic debugging methodology from reproduction to fix          |
+| `refactor-assistant`    | Refactoring       | Safe, incremental refactoring with test-first workflow             |
+| `security-auditor`      | Security          | OWASP-aligned security audit for Node.js/React/Electron            |
+| `api-designer`          | Architecture      | REST API design covering resources, errors, pagination, versioning |
+| `test-architect`        | Testing           | Testing strategy and patterns for Vitest/Jest + RTL                |
+| `performance-optimizer` | Performance       | React, Node.js, and Electron performance optimization              |
+| `git-workflow`          | Workflow          | Branching, conventional commits, PR best practices                 |
+| `react-component`       | Frontend          | React component design patterns with TypeScript and accessibility  |
+| `mcp-builder`           | AI Infrastructure | Build MCP servers with transports, tools, resources, and security  |
+| `docs-style`            | Documentation     | Style guidelines for writing and reviewing documentation           |
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,14,20&height=2&section=header" width="100%"/>
+
+<br/>
+
 ## Contributing
 
 <div align="center">
@@ -919,6 +968,8 @@ Apache 2.0 — see [`LICENSE`](LICENSE) for details.
 **Built by [AIS Developers](https://github.com/AIS-Developers)**
 
 _Open-source AI coding for everyone — in every language_
+
+Contact: [info@inbharat.ai](mailto:info@inbharat.ai)
 
 <br/>
 

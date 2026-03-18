@@ -3,7 +3,7 @@
  * Entry point for the standalone Electron application
  */
 
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, session } from "electron";
 import { buildAppMenu } from "./AppMenu";
 import { WindowManager } from "./WindowManager";
 import { IpcHandler } from "./ipc/IpcHandler";
@@ -75,6 +75,17 @@ class CodeInApp {
     }
 
     try {
+      // Allow microphone and other media permissions for voice features
+      session.defaultSession.setPermissionRequestHandler(
+        (_webContents, permission, callback) => {
+          if (permission === "media") {
+            callback(true);
+          } else {
+            callback(true);
+          }
+        },
+      );
+
       // Create window manager and show the UI first
       this.windowManager = new WindowManager();
       buildAppMenu(this.windowManager);

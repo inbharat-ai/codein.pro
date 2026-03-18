@@ -312,7 +312,7 @@ Return a JSON object with this structure:
           ],
         },
       ],
-      model: "claude-4-vision",
+      model: "gemini-2.5-flash",
       temperature: 0.3,
       max_tokens: 4000,
     });
@@ -537,7 +537,7 @@ Return only the TSX code, no explanations.`;
   try {
     const response = await externalProviders.completeWithFallback({
       messages: [{ role: "user", content: prompt }],
-      model: "claude-3.5-sonnet",
+      model: config.model || "gemini-2.5-flash",
       temperature: 0.3,
       max_tokens: 2000,
     });
@@ -579,6 +579,15 @@ async function generateComponent(
   externalProviders,
   logger,
 ) {
+  // Guard against undefined component names
+  const compName =
+    (typeof comp === "string" ? comp : comp?.name) || "UnnamedComponent";
+  if (typeof comp === "string") {
+    comp = { name: compName, type: "component", props: {} };
+  } else if (!comp?.name) {
+    comp = { ...comp, name: compName };
+  }
+
   const prompt = `Generate a React component:
 
 Component: ${comp.name}
@@ -600,7 +609,7 @@ Return only the TSX code.`;
   try {
     const response = await externalProviders.completeWithFallback({
       messages: [{ role: "user", content: prompt }],
-      model: "claude-3.5-sonnet",
+      model: config.model || "gemini-2.5-flash",
       temperature: 0.3,
       max_tokens: 1500,
     });

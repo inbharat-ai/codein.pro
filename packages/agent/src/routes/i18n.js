@@ -14,7 +14,7 @@ function registerI18nRoutes(router, deps) {
 
   // ── core i18n endpoints ────────────────────────────────────────────────
   router.get("/i18n/languages", (req, res) => {
-    res.json({
+    jsonResponse(res, 200, {
       supported: [
         { code: "hi", name: "Hindi", native: "हिन्दी" },
         { code: "bn", name: "Bengali", native: "বাংলা" },
@@ -23,7 +23,7 @@ function registerI18nRoutes(router, deps) {
         { code: "ta", name: "Tamil", native: "தமிழ்" },
         { code: "gu", name: "Gujarati", native: "ગુજરાતી" },
         { code: "kn", name: "Kannada", native: "ಕನ್ನಡ" },
-        { code: "ml", name: "Malayalam", native: "മലയാളം" },
+        { code: "ml", name: "Malayalam", native: "മലయാളം" },
         { code: "pa", name: "Punjabi", native: "ਪੰਜਾਬੀ" },
         { code: "or", name: "Odia", native: "ଓଡ଼ିଆ" },
         { code: "as", name: "Assamese", native: "অসমীয়া" },
