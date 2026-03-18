@@ -534,13 +534,73 @@ const skillLog = createLogger("SkillRegistry");
  * Skills differ from plugin tools in that they are first-class, trusted code
  * that runs in the main process.
  */
+
+// ── Commit message rule-based helpers ────────────────────────────────────────
+
+function _inferCommitType(diff, files) {
+  const lower = diff.toLowerCase();
+  if (/test|spec|\.test\.|\.spec\./.test(files.join(" "))) return "test";
+  if (/readme|\.md$|docs?\//.test(files.join(" "))) return "docs";
+  if (/package\.json|yarn\.lock|package-lock/.test(files.join(" ")))
+    return "chore";
+  if (/style|\.css$|\.scss$|tailwind/.test(files.join(" "))) return "style";
+  if (/\+.*fix|bug|error|crash|null|undefined/.test(lower)) return "fix";
+  if (/\+.*refactor|rename|move|extract/.test(lower)) return "refactor";
+  if (files.some((f) => f.includes("config") || f.endsWith(".json")))
+    return "chore";
+  return "feat";
+}
+
+function _inferScope(files) {
+  if (!files.length) return null;
+  // Use the most common parent directory name or filename stem
+  const parts = files.map((f) => {
+    const segs = f.split("/");
+    // prefer the parent dir if nested (e.g. "components/KanbanBoard.tsx" → "components")
+    const seg = segs.length >= 2 ? segs[segs.length - 2] : segs[0];
+    return (seg || "").replace(/\.[^.]+$/, "");
+  });
+  const freq = {};
+  parts.forEach((p) => {
+    if (p) freq[p] = (freq[p] || 0) + 1;
+  });
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+  return sorted[0]?.[0] || null;
+}
+
+function _buildSubjectFallback(type, files, stats) {
+  if (!files.length) {
+    return stats.additions > 0 ? `add ${stats.additions} lines` : "update code";
+  }
+  const name = files[0]
+    .split("/")
+    .pop()
+    .replace(/\.[^.]+$/, "");
+  if (type === "feat") return `add ${name}`;
+  if (type === "fix") return `fix issue in ${name}`;
+  if (type === "docs") return `update ${name} docs`;
+  if (type === "test") return `add tests for ${name}`;
+  if (type === "refactor") return `refactor ${name}`;
+  if (files.length === 1) return `update ${name}`;
+  return `update ${files.length} files`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 class SkillRegistry {
-  constructor() {
+  constructor({ runLLM } = {}) {
     /**
      * Registered skills keyed by name.
      * @type {Map<string, object>}
      */
     this._skills = new Map();
+
+    /**
+     * Optional LLM runner injected from SwarmManager.
+     * Signature: (prompt: string, opts?: object) => Promise<string|{text:string}>
+     * @type {Function|null}
+     */
+    this._runLLM = runLLM || null;
 
     // Pre-register built-in skills.
     this._registerBuiltins();
@@ -646,27 +706,90 @@ class SkillRegistry {
   _registerBuiltins() {
     this.registerSkill({
       name: "generate-commit-message",
-      description: "Generate a commit message from staged diff",
+      description:
+        "Generate a conventional commit message from staged diff (LLM-enhanced)",
       category: "git",
       requiredContext: ["stagedDiff"],
       execute: async (ctx) => {
-        const diffLines = (ctx.stagedDiff || "").split("\n");
+        const diff = ctx.stagedDiff || "";
+        const diffLines = diff.split("\n");
         const filesChanged = diffLines
           .filter((l) => l.startsWith("diff --git"))
           .map((l) => l.split(" b/")[1])
           .filter(Boolean);
-
         const additions = diffLines.filter(
           (l) => l.startsWith("+") && !l.startsWith("+++"),
         ).length;
         const deletions = diffLines.filter(
           (l) => l.startsWith("-") && !l.startsWith("---"),
         ).length;
+        const stats = { additions, deletions };
 
+        // ── LLM-enhanced path ──────────────────────────────────────
+        const runLLM = ctx._runLLM || this._runLLM;
+        if (runLLM && (additions + deletions > 5 || filesChanged.length > 1)) {
+          try {
+            const truncatedDiff =
+              diff.length > 6000
+                ? diff.slice(0, 6000) + "\n... (truncated)"
+                : diff;
+            const prompt = [
+              "Generate a conventional commit message for this git diff.",
+              "Return ONLY a valid JSON object with these exact keys:",
+              '  { "type": string, "scope": string|null, "subject": string, "breaking": boolean }',
+              "Valid types: feat, fix, docs, style, refactor, perf, test, chore, build, ci",
+              "subject must be ≤72 chars, imperative mood, no period at end.",
+              "scope should be a short module/component name or null.",
+              "---",
+              truncatedDiff,
+            ].join("\n");
+
+            const raw = await runLLM(prompt, {
+              maxTokens: 200,
+              temperature: 0.2,
+            });
+            const text = typeof raw === "string" ? raw : raw?.text || "";
+
+            // Extract JSON from response (handle markdown code fences)
+            const jsonMatch =
+              text.match(/```json\s*([\s\S]*?)\s*```/) ||
+              text.match(/```\s*([\s\S]*?)\s*```/) ||
+              text.match(/(\{[\s\S]*\})/);
+            const jsonStr = jsonMatch ? jsonMatch[1] : text.trim();
+            const parsed = JSON.parse(jsonStr);
+
+            const scope = parsed.scope ? `(${parsed.scope})` : "";
+            const bang = parsed.breaking ? "!" : "";
+            const suggestion = `${parsed.type || "chore"}${scope}${bang}: ${parsed.subject}`;
+
+            return {
+              suggestion,
+              type: parsed.type,
+              scope: parsed.scope || null,
+              subject: parsed.subject,
+              breaking: !!parsed.breaking,
+              filesChanged,
+              stats,
+              llmGenerated: true,
+            };
+          } catch (_err) {
+            // LLM failed — fall through to rule-based
+          }
+        }
+
+        // ── Rule-based fallback ────────────────────────────────────
+        const type = _inferCommitType(diff, filesChanged);
+        const scope = _inferScope(filesChanged);
+        const subject = _buildSubjectFallback(type, filesChanged, stats);
         return {
-          suggestion: `Update ${filesChanged.length} file(s): +${additions} -${deletions}`,
+          suggestion: `${type}${scope ? `(${scope})` : ""}: ${subject}`,
+          type,
+          scope: scope || null,
+          subject,
+          breaking: false,
           filesChanged,
-          stats: { additions, deletions },
+          stats,
+          llmGenerated: false,
         };
       },
     });

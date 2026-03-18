@@ -400,11 +400,13 @@ function applyLifecycleMethods(SwarmManager) {
       }
     }
 
-    // Initialize skill registry
+    // Initialize skill registry (inject runLLM so built-in skills can use LLM)
     if (SkillRegistry) {
       try {
-        this._skillRegistry = new SkillRegistry();
-        log.info("Skill registry initialized");
+        this._skillRegistry = new SkillRegistry({
+          runLLM: this._deps.runLLM || null,
+        });
+        log.info("Skill registry initialized", { hasLLM: !!this._deps.runLLM });
       } catch (err) {
         log.warn("Skill registry init failed", { error: err.message });
       }
