@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy — CodeIn</title>
+    <meta name="description" content="CodeIn Privacy Policy — how we handle your data, what we collect, and your rights." />
+    <link rel="icon" type="image/svg+xml" href="assets/codein-logo.svg" />
+    <link rel="canonical" href="https://codein.pro/privacy" />
+    <link rel="stylesheet" href="tailwind-built.css" />
+    <style>
+      body { background: #0a0a1a; color: #d1d5db; font-family: 'Inter', system-ui, sans-serif; }
+      .legal-container { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem; }
+      .legal-container h1 { color: #fff; font-size: 2rem; margin-bottom: 0.5rem; }
+      .legal-container h2 { color: #f59e0b; font-size: 1.25rem; margin-top: 2rem; margin-bottom: 0.75rem; }
+      .legal-container p, .legal-container li { line-height: 1.75; margin-bottom: 0.75rem; }
+      .legal-container ul { list-style: disc; padding-left: 1.5rem; }
+      .legal-container a { color: #818cf8; text-decoration: underline; }
+      .legal-container a:hover { color: #f59e0b; }
+      .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #9ca3af; margin-bottom: 2rem; }
+      .back-link:hover { color: #f59e0b; }
+      .effective-date { color: #9ca3af; font-size: 0.875rem; margin-bottom: 2rem; }
+    </style>
+  </head>
+  <body>
+    <div class="legal-container">
+      <a href="/" class="back-link">&larr; Back to CodeIn</a>
+
+      <h1>Privacy Policy</h1>
+      <p class="effective-date">Effective Date: March 19, 2026 &mdash; Last Updated: March 19, 2026</p>
+
+      <p>
+        CodeIn is an open-source AI coding IDE developed by <strong>inBharat AI</strong>.
+        We are committed to protecting your privacy and being transparent about how data is handled.
+      </p>
+
+      <h2>1. Data We Do NOT Collect</h2>
+      <p>CodeIn is designed with a <strong>local-first architecture</strong>. By default:</p>
+      <ul>
+        <li>We do <strong>not</strong> collect, store, or transmit your source code to our servers.</li>
+        <li>We do <strong>not</strong> collect personal information, usage analytics, or telemetry without your explicit consent.</li>
+        <li>We do <strong>not</strong> sell, rent, or share any user data with third parties.</li>
+        <li>We do <strong>not</strong> track your browsing behavior, keystrokes, or file contents.</li>
+      </ul>
+
+      <h2>2. Data That May Be Transmitted</h2>
+      <p>When you explicitly choose to use cloud AI providers, the following data is sent <strong>directly to the provider you select</strong>:</p>
+      <ul>
+        <li><strong>Code snippets and prompts</strong> — sent to AI providers (OpenAI, Anthropic, Google, etc.) only when you initiate a request.</li>
+        <li><strong>Voice audio</strong> — if you use voice features with cloud STT/TTS providers (Azure, Google Cloud), audio is processed by those services.</li>
+        <li><strong>API keys</strong> — your API keys are stored locally on your device and sent only to the respective provider endpoints. We never see or store them.</li>
+      </ul>
+      <p>
+        Each third-party provider has its own privacy policy. We encourage you to review them:
+        <a href="https://openai.com/privacy" target="_blank" rel="noopener">OpenAI</a>,
+        <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Anthropic</a>,
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google</a>.
+      </p>
+
+      <h2>3. Local AI (Offline Mode)</h2>
+      <p>
+        When using local AI models (llama.cpp / Qwen), <strong>all processing happens entirely on your device</strong>.
+        No data leaves your machine. No internet connection is required.
+      </p>
+
+      <h2>4. Data Storage</h2>
+      <ul>
+        <li><strong>Chat history</strong> — stored locally in your browser/Electron app storage. Never transmitted.</li>
+        <li><strong>Settings and preferences</strong> — stored locally in your app data directory.</li>
+        <li><strong>API keys</strong> — stored in your local keyring/keychain or configuration files.</li>
+        <li><strong>Agent memory</strong> — multi-agent swarm memory is held in-process and cleared on session end.</li>
+      </ul>
+
+      <h2>5. Crash Reports and Error Logging</h2>
+      <p>
+        CodeIn does <strong>not</strong> automatically send crash reports or error logs.
+        If you choose to submit a bug report on GitHub, you control exactly what information is shared.
+      </p>
+
+      <h2>6. Cookies and Tracking</h2>
+      <p>
+        The CodeIn desktop application does not use cookies or tracking pixels.
+        The landing page (codein.pro) uses no third-party analytics or tracking scripts.
+      </p>
+
+      <h2>7. Children's Privacy</h2>
+      <p>
+        CodeIn is a developer tool not directed at children under 13.
+        We do not knowingly collect information from children.
+      </p>
+
+      <h2>8. Open Source Transparency</h2>
+      <p>
+        CodeIn is 100% open source under the <a href="https://github.com/inbharat-ai/codein.pro/blob/main/LICENSE">Apache-2.0 License</a>.
+        You can audit every line of code to verify our privacy claims.
+        Our source code is at <a href="https://github.com/inbharat-ai/codein.pro" target="_blank" rel="noopener">github.com/inbharat-ai/codein.pro</a>.
+      </p>
+
+      <h2>9. Your Rights</h2>
+      <p>Since CodeIn stores data locally on your device, you have full control:</p>
+      <ul>
+        <li><strong>Access</strong> — all your data is on your device, accessible anytime.</li>
+        <li><strong>Delete</strong> — clear app data from your device settings or uninstall the application.</li>
+        <li><strong>Portability</strong> — your data is in standard formats you can export.</li>
+        <li><strong>Consent</strong> — cloud AI features require your explicit action (clicking "Send").</li>
+      </ul>
+
+      <h2>10. Changes to This Policy</h2>
+      <p>
+        We may update this Privacy Policy from time to time. Changes will be posted on this page
+        with an updated effective date. For significant changes, we will note it in our
+        <a href="https://github.com/inbharat-ai/codein.pro/releases">release notes</a>.
+      </p>
+
+      <h2>11. Contact Us</h2>
+      <p>
+        If you have questions about this Privacy Policy, contact us at:
+        <a href="mailto:info@inbharat.ai">info@inbharat.ai</a>
+      </p>
+
+      <hr style="border-color: #1f2937; margin: 2rem 0;" />
+      <p style="font-size: 0.75rem; color: #6b7280;">
+        &copy; 2025-2026 CodeIn Project by inBharat AI. Open-source under Apache-2.0.
+      </p>
+    </div>
+  </body>
+</html>

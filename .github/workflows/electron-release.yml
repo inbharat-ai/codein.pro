@@ -36,25 +36,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download llama-server (win32)
+      - name: Download llama-server (win32-x64)
         run: |
-          mkdir -p electron-app/assets/llama/win32
-          if [ ! -f electron-app/assets/llama/win32/llama-server.exe ]; then
-            echo "⚠ win32 llama-server.exe not in repo. Download from llama.cpp releases."
-            echo "Placeholder — replace with real download URL"
-          fi
+          mkdir -p electron-app/assets/llama/win32/x64
+          curl -L -o /tmp/llama-win-x64.zip \
+            "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-win-cuda-cu12.2.0-x64.zip"
+          unzip -o /tmp/llama-win-x64.zip -d /tmp/llama-win-x64
+          find /tmp/llama-win-x64 -name "llama-server.exe" -exec cp {} electron-app/assets/llama/win32/x64/llama-server.exe \;
+          ls -la electron-app/assets/llama/win32/x64/
 
-      - name: Download llama-server (darwin)
+      - name: Download llama-server (darwin-arm64)
         run: |
-          mkdir -p electron-app/assets/llama/darwin
-          # Example: curl -L -o llama-server https://github.com/ggml-org/llama.cpp/releases/download/<tag>/llama-server-macos-arm64
-          echo "TODO: Download darwin llama-server from llama.cpp releases"
+          mkdir -p electron-app/assets/llama/darwin/arm64
+          curl -L -o /tmp/llama-darwin-arm64.zip \
+            "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-macos-arm64.zip"
+          unzip -o /tmp/llama-darwin-arm64.zip -d /tmp/llama-darwin-arm64
+          find /tmp/llama-darwin-arm64 -name "llama-server" -exec cp {} electron-app/assets/llama/darwin/arm64/llama-server \;
+          chmod +x electron-app/assets/llama/darwin/arm64/llama-server
+          ls -la electron-app/assets/llama/darwin/arm64/
 
-      - name: Download llama-server (linux)
+      - name: Download llama-server (darwin-x64)
         run: |
-          mkdir -p electron-app/assets/llama/linux
-          # Example: curl -L -o llama-server https://github.com/ggml-org/llama.cpp/releases/download/<tag>/llama-server-linux-x64
-          echo "TODO: Download linux llama-server from llama.cpp releases"
+          mkdir -p electron-app/assets/llama/darwin/x64
+          curl -L -o /tmp/llama-darwin-x64.zip \
+            "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-macos-x64.zip"
+          unzip -o /tmp/llama-darwin-x64.zip -d /tmp/llama-darwin-x64
+          find /tmp/llama-darwin-x64 -name "llama-server" -exec cp {} electron-app/assets/llama/darwin/x64/llama-server \;
+          chmod +x electron-app/assets/llama/darwin/x64/llama-server
+          ls -la electron-app/assets/llama/darwin/x64/
+
+      - name: Download llama-server (linux-x64)
+        run: |
+          mkdir -p electron-app/assets/llama/linux/x64
+          curl -L -o /tmp/llama-linux-x64.zip \
+            "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-ubuntu-x64.zip"
+          unzip -o /tmp/llama-linux-x64.zip -d /tmp/llama-linux-x64
+          find /tmp/llama-linux-x64 -name "llama-server" -exec cp {} electron-app/assets/llama/linux/x64/llama-server \;
+          chmod +x electron-app/assets/llama/linux/x64/llama-server
+          ls -la electron-app/assets/llama/linux/x64/
 
       - name: Upload llama assets
         uses: actions/upload-artifact@v4
@@ -77,6 +96,19 @@ jobs:
         with:
           name: llama-binaries
           path: electron-app/assets/llama/
+
+      - name: Install root dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build GUI
+        working-directory: gui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Agent
+        working-directory: packages/agent
+        run: npm ci
 
       - name: Install dependencies
         working-directory: electron-app
@@ -121,6 +153,19 @@ jobs:
         with:
           name: llama-binaries
           path: electron-app/assets/llama/
+
+      - name: Install root dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build GUI
+        working-directory: gui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Agent
+        working-directory: packages/agent
+        run: npm ci
 
       - name: Install dependencies
         working-directory: electron-app
@@ -168,6 +213,19 @@ jobs:
           name: llama-binaries
           path: electron-app/assets/llama/
 
+      - name: Install root dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build GUI
+        working-directory: gui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Agent
+        working-directory: packages/agent
+        run: npm ci
+
       - name: Install dependencies
         working-directory: electron-app
         run: npm ci
@@ -178,11 +236,11 @@ jobs:
 
       - name: Build Electron (Linux AppImage + deb + rpm)
         working-directory: electron-app
-        run: npx electron-builder --linux AppImage deb --x64
+        run: npx electron-builder --linux AppImage deb rpm --x64
 
       - name: List artifacts
         working-directory: electron-app/release
-        run: ls -la *.AppImage *.deb 2>/dev/null || echo "No AppImage/deb found"
+        run: ls -la *.AppImage *.deb *.rpm 2>/dev/null || echo "No AppImage/deb/rpm found"
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -191,6 +249,7 @@ jobs:
           path: |
             electron-app/release/*.AppImage
             electron-app/release/*.deb
+            electron-app/release/*.rpm
 
   # ─── STEP 5: Checksums + GitHub Release ───
   release:
@@ -206,7 +265,7 @@ jobs:
       - name: Generate SHA256 checksums
         run: |
           cd artifacts
-          find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) | while read f; do
+          find . -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' \) | while read f; do
             sha256sum "$f" >> ../SHA256SUMS.txt
           done
           cat ../SHA256SUMS.txt
@@ -223,6 +282,7 @@ jobs:
             artifacts/**/*.zip
             artifacts/**/*.AppImage
             artifacts/**/*.deb
+            artifacts/**/*.rpm
             SHA256SUMS.txt
           draft: false
-          prerelease: true
+          prerelease: ${{ contains(github.event.inputs.version || github.ref_name, 'beta') || contains(github.event.inputs.version || github.ref_name, 'alpha') }}

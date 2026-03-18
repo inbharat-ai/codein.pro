@@ -100,6 +100,12 @@
   border-bottom: 1px solid var(--vscode-panel-border);
 }
 
+.voice-panel-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .voice-panel-header h3 {
   margin: 0;
   font-size: 14px;
@@ -108,6 +114,44 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.voice-backend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.voice-backend-badge::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.voice-backend-badge.connected {
+  background: rgba(72, 187, 120, 0.15);
+  color: #48bb78;
+}
+
+.voice-backend-badge.connected::before {
+  background: #48bb78;
+}
+
+.voice-backend-badge.browser-only {
+  background: rgba(236, 201, 75, 0.15);
+  color: #ecc94b;
+}
+
+.voice-backend-badge.browser-only::before {
+  background: #ecc94b;
 }
 
 .close-btn {

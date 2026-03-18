@@ -198,6 +198,58 @@ function registerI18nRoutes(router, deps) {
     );
   });
 
+  // ── TTS audio file serving endpoint ──────────────────────────────────
+  router.get("/i18n/tts/audio", (req, res) => {
+    const path = require("path");
+    const fs = require("fs");
+
+    const urlObj = new URL(req.url, "http://localhost");
+    const audioPath = urlObj.searchParams.get("path");
+    if (!audioPath) {
+      return jsonResponse(res, 400, { error: "path parameter required" });
+    }
+
+    const decodedPath = decodeURIComponent(audioPath);
+    const resolvedPath = path.resolve(decodedPath);
+
+    // Security: only serve files from the TTS output directory
+    const allowedDir = path.resolve(
+      path.join(process.cwd(), "output", "audio"),
+    );
+    if (
+      !resolvedPath.startsWith(allowedDir + path.sep) &&
+      resolvedPath !== allowedDir
+    ) {
+      // Also allow temp directory paths (some TTS engines write there)
+      const tmpDir = require("os").tmpdir();
+      if (
+        !resolvedPath.startsWith(tmpDir + path.sep) &&
+        resolvedPath !== tmpDir
+      ) {
+        return jsonResponse(res, 403, { error: "Access denied" });
+      }
+    }
+
+    if (!fs.existsSync(resolvedPath)) {
+      return jsonResponse(res, 404, { error: "Audio file not found" });
+    }
+
+    const ext = path.extname(resolvedPath).toLowerCase();
+    const mimeTypes = {
+      ".mp3": "audio/mpeg",
+      ".wav": "audio/wav",
+      ".ogg": "audio/ogg",
+      ".webm": "audio/webm",
+    };
+
+    res.writeHead(200, {
+      "Content-Type": mimeTypes[ext] || "audio/mpeg",
+      "Content-Length": fs.statSync(resolvedPath).size,
+      "Cache-Control": "no-cache",
+    });
+    fs.createReadStream(resolvedPath).pipe(res);
+  });
+
   // ── legacy /translate and /voice endpoints ─────────────────────────────
   router.post("/translate", async (req, res) => {
     const raw = await readBody(req);

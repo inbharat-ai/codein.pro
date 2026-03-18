@@ -1,7 +1,8 @@
 import { JSONContent } from "@tiptap/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { setMainEditorContentTrigger } from "../redux/slices/sessionSlice";
+import { agentFetch } from "../util/agentConfig";
 import "./VoicePanel.css";
 
 const LANGUAGES = [
@@ -50,8 +51,10 @@ export function VoicePanel() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [confidence, setConfidence] = useState<number>(0);
   const [micError, setMicError] = useState<string | null>(null);
+  const [backendAvailable, setBackendAvailable] = useState(false);
   const recognitionRef = useRef<any | null>(null);
   const intentionalStopRef = useRef(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const lastAssistantMessage = useAppSelector((state) =>
     [...state.session.history]
@@ -69,6 +72,31 @@ export function VoicePanel() {
   const ttsSupported = useMemo(() => {
     return typeof window !== "undefined" && "speechSynthesis" in window;
   }, []);
+
+  // Check if backend voice services are available
+  useEffect(() => {
+    agentFetch("/health")
+      .then((r) => setBackendAvailable(r.ok))
+      .catch(() => setBackendAvailable(false));
+  }, []);
+
+  // Fallback: browser-based TTS (used when backend TTS is unavailable)
+  const fallbackBrowserTTS = useCallback(
+    (text: string) => {
+      if (!ttsSupported) {
+        setIsSpeaking(false);
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = selectedLang.code;
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    },
+    [selectedLang.code, ttsSupported],
+  );
 
   useEffect(() => {
     if (!speechSupported) {
@@ -209,13 +237,18 @@ export function VoicePanel() {
     }
   };
 
-  const handleSpeakLast = () => {
-    if (!lastAssistantMessage?.message?.content || !ttsSupported) {
+  const handleSpeakLast = async () => {
+    if (!lastAssistantMessage?.message?.content) {
       return;
     }
 
+    // Stop any current playback
     if (isSpeaking) {
       window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       setIsSpeaking(false);
       return;
     }
@@ -231,16 +264,64 @@ export function VoicePanel() {
               .join(" ")
           : String(rawContent);
 
-    const utterance = new SpeechSynthesisUtterance(stripMarkdown(textContent));
-    utterance.lang = selectedLang.code;
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
+    const text = stripMarkdown(textContent);
+    if (!text) return;
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    setIsSpeaking(true);
 
-    window.speechSynthesis.speak(utterance);
+    // Try backend TTS first (better Indian language support via gTTS/Azure)
+    if (backendAvailable) {
+      try {
+        const langCode = selectedLang.code.split("-")[0]; // "hi-IN" -> "hi"
+        const response = await agentFetch("/i18n/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: text.substring(0, 5000),
+            lang: langCode,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.audioPath) {
+            const audioUrl = `/i18n/tts/audio?path=${encodeURIComponent(data.audioPath)}`;
+            // Use agentFetch to get the audio with auth, then create blob URL
+            const audioResponse = await agentFetch(audioUrl);
+            if (audioResponse.ok) {
+              const blob = await audioResponse.blob();
+              const blobUrl = URL.createObjectURL(blob);
+              const audio = new Audio(blobUrl);
+              audioRef.current = audio;
+              audio.onended = () => {
+                setIsSpeaking(false);
+                URL.revokeObjectURL(blobUrl);
+                audioRef.current = null;
+              };
+              audio.onerror = () => {
+                URL.revokeObjectURL(blobUrl);
+                audioRef.current = null;
+                console.warn(
+                  "Backend audio playback failed, using browser fallback",
+                );
+                fallbackBrowserTTS(text);
+              };
+              await audio.play();
+              return;
+            }
+          }
+        }
+        // If backend returned non-ok, fall through to browser TTS
+        console.warn("Backend TTS returned non-ok, using browser fallback");
+        fallbackBrowserTTS(text);
+      } catch (error) {
+        console.warn("Backend TTS failed, using browser fallback:", error);
+        fallbackBrowserTTS(text);
+      }
+    } else {
+      // No backend — use browser TTS directly
+      fallbackBrowserTTS(text);
+    }
   };
 
   const handleClear = () => {
@@ -268,7 +349,19 @@ export function VoicePanel() {
           />
           <div className="voice-panel">
             <div className="voice-panel-header">
-              <h3>🎤 Voice Assistant</h3>
+              <div className="voice-panel-title-row">
+                <h3>🎤 Voice Assistant</h3>
+                <span
+                  className={`voice-backend-badge ${backendAvailable ? "connected" : "browser-only"}`}
+                  title={
+                    backendAvailable
+                      ? "Backend TTS active (Indian language support)"
+                      : "Browser-only mode (limited language support)"
+                  }
+                >
+                  {backendAvailable ? "Enhanced Voice" : "Browser Voice"}
+                </span>
+              </div>
               <button
                 className="close-btn"
                 onClick={() => setIsOpen(false)}
@@ -382,7 +475,7 @@ export function VoicePanel() {
                   💬 Send to Chat
                 </button>
 
-                {ttsSupported && lastAssistantMessage && (
+                {(ttsSupported || backendAvailable) && lastAssistantMessage && (
                   <button
                     className="secondary-btn"
                     onClick={handleSpeakLast}
