@@ -8,7 +8,7 @@
 
 <!-- Animated Typing SVG -->
 <a href="https://github.com/AIS-Developers/CodeIn">
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=1000&color=6366F1&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=40&lines=The+Open-Source+AI+Coding+IDE+Built+for+Bharat+%F0%9F%87%AE%F0%9F%87%B3" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=1000&color=6366F1&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=40&lines=The+Open-Source+AI+Code+Editor+That+Speaks+Your+Language" alt="Typing SVG" />
 </a>
 
 <br/><br/>
@@ -48,7 +48,7 @@
 
 ## What is CodeIn?
 
-**CodeIn** is a free, open-source AI coding IDE that combines **Cursor/Copilot-class workflows** with a multi-agent swarm system, 50+ LLM providers, local-first inference via llama.cpp, and multilingual intelligence for **19 Indian languages** — all under Apache 2.0.
+**CodeIn** is an open-source AI-powered code editor that understands **Hindi, Tamil, Bengali, Telugu, and 20+ Indian languages**. Built on open-source. Runs locally. **Your code never leaves your machine.**
 
 <div align="center">
 
@@ -56,7 +56,9 @@
 
 </div>
 
-Not just autocomplete — CodeIn is a **full AI engineering system** with autonomous task planning, multi-agent orchestration, Docker sandboxing, Git workflow automation, code knowledge graph integration, and a real-time permission loop. Every AI action is auditable, cancellable, and runs locally by default.
+CodeIn is not just another autocomplete wrapper. It is a **complete AI engineering system** — 13 autonomous agents that plan, code, test, and review together; 50+ LLM providers you can swap with your own API keys; local-first inference via llama.cpp that works offline; and a code knowledge graph that understands your entire codebase before making a single edit.
+
+Say _"login page bana do with Google auth"_ in Hinglish, or write your prompt in Tamil, Bengali, or any of 22 Scheduled Languages — CodeIn understands, translates to structured English for AI execution, and keeps your technical terms intact. No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 
 <br/>
 
@@ -73,7 +75,7 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 <td align="center"><h3>13</h3><b>Agent Types</b></td>
 <td align="center"><h3>2,429</h3><b>Tests Passing</b></td>
 <td align="center"><h3>50+</h3><b>LLM Providers</b></td>
-<td align="center"><h3>19</h3><b>Indian Languages</b></td>
+<td align="center"><h3>22</h3><b>Indian Languages</b></td>
 <td align="center"><h3>28</h3><b>Route Modules</b></td>
 <td align="center"><h3>$0</h3><b>Forever Free</b></td>
 </tr>
@@ -97,6 +99,7 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 | AI Chat & Agent Mode                  |    **Yes**     |       Yes       |       Yes        |        Yes        |
 | **Multi-Agent Swarm (13 agents)**     |    **Yes**     |       No        |        No        |        No         |
 | **Code Knowledge Graph (GitNexus)**   |    **Yes**     |       No        |        No        |        No         |
+| **22 Indian Languages + Voice**       |    **Yes**     |       No        |        No        |        No         |
 | **100% Free & Open Source**           |    **Yes**     |       No        |        No        |        No         |
 | **Local AI via llama.cpp**            |    **Yes**     |       No        |        No        |        No         |
 | **50+ LLM Providers (BYO key)**       |    **Yes**     |        ~        |        No        |         ~         |
@@ -146,12 +149,12 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 
 ### Intelligence & Localization
 
-| Feature                 | Description                                                                                                                                                                                         |
-| :---------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **19 Indian Languages** | Unicode script analysis detects Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Assamese, Odia, Urdu, Sindhi, Konkani, Manipuri, Dogri, Bodo, Santali, and Maithili. |
-| **Code-Mixed Input**    | Hinglish ("login page bana do with Google auth"), Benglish, Tanglish and more — normalized to structured English for AI execution while preserving technical terms.                                 |
-| **Voice Input**         | Speech-to-text with AI4Bharat models for Indian language voice coding. Language-aware transcription.                                                                                                |
-| **Text-to-Speech**      | Hear AI responses spoken back in supported languages.                                                                                                                                               |
+| Feature                 | Description                                                                                                                                                                                                                     |
+| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **22 Indian Languages** | Unicode script analysis detects Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Assamese, Odia, Urdu, Sindhi, Konkani, Manipuri, Dogri, Bodo, Santali, Maithili, Kashmiri, Sanskrit, and Nepali. |
+| **Code-Mixed Input**    | Hinglish, Benglish, Tanglish, Kanglish, and more — normalized to structured English for AI execution while preserving technical terms.                                                                                          |
+| **Voice Input**         | Speech-to-text with AI4Bharat models. Speak your prompt in any supported language.                                                                                                                                              |
+| **Text-to-Speech**      | Hear AI responses spoken back in supported languages.                                                                                                                                                                           |
 
 ### UI/UX & Editor
 
@@ -441,40 +444,51 @@ GitNexus runs as a separate process (PolyForm Noncommercial license) — CodeIn 
 
 <br/>
 
-## Multilingual Intelligence
+## Code in Every Language of Bharat
+
+Most AI coding tools only understand English. **CodeIn understands you** — whether you think in Hindi, dream in Tamil, or mix Bengali with Python keywords.
 
 <div align="center">
 
-> CodeIn detects your language via Unicode script analysis, preserves technical terms,
-> and normalizes multilingual input into structured English for AI execution.
+> Type in your mother tongue. CodeIn detects your language via Unicode script analysis,
+> preserves your technical terms, and translates to structured English for AI execution.
+> **No configuration. No language packs. It just works.**
 
 </div>
 
-### Code-Mixed Input Examples
+### Code-Mixed Input — Write How You Think
 
-| What you say                              | What CodeIn understands                             |
+| What you type                             | What CodeIn understands                             |
 | :---------------------------------------- | :-------------------------------------------------- |
 | **"login page bana do with Google auth"** | "Create a login page with Google OAuth integration" |
-| _"is repo ka backend improve karo"_       | "Improve the backend of this repository"            |
-| _"dashboard ko aur clean banao"_          | "Clean up and improve the dashboard UI"             |
-| _"testing likh do is function ke liye"_   | "Write tests for this function"                     |
+| **"is repo ka backend improve karo"**     | "Improve the backend of this repository"            |
+| **"dashboard ko aur clean banao"**        | "Clean up and improve the dashboard UI"             |
+| **"testing likh do is function ke liye"** | "Write tests for this function"                     |
+| **"இந்த bug-ஐ fix பண்ணு"**                | "Fix this bug" (Tanglish — Tamil + English)         |
+| **"এই API তে error handling add করো"**    | "Add error handling to this API" (Benglish)         |
 
-### 19 Supported Languages
+### 22 Languages — Every Script, Every State
 
 <div align="center">
 
-| Language | Script     |     | Language  | Script     |     | Language | Script   |
-| :------- | :--------- | --- | :-------- | :--------- | --- | :------- | :------- |
-| Hindi    | Devanagari |     | Bengali   | Bengali    |     | Tamil    | Tamil    |
-| Telugu   | Telugu     |     | Marathi   | Devanagari |     | Gujarati | Gujarati |
-| Kannada  | Kannada    |     | Malayalam | Malayalam  |     | Punjabi  | Gurmukhi |
-| Assamese | Assamese   |     | Odia      | Odia       |     | Urdu     | Nastaliq |
-| Sindhi   | Arabic     |     | Konkani   | Devanagari |     | Manipuri | Meitei   |
-| Dogri    | Devanagari |     | Bodo      | Devanagari |     | Santali  | Ol Chiki |
+| Language | Script     |     | Language  | Script       |     | Language | Script     |
+| :------- | :--------- | --- | :-------- | :----------- | --- | :------- | :--------- |
+| Hindi    | Devanagari |     | Bengali   | Bengali      |     | Tamil    | Tamil      |
+| Telugu   | Telugu     |     | Marathi   | Devanagari   |     | Gujarati | Gujarati   |
+| Kannada  | Kannada    |     | Malayalam | Malayalam    |     | Punjabi  | Gurmukhi   |
+| Assamese | Assamese   |     | Odia      | Odia         |     | Urdu     | Nastaliq   |
+| Sindhi   | Arabic     |     | Konkani   | Devanagari   |     | Manipuri | Meitei     |
+| Dogri    | Devanagari |     | Bodo      | Devanagari   |     | Santali  | Ol Chiki   |
+| Maithili | Devanagari |     | Kashmiri  | Perso-Arabic |     | Sanskrit | Devanagari |
+| Nepali   | Devanagari |     |           |              |     |          |            |
 
-Plus code-mixed patterns: **Hinglish** · **Benglish** · **Tanglish** and more.
+Plus every code-mixed pattern: **Hinglish** · **Benglish** · **Tanglish** · **Kanglish** · **Tenglish** and more.
 
 </div>
+
+### Voice Input — Speak Your Code
+
+Speech-to-text with AI4Bharat models. Say your prompt in Hindi, Tamil, or any supported language — CodeIn transcribes, detects the language, and executes. Text-to-speech reads AI responses back to you.
 
 <br/>
 
@@ -769,11 +783,11 @@ cd gui && npm run build
 
 CodeIn supports three theme modes with 50+ CSS custom properties:
 
-| Mode               | Description                                                                                     |
-| :----------------- | :---------------------------------------------------------------------------------------------- |
-| **Dark** (default) | Deep indigo/saffron palette inspired by Indian textiles. Easy on eyes for long coding sessions. |
-| **Light**          | Clean white/gray palette with deeper accent colors for readability. WCAG AA contrast ratios.    |
-| **System**         | Automatically follows your OS dark/light preference via `prefers-color-scheme`.                 |
+| Mode               | Description                                                                                  |
+| :----------------- | :------------------------------------------------------------------------------------------- |
+| **Dark** (default) | Deep indigo palette with warm accents. Easy on eyes for long coding sessions.                |
+| **Light**          | Clean white/gray palette with deeper accent colors for readability. WCAG AA contrast ratios. |
+| **System**         | Automatically follows your OS dark/light preference via `prefers-color-scheme`.              |
 
 Toggle in **Settings > Appearance > Theme** or programmatically via the `useTheme()` hook.
 
@@ -821,9 +835,9 @@ Apache 2.0 — see [`LICENSE`](LICENSE) for details.
 
 <br/>
 
-**Built with love for Bharat by [AIS Developers](https://github.com/AIS-Developers)**
+**Built by [AIS Developers](https://github.com/AIS-Developers)**
 
-_Making AI coding accessible to everyone, in every language_
+_Open-source AI coding for everyone — in every language_
 
 <br/>
 
