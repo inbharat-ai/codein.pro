@@ -48,7 +48,7 @@
 
 ## What is CodeIn?
 
-**CodeIn** is an open-source AI-powered code editor that understands **Hindi, Tamil, Bengali, Telugu, and 18 Indian languages**. Built on open-source. Runs locally. **Your code never leaves your machine.**
+**CodeIn** is an open-source AI code editor with **13 autonomous agents**, **50+ LLM providers**, and **built-in support for 18 Indian languages** — Hindi, Tamil, Bengali, Telugu, Kannada, Malayalam, and more. Runs locally. **Your code never leaves your machine.**
 
 <div align="center">
 
@@ -56,9 +56,11 @@
 
 </div>
 
-CodeIn is not just another autocomplete wrapper. It is a **complete AI engineering system** — 13 autonomous agents that plan, code, test, and review together; 50+ LLM providers you can swap with your own API keys; local-first inference via llama.cpp that works offline; and a code knowledge graph that understands your entire codebase before making a single edit.
+CodeIn is a **complete AI engineering system**, not a wrapper around a single LLM call. 13 specialized agents plan, code, test, and review together. 50+ LLM providers you swap with your own API keys. Local-first inference via llama.cpp that works fully offline. A code knowledge graph that maps your entire codebase before making a single edit.
 
-Say _"login page bana do with Google auth"_ in Hinglish, or write your prompt in Tamil, Bengali, or any of 18 supported Indian languages — CodeIn understands, translates to structured English for AI execution, and keeps your technical terms intact. No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
+Write your prompt in any language you think in. Say _"login page bana do with Google auth"_ in Hinglish. Type in Tamil, Bengali, Marathi, or any of 18 supported Indian languages — CodeIn detects the script, preserves your technical terms, and translates to structured English for AI execution. The language system is open and extensible — add support for any language by contributing to `language-config.js`.
+
+No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 
 <br/>
 
