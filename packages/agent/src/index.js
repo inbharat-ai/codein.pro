@@ -328,8 +328,11 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    // Health check — always available
-    if (req.method === "GET" && url.pathname === "/health") {
+    // Health check — always available (matches /health and /api/health)
+    if (
+      req.method === "GET" &&
+      (url.pathname === "/health" || url.pathname === "/api/health")
+    ) {
       jsonResponse(res, 200, {
         status: "ok",
         agent: "CodeIn Agent",
@@ -340,14 +343,15 @@ const server = http.createServer(async (req, res) => {
 
     // ─── JWT VERIFICATION FOR ALL PROTECTED ROUTES ──────────────
     // NOTE: /auth/login and /auth/refresh are handled by the AppRouter
-    // (routes/auth.js) which enforces per-IP rate limiting. Inline duplicates
-    // were removed to prevent bypass of those rate limiters.
-    const authPayload = authenticateJWTRequest(req, res, requestLogger);
-    if (!authPayload && !isPublicRoute(req.method, url.pathname)) {
-      return;
-    }
-
-    if (authPayload) {
+    // (routes/auth.js) which enforces per-IP rate limiting.
+    // Check public routes BEFORE attempting JWT verification to avoid
+    // sending a 401 response for routes that don't require auth.
+    const routePath = url.pathname.replace(/^\/api\//, "/");
+    if (!isPublicRoute(req.method, routePath)) {
+      const authPayload = authenticateJWTRequest(req, res, requestLogger);
+      if (!authPayload) {
+        return;
+      }
       req.user = authPayload;
     }
 
@@ -356,7 +360,12 @@ const server = http.createServer(async (req, res) => {
       idempotencyKey && isMutatingRequest ? attachResponseCapture(res) : null;
 
     await concurrencyLimiter.run(async () => {
-      const match = appRouter.match(req.method, url.pathname);
+      // Try exact path first, then strip /api/ prefix for compatibility
+      const match =
+        appRouter.match(req.method, url.pathname) ||
+        (url.pathname.startsWith("/api/")
+          ? appRouter.match(req.method, url.pathname.slice(4))
+          : null);
       if (match) {
         await match.handler(req, res, match.params);
         return;
@@ -442,7 +451,9 @@ const server = http.createServer(async (req, res) => {
         : error instanceof Error
           ? error.message
           : "Unexpected error";
-    jsonResponse(res, status, { error: clientMessage });
+    if (!res.headersSent) {
+      jsonResponse(res, status, { error: clientMessage });
+    }
   }
 });
 
