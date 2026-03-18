@@ -48,7 +48,7 @@
 
 ## What is CodeIn?
 
-**CodeIn** is an open-source AI-powered code editor that understands **Hindi, Tamil, Bengali, Telugu, and 20+ Indian languages**. Built on open-source. Runs locally. **Your code never leaves your machine.**
+**CodeIn** is an open-source AI-powered code editor that understands **Hindi, Tamil, Bengali, Telugu, and 18 Indian languages**. Built on open-source. Runs locally. **Your code never leaves your machine.**
 
 <div align="center">
 
@@ -58,7 +58,7 @@
 
 CodeIn is not just another autocomplete wrapper. It is a **complete AI engineering system** — 13 autonomous agents that plan, code, test, and review together; 50+ LLM providers you can swap with your own API keys; local-first inference via llama.cpp that works offline; and a code knowledge graph that understands your entire codebase before making a single edit.
 
-Say _"login page bana do with Google auth"_ in Hinglish, or write your prompt in Tamil, Bengali, or any of 22 Scheduled Languages — CodeIn understands, translates to structured English for AI execution, and keeps your technical terms intact. No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
+Say _"login page bana do with Google auth"_ in Hinglish, or write your prompt in Tamil, Bengali, or any of 18 supported Indian languages — CodeIn understands, translates to structured English for AI execution, and keeps your technical terms intact. No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 
 <br/>
 
@@ -75,7 +75,7 @@ Say _"login page bana do with Google auth"_ in Hinglish, or write your prompt in
 <td align="center"><h3>13</h3><b>Agent Types</b></td>
 <td align="center"><h3>2,429</h3><b>Tests Passing</b></td>
 <td align="center"><h3>50+</h3><b>LLM Providers</b></td>
-<td align="center"><h3>22</h3><b>Indian Languages</b></td>
+<td align="center"><h3>19</h3><b>Indian Languages</b></td>
 <td align="center"><h3>28</h3><b>Route Modules</b></td>
 <td align="center"><h3>$0</h3><b>Forever Free</b></td>
 </tr>
@@ -99,7 +99,7 @@ Say _"login page bana do with Google auth"_ in Hinglish, or write your prompt in
 | AI Chat & Agent Mode                  |    **Yes**     |       Yes       |       Yes        |        Yes        |
 | **Multi-Agent Swarm (13 agents)**     |    **Yes**     |       No        |        No        |        No         |
 | **Code Knowledge Graph (GitNexus)**   |    **Yes**     |       No        |        No        |        No         |
-| **22 Indian Languages + Voice**       |    **Yes**     |       No        |        No        |        No         |
+| **18 Indian Languages + Voice**       |    **Yes**     |       No        |        No        |        No         |
 | **100% Free & Open Source**           |    **Yes**     |       No        |        No        |        No         |
 | **Local AI via llama.cpp**            |    **Yes**     |       No        |        No        |        No         |
 | **50+ LLM Providers (BYO key)**       |    **Yes**     |        ~        |        No        |         ~         |
@@ -149,12 +149,12 @@ Say _"login page bana do with Google auth"_ in Hinglish, or write your prompt in
 
 ### Intelligence & Localization
 
-| Feature                 | Description                                                                                                                                                                                                                     |
-| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **22 Indian Languages** | Unicode script analysis detects Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Assamese, Odia, Urdu, Sindhi, Konkani, Manipuri, Dogri, Bodo, Santali, Maithili, Kashmiri, Sanskrit, and Nepali. |
-| **Code-Mixed Input**    | Hinglish, Benglish, Tanglish, Kanglish, and more — normalized to structured English for AI execution while preserving technical terms.                                                                                          |
-| **Voice Input**         | Speech-to-text with AI4Bharat models. Speak your prompt in any supported language.                                                                                                                                              |
-| **Text-to-Speech**      | Hear AI responses spoken back in supported languages.                                                                                                                                                                           |
+| Feature                 | Description                                                                                                                                                                               |
+| :---------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **18 Indian Languages** | Unicode script analysis detects Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Assamese, Odia, Urdu, Sindhi, Konkani, Manipuri, Dogri, Bodo, and Santali. |
+| **Code-Mixed Input**    | Hinglish, Benglish, Tanglish, and more — normalized to structured English for AI execution while preserving technical terms.                                                              |
+| **Voice Input**         | Speech-to-text with AI4Bharat models. Speak your prompt in any supported language.                                                                                                        |
+| **Text-to-Speech**      | Hear AI responses spoken back in supported languages.                                                                                                                                     |
 
 ### UI/UX & Editor
 
@@ -467,22 +467,20 @@ Most AI coding tools only understand English. **CodeIn understands you** — whe
 | **"இந்த bug-ஐ fix பண்ணு"**                | "Fix this bug" (Tanglish — Tamil + English)         |
 | **"এই API তে error handling add করো"**    | "Add error handling to this API" (Benglish)         |
 
-### 22 Languages — Every Script, Every State
+### 18 Languages — Every Script, Every State
 
 <div align="center">
 
-| Language | Script     |     | Language  | Script       |     | Language | Script     |
-| :------- | :--------- | --- | :-------- | :----------- | --- | :------- | :--------- |
-| Hindi    | Devanagari |     | Bengali   | Bengali      |     | Tamil    | Tamil      |
-| Telugu   | Telugu     |     | Marathi   | Devanagari   |     | Gujarati | Gujarati   |
-| Kannada  | Kannada    |     | Malayalam | Malayalam    |     | Punjabi  | Gurmukhi   |
-| Assamese | Assamese   |     | Odia      | Odia         |     | Urdu     | Nastaliq   |
-| Sindhi   | Arabic     |     | Konkani   | Devanagari   |     | Manipuri | Meitei     |
-| Dogri    | Devanagari |     | Bodo      | Devanagari   |     | Santali  | Ol Chiki   |
-| Maithili | Devanagari |     | Kashmiri  | Perso-Arabic |     | Sanskrit | Devanagari |
-| Nepali   | Devanagari |     |           |              |     |          |            |
+| Language | Script     |     | Language  | Script     |     | Language | Script   |
+| :------- | :--------- | --- | :-------- | :--------- | --- | :------- | :------- |
+| Hindi    | Devanagari |     | Bengali   | Bengali    |     | Tamil    | Tamil    |
+| Telugu   | Telugu     |     | Marathi   | Devanagari |     | Gujarati | Gujarati |
+| Kannada  | Kannada    |     | Malayalam | Malayalam  |     | Punjabi  | Gurmukhi |
+| Assamese | Assamese   |     | Odia      | Odia       |     | Urdu     | Nastaliq |
+| Sindhi   | Arabic     |     | Konkani   | Devanagari |     | Manipuri | Meitei   |
+| Dogri    | Devanagari |     | Bodo      | Devanagari |     | Santali  | Ol Chiki |
 
-Plus every code-mixed pattern: **Hinglish** · **Benglish** · **Tanglish** · **Kanglish** · **Tenglish** and more.
+Plus code-mixed patterns: **Hinglish** · **Benglish** · **Tanglish** and more.
 
 </div>
 
