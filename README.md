@@ -7,15 +7,15 @@
 <br/><br/>
 
 <!-- Animated Typing SVG -->
-<a href="https://github.com/AIS-Developers/CodeIn">
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&pause=1000&color=6366F1&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=40&lines=The+Open-Source+AI+Code+Editor+That+Speaks+Your+Language" alt="Typing SVG" />
+<a href="https://github.com/inbharat-ai/codein.pro">
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=26&duration=3000&pause=2000&color=6366F1&center=true&vCenter=true&repeat=true&width=800&height=40&lines=CodeIn+%E2%80%94+Open-Source+AI+Code+Editor;Speaks+19+Indian+Languages+%F0%9F%87%AE%F0%9F%87%B3;50%2B+LLM+Providers+%7C+Multi-Agent+Swarm;Free+%26+Local-First+%7C+Apache+2.0" alt="CodeIn — Open-Source AI Code Editor" />
 </a>
 
 <br/><br/>
 
 <!-- Primary Badges -->
 
-[![Version](https://img.shields.io/badge/v1.1.0-6366f1?style=for-the-badge&label=version)](https://github.com/AIS-Developers/CodeIn/releases)
+[![Version](https://img.shields.io/badge/v1.1.0-6366f1?style=for-the-badge&label=version)](https://github.com/inbharat-ai/codein.pro/releases)
 [![Tests](https://img.shields.io/badge/2,429_passing-10b981?style=for-the-badge&logo=vitest&logoColor=white&label=tests)](packages/agent/test/)
 [![License](https://img.shields.io/badge/Apache_2.0-f97316?style=for-the-badge&label=license)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366f1?style=for-the-badge)](CONTRIBUTING.md)
@@ -652,7 +652,7 @@ graph TB
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/AIS-Developers/CodeIn.git
+git clone https://github.com/inbharat-ai/codein.pro.git
 cd CodeIn
 npm install
 ```
@@ -973,7 +973,7 @@ Contact: [info@inbharat.ai](mailto:info@inbharat.ai)
 
 <br/>
 
-[![Star this repo](https://img.shields.io/github/stars/AIS-Developers/CodeIn?style=for-the-badge&logo=github&label=Star%20CodeIn&color=6366F1)](https://github.com/AIS-Developers/CodeIn)
+[![Star this repo](https://img.shields.io/github/stars/inbharat-ai/codein.pro?style=for-the-badge&logo=github&label=Star%20CodeIn&color=6366F1)](https://github.com/inbharat-ai/codein.pro)
 
 <br/>
 
