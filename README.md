@@ -102,6 +102,10 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 | **Multi-Agent Swarm (13 agents)**     |    **Yes**     |       No        |        No        |        No         |
 | **Code Knowledge Graph (GitNexus)**   |    **Yes**     |       No        |        No        |        No         |
 | **18 Indian Languages + Voice**       |    **Yes**     |       No        |        No        |        No         |
+| **GPU on Demand (RunPod)**            |    **Yes**     |       No        |        No        |        No         |
+| **Autonomous Computer Use**           |    **Yes**     |       No        |        No        |        No         |
+| **Web Research Agent**                |    **Yes**     |       No        |        No        |        No         |
+| **Background Agent Execution**        |    **Yes**     |       No        |        No        |        No         |
 | **100% Free & Open Source**           |    **Yes**     |       No        |        No        |        No         |
 | **Local AI via llama.cpp**            |    **Yes**     |       No        |        No        |        No         |
 | **50+ LLM Providers (BYO key)**       |    **Yes**     |        ~        |        No        |         ~         |
@@ -134,20 +138,50 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 | **Multi-Agent Swarm**      | 13 specialized agent types working in concert. 4 topologies (pipeline, fan-out, round-robin, hierarchical). Circuit breakers, 3-tier blackboard memory, audit logging.            |
 | **AI Hub (50+ providers)** | OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, Together, Fireworks, OpenRouter, and more. Real-time health monitoring, model browser, cost tracking. |
 | **Local AI (llama.cpp)**   | Fully offline inference with automatic model download. Qwen2.5 Coder 1.5B included as default. No cloud dependency required.                                                      |
+| **Hybrid Intelligence**    | Classify prompt complexity, route to optimal provider, verify output, escalate if needed. Confidence scoring and automatic fallback chains.                                       |
 | **Code Knowledge Graph**   | GitNexus integration for Cypher-queryable code graphs — impact analysis, execution flow tracing, community clustering, and hybrid BM25+semantic search.                           |
-| **Vibe Coding Mode**       | Describe intent in natural language — CodeIn plans, generates, refactors, validates, and iterates across files autonomously.                                                      |
+| **Vibe Coding Mode**       | Image-to-UI pipeline: upload a screenshot or describe intent in natural language — CodeIn generates a UI spec, scaffolds the project, and writes production code autonomously.    |
 | **Autonomous Planner**     | Plan — Execute — Test — Diagnose — Revise — Retry loop with configurable retry limits and cost caps.                                                                              |
+
+### Autonomous Execution
+
+| Feature                        | Description                                                                                                                                                 |
+| :----------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Computer Use**               | Goal-based autonomous execution — describe what you want done, CodeIn executes multi-step workflows with skill discovery, templates, and full audit trails. |
+| **Background Agent Execution** | Run agents in the background on independent tasks. Monitor progress, cancel, and review results without blocking the main chat.                             |
+| **Web Research**               | Agents autonomously search the web, fetch documentation, find bug solutions, and pull code examples — with response caching and permission management.      |
+| **Workflow Engine**            | Define reusable multi-step workflows. Chain agent operations into repeatable automation with conditional logic and error recovery.                          |
 
 ### Development Tools
 
-| Feature                     | Description                                                                                                                                   |
-| :-------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Docker Sandbox**          | Secure code execution with dropped capabilities, read-only root filesystem, resource limits (CPU, memory, disk), network isolation.           |
-| **Git Workflow Automation** | Branching, commits, diffs, staging, and PR creation — all orchestrated by the swarm agent with human approval gates.                          |
-| **Terminal Manager**        | Agent-controlled terminal sessions with timeout protection, history recording, and cross-platform shell support (bash, zsh, PowerShell, cmd). |
-| **MCP Tools**               | Connect to GitHub, Slack, Jira, Docker, Kubernetes, RunPod GPU — built-in MCP tool integrations plus any external MCP server.                 |
-| **Repo Intelligence**       | AST-backed symbol finding, call graph analysis, change impact analysis, semantic search, and safe multi-file refactoring.                     |
-| **Pipeline Panel**          | Visual CI/CD-style pipeline view for multi-step agent workflows.                                                                              |
+| Feature                       | Description                                                                                                                                   |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Docker Sandbox**            | Secure code execution with dropped capabilities, read-only root filesystem, resource limits (CPU, memory, disk), network isolation.           |
+| **Git Workflow Automation**   | Branching, commits, diffs, staging, and PR creation — all orchestrated by the swarm agent with human approval gates.                          |
+| **Terminal Manager**          | Agent-controlled terminal sessions with timeout protection, history recording, and cross-platform shell support (bash, zsh, PowerShell, cmd). |
+| **Repo Intelligence**         | AST-backed symbol finding, call graph analysis, change impact analysis, semantic search, and safe multi-file refactoring.                     |
+| **Project Runtime Detection** | Auto-detect project type (Node, Python, Go, Rust, etc.), find run/build commands, manage preview processes with live reload.                  |
+| **Pipeline Panel**            | Visual CI/CD-style pipeline view for multi-step agent workflows.                                                                              |
+
+### GPU & Cloud Compute
+
+| Feature                         | Description                                                                                                                                                                         |
+| :------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **GPU on Demand (RunPod)**      | Full RunPod integration: browse GPUs with live pricing, spin up on-demand pods (A100, H100, RTX 4090), submit serverless inference jobs.                                            |
+| **9 RunPod MCP Tools**          | `runpod_connect`, `runpod_list_gpus`, `runpod_list_pods`, `runpod_create_pod`, `runpod_stop_pod`, `runpod_terminate_pod`, `runpod_pod_info`, `runpod_run_job`, `runpod_job_status`. |
+| **Intelligent Compute Routing** | Complexity classifier routes tasks automatically: local (simple) — swarm (medium) — GPU cloud (complex). Overridable with user preference.                                          |
+| **Budget Enforcement**          | Per-session budget cap ($100 default), TTL timer (auto-stop 30 min), idle shutdown (10 min), per-minute cost tracking with SSE alerts.                                              |
+| **GPU Session Manager**         | Multi-user session isolation, encrypted API key storage via OS keyring, state persistence across restarts.                                                                          |
+
+### MCP Tool Protocol
+
+| Feature                    | Description                                                                                                                         |
+| :------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| **MCP Client Manager**     | Connect to any MCP server (stdio or HTTP). Spawn child processes, negotiate protocol, discover tools, call with full audit logging. |
+| **Server Lifecycle**       | Add, connect, disconnect, remove MCP servers. Configuration persisted in `~/.codin/mcp/servers.json`.                               |
+| **Tool Discovery & Call**  | Automatically discover tools from connected servers. Execute with argument validation and JSON-RPC 2.0 protocol compliance.         |
+| **Audit Trail**            | Every MCP tool call logged to `~/.codin/logs/mcp_tool_calls.jsonl` with timestamp, server, tool name, arguments, and result.        |
+| **Built-in RunPod Server** | Pre-built MCP server for RunPod GPU operations — no external setup required. 9 tools for full pod and job lifecycle management.     |
 
 ### Intelligence & Localization
 
@@ -160,24 +194,27 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 
 ### UI/UX & Editor
 
-| Feature                            | Description                                                                                                           |
-| :--------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| **Monaco Editor**                  | Full VS Code editor experience with syntax highlighting, IntelliSense, minimap, multi-cursor, and keybinding support. |
-| **Dark + Light + System Theme**    | Professional themes with 50+ CSS custom properties. System follows OS preference. Seamless toggle in Settings.        |
-| **Chat History Persistence**       | Conversations survive restart. Last 50 messages persisted across sessions with automatic pruning.                     |
-| **Auto-Update**                    | Electron auto-updater checks for new releases on launch. Download and install with one click.                         |
-| **Loading / Empty / Error States** | Every panel has proper loading spinners, empty state illustrations, and error recovery with retry buttons.            |
-| **TipTap Rich Input**              | Rich text input with @mentions, slash commands, code blocks, and file attachments.                                    |
-| **Feedback System**                | Thumbs up/down on every AI response for continuous quality improvement.                                               |
+| Feature                         | Description                                                                                                           |
+| :------------------------------ | :-------------------------------------------------------------------------------------------------------------------- |
+| **Monaco Editor**               | Full VS Code editor experience with syntax highlighting, IntelliSense, minimap, multi-cursor, and keybinding support. |
+| **Dark + Light + System Theme** | Professional themes with 50+ CSS custom properties. System follows OS preference. Seamless toggle in Settings.        |
+| **Chat History Persistence**    | Conversations survive restart via redux-persist. Automatic pruning and session isolation.                             |
+| **Session Management**          | Persistent agent sessions across restarts. Multi-user session isolation with state recovery.                          |
+| **Auto-Update**                 | Electron auto-updater checks for new releases on launch. Download and install with one click.                         |
+| **Conversation Starters**       | AI-suggested prompts to help new users get started. Context-aware based on detected project type.                     |
+| **Onboarding Flow**             | Guided first-run experience with mode selection and feature discovery.                                                |
+| **TipTap Rich Input**           | Rich text input with @mentions, slash commands, code blocks, and file attachments.                                    |
+| **Feedback System**             | Thumbs up/down on every AI response for continuous quality improvement.                                               |
 
 ### Compute & Infrastructure
 
-| Feature                     | Description                                                                                                |
-| :-------------------------- | :--------------------------------------------------------------------------------------------------------- |
-| **Compute Routing**         | Local — Swarm — GPU (RunPod) automatic escalation with budget guardrails and session TTL.                  |
-| **GPU on Demand (RunPod)**  | Browse GPUs, spin up pods, submit serverless jobs. Budget cap ($100 default), auto-stop after 30 min idle. |
-| **SSE Real-Time Streaming** | Server-Sent Events for all agent actions, permission requests, task progress, and compute status.          |
-| **SQLite Persistence**      | Task queue, memory store, analytics — with graceful fallback to in-memory when SQLite unavailable.         |
+| Feature                     | Description                                                                                                       |
+| :-------------------------- | :---------------------------------------------------------------------------------------------------------------- |
+| **Compute Orchestrator**    | Full job lifecycle: submit, plan, execute, output. State machine transitions, artifact management, SSE streaming. |
+| **SSE Real-Time Streaming** | Server-Sent Events for all agent actions, permission requests, task progress, and compute status.                 |
+| **SQLite Persistence**      | Task queue, memory store, analytics — with graceful fallback to in-memory when SQLite unavailable.                |
+| **Performance Monitoring**  | Cache stats, HTTP pool metrics, memory usage, and system health — accessible via status endpoints.                |
+| **API Versioning**          | `/api/v1/` prefix on all endpoints with backward-compatible normalization for legacy paths.                       |
 
 ### Security & Privacy
 
@@ -200,6 +237,7 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 | **Remote Plugins**    | Remote plugin protocol with heartbeat monitoring and automatic reconnection.                         |
 | **VS Code Extension** | Full integration with VS Code and JetBrains IDEs via the extension adapter.                          |
 | **MCP Integration**   | Connect any MCP-compatible server — register, connect, discover tools, call with audit logging.      |
+| **API Contracts**     | Formal contract definitions for all 28 route endpoints. Enables frontend/backend contract stability. |
 
 </details>
 
@@ -310,12 +348,14 @@ graph LR
     subgraph Panels["Feature Panels"]
         Chat["Chat<br/>History · Streaming<br/>Tool calls · Markdown"]
         Swarm["Swarm Dashboard<br/>Agent status · Topology<br/>Task graph · Metrics"]
-        Compute["Compute Panel<br/>SSE · Actions<br/>Submit · Monitor"]
+        Compute["Compute Panel<br/>Job submission<br/>SSE · Artifacts"]
+        GPU["GPU Panel<br/>RunPod · Pods<br/>Browse · Create · Monitor"]
+        Computer["Computer Use<br/>Goal execution<br/>Skills · Workflows"]
         Git["Git Panel<br/>Status · Diff<br/>Branch · Commit"]
         AI["AI Hub<br/>Providers · Models<br/>Health · Config"]
-        Graph["Code Graph<br/>GitNexus status<br/>Index · Query"]
+        Graph["Code Graph<br/>GitNexus · Index<br/>Query · Impact"]
         MCP["MCP Tools<br/>Servers · Tools<br/>Audit log"]
-        Voice["Voice Panel<br/>STT · TTS<br/>19 languages"]
+        Voice["Media Panel<br/>STT · TTS<br/>18 languages"]
     end
 
     subgraph Editor["Editor"]
@@ -543,6 +583,32 @@ Azure OpenAI · AWS Bedrock<br/>Google VertexAI · Nvidia NIM
 
 <br/>
 
+## GPU on Demand — RunPod Integration
+
+CodeIn includes a full RunPod integration — browse GPUs, create pods, submit jobs, and track costs, all from the GPU panel or via 9 MCP tools that agents can call autonomously.
+
+| MCP Tool               | What it does                                         |
+| :--------------------- | :--------------------------------------------------- |
+| `runpod_connect`       | Store your RunPod API key (encrypted via OS keyring) |
+| `runpod_list_gpus`     | Browse available GPUs with live pricing              |
+| `runpod_create_pod`    | Spin up an on-demand GPU pod (A100, H100, RTX 4090)  |
+| `runpod_stop_pod`      | Stop pod (preserves volume for later)                |
+| `runpod_terminate_pod` | Destroy pod + volume permanently                     |
+| `runpod_pod_info`      | Get pod status, utilization, and cost                |
+| `runpod_list_pods`     | List all active pods                                 |
+| `runpod_run_job`       | Submit serverless inference jobs (async or sync)     |
+| `runpod_job_status`    | Check job completion and retrieve results            |
+
+**Safety:** Budget cap ($100/session default), TTL timer (auto-stop 30 min), idle shutdown (10 min), per-minute cost tracking with real-time SSE alerts. Multi-user session isolation with encrypted API key storage.
+
+**Intelligent Routing:** The compute selector classifies task complexity and automatically routes: local inference (simple) — multi-agent swarm (medium) — GPU cloud (complex). Override with `--prefer local|quality|fast|cost`.
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,14,20&height=2&section=header" width="100%"/>
+
+<br/>
+
 ## Security Model
 
 ```mermaid
@@ -679,7 +745,16 @@ CodeIn/
 │   │   ├── gitnexus/               #   GitNexus MCP integration service
 │   │   │   └── service.js          #     Install, index, staleness, MCP registration
 │   │   ├── mcp/                    #   MCP client manager
-│   │   │   └── client-manager.js   #     Server lifecycle, tool registry, audit
+│   │   │   ├── client-manager.js   #     Server lifecycle, tool registry, audit
+│   │   │   └── runpod-mcp-server.js#     9-tool RunPod MCP server (570 lines)
+│   │   ├── gpu-orchestration/      #   RunPod GPU provider (579 lines)
+│   │   │   └── runpod-provider.js  #     GraphQL API, pod lifecycle, budget
+│   │   ├── compute/                #   Compute orchestration
+│   │   │   ├── orchestrator.js     #     Job lifecycle + multilingual output
+│   │   │   └── gpu-session-manager.js #  Session isolation + keyring storage
+│   │   ├── routing/                #   Intelligent compute routing
+│   │   │   └── compute-selector.js #     Complexity → local/swarm/GPU routing
+│   │   ├── research/               #   Web research service
 │   │   ├── ai-hub/                 #   Multi-provider AI management
 │   │   ├── repo-intelligence/      #   Code analysis engine
 │   │   ├── intelligence/           #   Hybrid intelligence orchestrator
@@ -691,9 +766,15 @@ CodeIn/
 │   │   ├── components/             #   466 source files
 │   │   │   ├── SwarmPanel/         #     Swarm dashboard
 │   │   │   ├── AIHubPanel/         #     AI provider management
-│   │   │   ├── ComputePanel/       #     GPU & compute (4 sub-components)
-│   │   │   ├── GpuPanel/           #     RunPod GPU management
-│   │   │   ├── MediaPanel/         #     Voice/TTS/media
+│   │   │   ├── ComputePanel/       #     Compute jobs (4 sub-components)
+│   │   │   ├── GpuPanel/           #     RunPod GPU (8 files: connect, types,
+│   │   │   │                       #       pods, create, session hook, API)
+│   │   │   ├── ComputerPanel/      #     Autonomous execution (run, skills,
+│   │   │   │                       #       workflows, audit)
+│   │   │   ├── MediaPanel/         #     Voice STT/TTS + media
+│   │   │   ├── BackgroundMode/     #     Background agent execution
+│   │   │   ├── ConversationStarters/ #   AI-suggested prompts
+│   │   │   ├── OnboardingCard/     #     First-run guidance
 │   │   │   └── ui/                 #     Reusable: EmptyState, Toast, etc.
 │   │   ├── hooks/                  #   Custom hooks (useTheme, etc.)
 │   │   ├── redux/                  #   9 slices + persist
