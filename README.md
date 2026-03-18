@@ -48,7 +48,7 @@
 
 ## What is CodeIn?
 
-**CodeIn** is an open-source AI code editor with **13 autonomous agents**, **50+ LLM providers**, and **built-in support for 18 Indian languages** — Hindi, Tamil, Bengali, Telugu, Kannada, Malayalam, and more. Runs locally. **Your code never leaves your machine.**
+**CodeIn** is an open-source AI code editor with **13 autonomous agents**, **50+ LLM providers**, and **built-in support for 19 languages** — 12 Indian scripts (Hindi, Tamil, Bengali, Telugu, Kannada, Malayalam, and more) plus Spanish, French, German, Chinese, Japanese, and Korean. Runs locally. **Your code never leaves your machine.**
 
 <div align="center">
 
@@ -58,7 +58,7 @@
 
 CodeIn is a **complete AI engineering system**, not a wrapper around a single LLM call. 13 specialized agents plan, code, test, and review together. 50+ LLM providers you swap with your own API keys. Local-first inference via llama.cpp that works fully offline. A code knowledge graph that maps your entire codebase before making a single edit.
 
-Write your prompt in any language you think in. Say _"login page bana do with Google auth"_ in Hinglish. Type in Tamil, Bengali, Marathi, or any of 18 supported Indian languages — CodeIn detects the script, preserves your technical terms, and translates to structured English for AI execution. The language system is open and extensible — add support for any language by contributing to `language-config.js`.
+Write your prompt in any language you think in. Say _"login page bana do with Google auth"_ in Hinglish. Type in Tamil, Bengali, Marathi, or any of 12 Indian scripts — CodeIn detects the script via Unicode analysis, preserves your technical terms, and translates to structured English for AI execution. The language system is open and extensible — add support for any language by contributing to `language-config.js`.
 
 No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 
@@ -77,7 +77,7 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 <td align="center"><h3>13</h3><b>Agent Types</b></td>
 <td align="center"><h3>2,429</h3><b>Tests Passing</b></td>
 <td align="center"><h3>50+</h3><b>LLM Providers</b></td>
-<td align="center"><h3>19</h3><b>Indian Languages</b></td>
+<td align="center"><h3>19</h3><b>Languages</b></td>
 <td align="center"><h3>28</h3><b>Route Modules</b></td>
 <td align="center"><h3>$0</h3><b>Forever Free</b></td>
 </tr>
@@ -101,7 +101,7 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 | AI Chat & Agent Mode                  |    **Yes**     |       Yes       |       Yes        |        Yes        |
 | **Multi-Agent Swarm (13 agents)**     |    **Yes**     |       No        |        No        |        No         |
 | **Code Knowledge Graph (GitNexus)**   |    **Yes**     |       No        |        No        |        No         |
-| **18 Indian Languages + Voice**       |    **Yes**     |       No        |        No        |        No         |
+| **19 Languages + Voice (12 Indian)**  |    **Yes**     |       No        |        No        |        No         |
 | **GPU on Demand (RunPod)**            |    **Yes**     |       No        |        No        |        No         |
 | **Autonomous Computer Use**           |    **Yes**     |       No        |        No        |        No         |
 | **Web Research Agent**                |    **Yes**     |       No        |        No        |        No         |
@@ -109,7 +109,7 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 | **100% Free & Open Source**           |    **Yes**     |       No        |        No        |        No         |
 | **Local AI via llama.cpp**            |    **Yes**     |       No        |        No        |        No         |
 | **50+ LLM Providers (BYO key)**       |    **Yes**     |        ~        |        No        |         ~         |
-| **19 Indian Language Detection**      |    **Yes**     |       No        |        No        |        No         |
+| **19-Language Unicode Detection**     |    **Yes**     |       No        |        No        |        No         |
 | **Docker Sandbox Execution**          |    **Yes**     |       No        |        No        |        No         |
 | **Autonomous Plan-Execute-Test Loop** |    **Yes**     |       No        |        No        |        No         |
 | MCP Tool Protocol                     |      Yes       |       Yes       |        ~         |        Yes        |
@@ -185,12 +185,12 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 
 ### Intelligence & Localization
 
-| Feature                 | Description                                                                                                                                                                               |
-| :---------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **18 Indian Languages** | Unicode script analysis detects Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Assamese, Odia, Urdu, Sindhi, Konkani, Manipuri, Dogri, Bodo, and Santali. |
-| **Code-Mixed Input**    | Hinglish, Benglish, Tanglish, and more — normalized to structured English for AI execution while preserving technical terms.                                                              |
-| **Voice Input**         | Speech-to-text with AI4Bharat models. Speak your prompt in any supported language.                                                                                                        |
-| **Text-to-Speech**      | Hear AI responses spoken back in supported languages.                                                                                                                                     |
+| Feature                      | Description                                                                                                                                                                                                                      |
+| :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **19 Languages (12 Indian)** | Unicode script analysis: Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Assamese, Odia, Urdu — plus Spanish, French, German, Chinese, Japanese, and Korean. Extensible via `language-config.js`. |
+| **Code-Mixed Input**         | Hinglish, Benglish, Tanglish, and more — normalized to structured English for AI execution while preserving technical terms.                                                                                                     |
+| **Voice Input**              | Speech-to-text with AI4Bharat models. Speak your prompt in any supported language.                                                                                                                                               |
+| **Text-to-Speech**           | Hear AI responses spoken back in supported languages.                                                                                                                                                                            |
 
 ### UI/UX & Editor
 
@@ -355,7 +355,7 @@ graph LR
         AI["AI Hub<br/>Providers · Models<br/>Health · Config"]
         Graph["Code Graph<br/>GitNexus · Index<br/>Query · Impact"]
         MCP["MCP Tools<br/>Servers · Tools<br/>Audit log"]
-        Voice["Media Panel<br/>STT · TTS<br/>18 languages"]
+        Voice["Media Panel<br/>STT · TTS<br/>19 languages"]
     end
 
     subgraph Editor["Editor"]

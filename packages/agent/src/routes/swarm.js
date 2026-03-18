@@ -545,7 +545,7 @@ function registerSwarmRoutes(router, deps) {
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
       const result = await swarmManager.generateCommitMessage(
-        parsed.value.diff,
+        parsed.value.diff ?? parsed.value.stagedDiff ?? "",
         parsed.value.opts,
       );
       sendJson(res, 200, result);

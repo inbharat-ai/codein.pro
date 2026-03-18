@@ -166,7 +166,9 @@ class ComputeSelector {
     }
 
     // Step 5: Route by complexity score
-    const complexity = classification.complexityScore;
+    // NOTE: ComplexityClassifier returns { score, ... } not { complexityScore }
+    const complexity =
+      classification.score ?? classification.complexityScore ?? 0;
 
     // SMALL TASKS → LOCAL
     if (complexity < this.thresholds.smallComplexity) {

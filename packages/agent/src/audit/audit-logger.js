@@ -214,6 +214,26 @@ class AuditLogger extends EventEmitter {
   }
 
   /**
+   * Generic log method — convenience wrapper used by auth-middleware and
+   * other subsystems that call auditLogger.log(level, action, details).
+   * Maps to writeLog so the entry is persisted like any other audit event.
+   *
+   * @param {string} level   - "info" | "warn" | "error"
+   * @param {string} action  - Action identifier (e.g. "mcp-server-connect")
+   * @param {Object} details - Arbitrary metadata to include in the log entry
+   */
+  log(level, action, details = {}) {
+    this.writeLog({
+      type: "ACTION",
+      level,
+      action,
+      timestamp: Date.now(),
+      ...details,
+    });
+    this.stats.totalLogs++;
+  }
+
+  /**
    * Write log entry to buffer
    * @private
    */
