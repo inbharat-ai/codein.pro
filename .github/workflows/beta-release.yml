@@ -48,7 +48,7 @@ jobs:
 
       - name: Install CLI dependencies
         working-directory: extensions/cli
-        run: npm ci
+        run: npm install
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

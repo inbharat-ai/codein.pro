@@ -108,7 +108,7 @@ jobs:
       # ── Install + build ──
       - name: Install electron-app dependencies
         working-directory: electron-app
-        run: npm ci
+        run: npm install
 
       - name: Build TypeScript
         working-directory: electron-app
@@ -233,7 +233,7 @@ jobs:
       # ── Install + build ──
       - name: Install dependencies
         working-directory: electron-app
-        run: npm ci
+        run: npm install
 
       - name: Build TypeScript
         working-directory: electron-app
@@ -352,7 +352,7 @@ jobs:
       # ── Install + build ──
       - name: Install dependencies
         working-directory: electron-app
-        run: npm ci
+        run: npm install
 
       - name: Build TypeScript
         working-directory: electron-app
