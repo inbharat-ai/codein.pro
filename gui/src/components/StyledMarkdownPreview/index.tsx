@@ -3,15 +3,9 @@ import { memo, useEffect, useMemo, useRef } from "react";
 import { useRemark } from "react-remark";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
-import styled from "styled-components";
 import { visit } from "unist-util-visit";
 import { v4 as uuidv4 } from "uuid";
-import {
-  defaultBorderRadius,
-  vscBackground,
-  vscEditorBackground,
-  vscForeground,
-} from "..";
+import { vscBackground, vscForeground } from "..";
 import useUpdatingRef from "../../hooks/useUpdatingRef";
 import { useAppSelector } from "../../redux/hooks";
 import { selectUIConfig } from "../../redux/slices/configSlice";
@@ -21,6 +15,7 @@ import { ToolTip } from "../gui/Tooltip";
 import FilenameLink from "./FilenameLink";
 import "./katex.css";
 import "./markdown.css";
+import "./styledMarkdown.css";
 import MermaidBlock from "./MermaidBlock";
 import { rehypeHighlightPlugin } from "./rehypeHighlightPlugin";
 import { SecureImageComponent } from "./SecureImageComponent";
@@ -31,117 +26,6 @@ import { isSymbolNotRif, matchCodeToSymbolOrFile } from "./utils";
 import { fixDoubleDollarNewLineLatex } from "./utils/fixDoubleDollarLatex";
 import { patchNestedMarkdown } from "./utils/patchNestedMarkdown";
 import { remarkTables } from "./utils/remarkTables";
-
-const StyledMarkdown = styled.div<{
-  fontSize?: number;
-  whiteSpace: string;
-  bgColor: string;
-}>`
-  h1 {
-    font-size: 1.25em;
-  }
-
-  h2 {
-    font-size: 1.15em;
-  }
-
-  h3 {
-    font-size: 1.05em;
-  }
-
-  h4 {
-    font-size: 1em;
-  }
-
-  h5 {
-    font-size: 0.95em;
-  }
-
-  h6 {
-    font-size: 0.9em;
-  }
-
-  pre {
-    white-space: ${(props) => props.whiteSpace};
-    background-color: ${vscEditorBackground};
-    border-radius: ${defaultBorderRadius};
-
-    max-width: calc(100vw - 24px);
-    overflow-x: scroll;
-    overflow-y: hidden;
-
-    padding: 8px;
-  }
-
-  code {
-    span.line:empty {
-      display: none;
-    }
-    word-wrap: break-word;
-    border-radius: 0.3125rem;
-    background-color: ${vscEditorBackground};
-    font-size: ${getFontSize() - 2}px;
-    font-family: var(--codin-font-mono, monospace);
-  }
-
-  ul ul,
-  ul ol,
-  ol ul,
-  ol ol {
-    padding-left: 1.5em;
-    margin-top: 1em;
-  }
-
-  li {
-    margin-bottom: 0.8em;
-  }
-  li:last-child {
-    margin-bottom: 0;
-  }
-
-  ul,
-  ol {
-    padding-left: 2em;
-  }
-
-  code:not(pre > code) {
-    font-family: var(--codin-font-mono, monospace);
-  }
-
-  background-color: ${(props) => props.bgColor};
-  font-family:
-    var(--codin-font-family, system-ui),
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    "Open Sans",
-    "Helvetica Neue",
-    sans-serif;
-  font-size: ${(props) => props.fontSize || getFontSize()}px;
-  padding-left: 8px;
-  padding-right: 8px;
-  color: ${vscForeground};
-
-  p,
-  li,
-  ol,
-  ul {
-    line-height: 1.5;
-  }
-
-  * {
-    word-break: break-word;
-  }
-
-  > *:last-child {
-    margin-bottom: 0;
-  }
-`;
 
 interface StyledMarkdownPreviewProps {
   showToolCallStatusIcon?: boolean;
@@ -382,13 +266,23 @@ const StyledMarkdownPreview = memo(function StyledMarkdownPreview(
   const codeWrapState = uiConfig?.codeWrap ? "pre-wrap" : "pre";
 
   return (
-    <StyledMarkdown
-      fontSize={getFontSize()}
-      whiteSpace={codeWrapState}
-      bgColor={props.useParentBackgroundColor ? "" : vscBackground}
+    <div
+      className="codin-styled-markdown"
+      style={{
+        backgroundColor: props.useParentBackgroundColor
+          ? undefined
+          : vscBackground,
+        fontFamily:
+          'var(--codin-font-family, system-ui), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
+        fontSize: `${getFontSize()}px`,
+        paddingLeft: 8,
+        paddingRight: 8,
+        color: vscForeground,
+      }}
     >
+      <style>{`.codin-styled-markdown pre { white-space: ${codeWrapState}; } .codin-styled-markdown code { font-size: ${getFontSize() - 2}px; }`}</style>
       {reactContent}
-    </StyledMarkdown>
+    </div>
   );
 });
 

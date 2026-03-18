@@ -2,22 +2,37 @@
 
 ## Supported Versions
 
-| Version | Supported |
-| :------ | :-------- |
-| 1.x     | ✅        |
-| < 1.0   | ❌        |
+| Version | Supported          |
+| ------- | ------------------ |
+| 0.1.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please report it responsibly:
+**Please do NOT report security vulnerabilities through public GitHub issues.**
 
-1. **Do NOT open a public issue.**
-2. Email: **security@codein.pro**
-3. Or use [GitHub Security Advisories](https://github.com/inbharat-ai/codein.pro/security/advisories/new)
+Instead, please report them via email to: **info@inbharat.ai**
 
-We will acknowledge receipt within 48 hours and provide a timeline for a fix.
+Include:
 
-## Security Architecture
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if any)
+
+We will acknowledge receipt within 48 hours and provide a detailed response within 7 days.
+
+## Security Measures
+
+CodeIn implements multiple security layers:
+
+- **Fail-closed permission system** — all agent actions require explicit approval by default
+- **JWT authentication** — all API endpoints authenticated with short-lived tokens
+- **Injection detection** — prompt injection and command injection scanning
+- **Audit logging** — complete trail of all agent actions and tool executions
+- **Sandboxed execution** — Docker-based sandbox for untrusted code execution
+- **Circuit breakers** — automatic provider isolation on repeated failures
+- **Rate limiting** — per-endpoint rate limits to prevent abuse
+- **Input validation** — Joi schema validation on all API inputs
 
 ### Key Handling
 
@@ -50,3 +65,13 @@ We will acknowledge receipt within 48 hours and provide a timeline for a fix.
 - Circuit breaker on LLM/tool execution paths
 - Timeout and retry protection on critical loops
 - Audit logging for all permission-gated operations
+
+## Responsible Disclosure
+
+We follow a 90-day responsible disclosure policy. We ask that you:
+
+1. Allow us reasonable time to fix the issue before public disclosure
+2. Make a good-faith effort to avoid privacy violations, data destruction, or service disruption
+3. Do not access or modify other users' data
+
+Thank you for helping keep CodeIn and its users safe.

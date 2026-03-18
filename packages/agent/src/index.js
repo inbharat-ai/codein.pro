@@ -160,7 +160,20 @@ function downloadFile(url, destPath) {
 }
 
 // Bridge function: agents call runLLM(systemPrompt, userPrompt, opts)
+// Also handles the 2-argument form used by skills: runLLM(prompt, opts)
+// where opts is an object with keys like maxTokens/temperature (not a string).
 const runLLM = async (systemPrompt, userPrompt, opts = {}) => {
+  // Detect 2-arg call: runLLM(prompt, { maxTokens, temperature, ... })
+  if (
+    userPrompt !== null &&
+    typeof userPrompt === "object" &&
+    !Array.isArray(userPrompt) &&
+    typeof userPrompt.role === "undefined"
+  ) {
+    opts = userPrompt;
+    userPrompt = systemPrompt;
+    systemPrompt = "";
+  }
   const messages = [
     { role: "system", content: systemPrompt },
     { role: "user", content: userPrompt },

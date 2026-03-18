@@ -132,6 +132,22 @@ function registerExternalProviderRoutes(router, deps) {
           async () => {
             externalProviders.configure(provider, { apiKey, model, baseUrl });
 
+            // Reset circuit breaker state for this provider so a reconfigure
+            // with new credentials is not blocked by prior failures.
+            if (
+              externalProviders.providerHealth &&
+              externalProviders.providerHealth.has(provider)
+            ) {
+              const health = externalProviders.providerHealth.get(provider);
+              health.state = "closed";
+              health.failures = 0;
+              health.lastFailureTime = null;
+              health.openedAt = null;
+              health.nextProbeAt = 0;
+              health.halfOpenInFlight = false;
+              health.lastError = null;
+            }
+
             // Register cloud models with the model router
             if (modelRouter) {
               const profiles = externalProviders.getRouterProfiles();
@@ -296,25 +312,29 @@ function registerExternalProviderRoutes(router, deps) {
         // Support both flat body (OpenAI-style: model/temperature/max_tokens at top level)
         // and nested options object { options: { model, ... } }.
         // Only forward known-safe keys to prevent arbitrary body fields leaking into provider calls.
-        const ALLOWED_OPTION_KEYS = new Set([
+        const ALLOWED_OPTION_KEYS = [
           "model",
           "temperature",
-          "maxTokens",
           "max_tokens",
-          "topP",
+          "maxTokens",
           "top_p",
+          "topP",
           "stop",
-          "n",
           "stream",
-        ]);
+          "n",
+          "presence_penalty",
+          "frequency_penalty",
+        ];
         const {
           provider: _p,
           messages: _m,
           options: _opts,
-          ...bodyRest
+          ...topLevelOpts
         } = body;
         const filteredTopLevel = Object.fromEntries(
-          Object.entries(bodyRest).filter(([k]) => ALLOWED_OPTION_KEYS.has(k)),
+          Object.entries(topLevelOpts).filter(([k]) =>
+            ALLOWED_OPTION_KEYS.includes(k),
+          ),
         );
         const options = { ...filteredTopLevel, ...(_opts || {}) };
 

@@ -28,7 +28,7 @@ export function ConfigItemSelect({
   const activeItem = items.find((item) => item.id === activeId);
 
   const tabContent = (
-    <div className="hidden border-0 border-b-[1px] border-solid border-b-zinc-700 p-0.5 sm:flex sm:justify-center md:grid md:grid-cols-2 md:gap-x-2">
+    <div className="hidden border-0 border-b-[1px] border-solid border-b-[var(--vscode-panel-border)] p-0.5 sm:flex sm:justify-center md:grid md:grid-cols-2 md:gap-x-2">
       {items.map((item) => (
         <div
           style={{ fontSize: fontSize(-2) }}

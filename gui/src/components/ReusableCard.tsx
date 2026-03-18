@@ -1,15 +1,5 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import styled from "styled-components";
 import { CloseButton, defaultBorderRadius, vscInputBackground } from ".";
-
-const StyledCard = styled.div`
-  margin: auto;
-  border-radius: ${defaultBorderRadius};
-  background-color: ${vscInputBackground};
-  box-shadow:
-    0 20px 25px -5px rgb(0 0 0 / 0.1),
-    0 8px 10px -6px rgb(0 0 0 / 0.1);
-`;
 
 interface ReusableCardProps {
   children: React.ReactNode;
@@ -27,9 +17,16 @@ export function ReusableCard({
   testId,
 }: ReusableCardProps) {
   return (
-    <StyledCard
+    <div
       className={`xs:py-4 xs:px-4 relative px-2 !pt-0 pb-3 ${className}`}
       data-testid={testId}
+      style={{
+        margin: "auto",
+        borderRadius: defaultBorderRadius,
+        backgroundColor: vscInputBackground,
+        boxShadow:
+          "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+      }}
     >
       {showCloseButton && (
         <CloseButton onClick={onClose}>
@@ -37,6 +34,6 @@ export function ReusableCard({
         </CloseButton>
       )}
       <div className="content">{children}</div>
-    </StyledCard>
+    </div>
   );
 }

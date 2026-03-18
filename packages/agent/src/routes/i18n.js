@@ -13,6 +13,34 @@ function registerI18nRoutes(router, deps) {
   const { i18nOrchestrator, cache, logger } = deps;
 
   // ── core i18n endpoints ────────────────────────────────────────────────
+  router.get("/i18n/languages", (req, res) => {
+    res.json({
+      supported: [
+        { code: "hi", name: "Hindi", native: "हिन्दी" },
+        { code: "bn", name: "Bengali", native: "বাংলা" },
+        { code: "te", name: "Telugu", native: "తెలుగు" },
+        { code: "mr", name: "Marathi", native: "मराठी" },
+        { code: "ta", name: "Tamil", native: "தமிழ்" },
+        { code: "gu", name: "Gujarati", native: "ગુજરાતી" },
+        { code: "kn", name: "Kannada", native: "ಕನ್ನಡ" },
+        { code: "ml", name: "Malayalam", native: "മലയാളം" },
+        { code: "pa", name: "Punjabi", native: "ਪੰਜਾਬੀ" },
+        { code: "or", name: "Odia", native: "ଓଡ଼ିଆ" },
+        { code: "as", name: "Assamese", native: "অসমীয়া" },
+        { code: "ur", name: "Urdu", native: "اردو" },
+        { code: "sa", name: "Sanskrit", native: "संस्कृतम्" },
+        { code: "ks", name: "Kashmiri", native: "کٲشُر" },
+        { code: "sd", name: "Sindhi", native: "سنڌي" },
+        { code: "ne", name: "Nepali", native: "नेपाली" },
+        { code: "kok", name: "Konkani", native: "कोंकणी" },
+        { code: "mai", name: "Maithili", native: "मैथिली" },
+        { code: "doi", name: "Dogri", native: "डोगरी" },
+      ],
+      total: 19,
+      default: "hi",
+    });
+  });
+
   router.post("/i18n/translate", async (req, res) => {
     await handleRoute(
       res,

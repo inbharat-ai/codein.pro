@@ -1,7 +1,6 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
 import { defaultBorderRadius } from "..";
 import { newSession } from "../../redux/slices/sessionSlice";
 import {
@@ -26,106 +25,121 @@ const tabSelectedBackgroundVar = varWithFallback("background"); // --vscode-tab-
 const tabSelectedForegroundVar = varWithFallback("foreground"); // --vscode-tab-activeForeground
 const tabAccentVar = varWithFallback("accent"); // --vscode-tab-activeBorderTop
 
-const TabBarContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  flex-grow: 0;
-  background-color: ${tabBackgroundVar};
-  border-bottom: none;
-  position: relative;
-  margin-top: 2px;
-  max-height: 100px;
-  overflow: auto;
-
-  /* Hide scrollbar but keep functionality */
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
+// Inject tab bar CSS once (for scrollbar hiding and close-button visibility)
+if (typeof document !== "undefined") {
+  const styleId = "codin-tab-bar-styles";
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+      .codin-tab-bar { scrollbar-width: none; }
+      .codin-tab-bar::-webkit-scrollbar { display: none; }
+      .codin-tab:hover .codin-tab-close { visibility: visible !important; }
+    `;
+    document.head.appendChild(style);
   }
-`;
+}
 
-const Tab = styled.div<{ isActive: boolean }>`
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 0 5px 0 12px;
-  flex-grow: 1;
-  width: 100px;
-  max-width: 150px;
-  height: 25px;
-  background-color: ${(props) =>
-    props.isActive ? tabSelectedBackgroundVar : tabBackgroundVar};
-  color: ${(props) =>
-    props.isActive ? tabSelectedForegroundVar : tabForegroundVar};
-  cursor: pointer;
-  border: 1px solid ${tabBorderVar};
-  border-bottom: ${(props) =>
-    props.isActive ? "none" : `1px solid ${tabBorderVar}`};
-  user-select: none;
-  position: relative;
-  transition: background-color 0.2s;
-  border-top: ${(props) =>
-    props.isActive ? `1px solid ${tabAccentVar}` : `1px solid ${tabBorderVar}`};
-  &:first-child {
-    border-left: none;
-  }
-  & + & {
-    border-left: none;
-  }
+interface TabItemProps {
+  isActive: boolean;
+  title: string;
+  onClick: () => void;
+  onAuxClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onClose: (e: React.MouseEvent<HTMLButtonElement>) => void;
+}
 
-  &:hover {
-    background-color: ${(props) =>
-      props.isActive ? tabSelectedBackgroundVar : tabHoverBackgroundVar};
-    color: ${(props) =>
-      props.isActive ? tabSelectedForegroundVar : tabHoverForegroundVar};
-  }
-`;
+function TabItem({
+  isActive,
+  title,
+  onClick,
+  onAuxClick,
+  onClose,
+}: TabItemProps) {
+  const [hovered, setHovered] = useState(false);
 
-const TabTitle = styled.span`
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 13px;
-`;
-
-const CloseButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  margin-left: 4px;
-  border: none;
-  background: transparent;
-  color: inherit;
-  opacity: 0.7;
-  cursor: pointer;
-  border-radius: ${defaultBorderRadius};
-  padding: 2px;
-  visibility: hidden;
-
-  &:hover {
-    opacity: 1;
-    background-color: ${tabHoverBackgroundVar};
-  }
-
-  ${Tab}:hover & {
-    visibility: visible;
-  }
-
-  &[disabled] {
-    display: none !important;
-  }
-`;
-
-const TabBarSpace = styled.div`
-  flex: 1;
-  display: flex;
-  border-bottom: 1px solid ${tabBorderVar};
-  background-color: ${tabBackgroundVar};
-`;
+  return (
+    <div
+      className="codin-tab"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        boxSizing: "border-box",
+        padding: "0 5px 0 12px",
+        flexGrow: 1,
+        width: 100,
+        maxWidth: 150,
+        height: 25,
+        backgroundColor: isActive
+          ? tabSelectedBackgroundVar
+          : hovered
+            ? tabHoverBackgroundVar
+            : tabBackgroundVar,
+        color: isActive
+          ? tabSelectedForegroundVar
+          : hovered
+            ? tabHoverForegroundVar
+            : tabForegroundVar,
+        cursor: "pointer",
+        border: `1px solid ${tabBorderVar}`,
+        borderBottom: isActive ? "none" : `1px solid ${tabBorderVar}`,
+        borderTop: isActive
+          ? `1px solid ${tabAccentVar}`
+          : `1px solid ${tabBorderVar}`,
+        userSelect: "none",
+        position: "relative",
+        transition: "background-color 0.2s",
+      }}
+      onClick={onClick}
+      onAuxClick={onAuxClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span
+        style={{
+          flex: 1,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          fontSize: 13,
+        }}
+      >
+        {title}
+      </span>
+      <button
+        className="codin-tab-close"
+        onClick={onClose}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 16,
+          height: 16,
+          marginLeft: 4,
+          border: "none",
+          background: "transparent",
+          color: "inherit",
+          opacity: 0.7,
+          cursor: "pointer",
+          borderRadius: defaultBorderRadius,
+          padding: 2,
+          visibility: "hidden",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.opacity = "1";
+          (e.currentTarget as HTMLElement).style.backgroundColor =
+            tabHoverBackgroundVar;
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.opacity = "0.7";
+          (e.currentTarget as HTMLElement).style.backgroundColor =
+            "transparent";
+        }}
+      >
+        <XMarkIcon width={12} height={12} />
+      </button>
+    </div>
+  );
+}
 
 export const TabBar = React.forwardRef<HTMLDivElement>((_, ref) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -199,8 +213,6 @@ export const TabBar = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   const handleTabClose = async (id: string) => {
-    //if (tabs.length <= 1) return;
-
     const isClosingActive = tabs.find((t) => t.id === id)?.isActive;
     const filtered = tabs.filter((t) => t.id !== id);
 
@@ -226,42 +238,49 @@ export const TabBar = React.forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <TabBarContainer
+    <div
       ref={ref}
+      className="codin-tab-bar"
       style={{
         display: tabs.length === 1 ? "none" : "flex",
+        flexWrap: "wrap",
+        flexShrink: 0,
+        flexGrow: 0,
+        backgroundColor: tabBackgroundVar,
+        borderBottom: "none",
+        position: "relative",
+        marginTop: 2,
+        maxHeight: 100,
+        overflow: "auto",
       }}
     >
       {tabs.map((tab) => (
-        <Tab
+        <TabItem
           key={tab.id}
           isActive={tab.isActive}
+          title={tab.title}
           onClick={() => handleTabClick(tab.id)}
           onAuxClick={(e) => {
-            // Middle mouse button
             if (e.button === 1) {
               e.preventDefault();
               handleTabClose(tab.id);
             }
           }}
-        >
-          <TabTitle>{tab.title}</TabTitle>
-          <CloseButton
-            /* disabled={tabs.length === 1} */
-            onClick={(e) => {
-              e.stopPropagation();
-              handleTabClose(tab.id);
-            }}
-          >
-            <XMarkIcon width={12} height={12} />
-          </CloseButton>
-        </Tab>
+          onClose={(e) => {
+            e.stopPropagation();
+            handleTabClose(tab.id);
+          }}
+        />
       ))}
-      <TabBarSpace>
-        {/* <NewTabButton onClick={handleNewTab}>
-          <PlusIcon width={16} height={16} />
-        </NewTabButton> */}
-      </TabBarSpace>
-    </TabBarContainer>
+      {/* TabBarSpace */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          borderBottom: `1px solid ${tabBorderVar}`,
+          backgroundColor: tabBackgroundVar,
+        }}
+      />
+    </div>
   );
 });

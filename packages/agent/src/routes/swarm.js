@@ -561,18 +561,11 @@ function registerSwarmRoutes(router, deps) {
       const parsed = parseJsonBody(raw);
       if (!parsed.ok) return sendJson(res, 400, { error: parsed.error });
       // Normalise field aliases: gitDiff→diff, commitMessages→commits, branch→headBranch
-      const {
-        gitDiff,
-        commitMessages,
-        branch,
-        diff,
-        commits,
-        headBranch,
-        ...rest
-      } = parsed.value;
+      const { gitDiff, commitMessages, branch, commits, headBranch, ...rest } =
+        parsed.value;
       const opts = {
         ...rest,
-        diff: gitDiff ?? diff ?? "",
+        diff: gitDiff ?? "",
         commits: commitMessages ?? commits ?? [],
         headBranch: branch ?? headBranch ?? "",
       };

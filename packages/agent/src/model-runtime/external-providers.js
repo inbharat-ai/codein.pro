@@ -182,7 +182,7 @@ const PROVIDER_CONFIGS = {
         qualityScore: 0.92,
       },
     },
-    defaultModel: "gemini-2.0-flash",
+    defaultModel: "gemini-2.5-flash",
     baseUrl: "https://generativelanguage.googleapis.com/v1beta",
     // Gemini uses a different URL pattern
     chatEndpoint: (model, key) => `/models/${model}:generateContent?key=${key}`,

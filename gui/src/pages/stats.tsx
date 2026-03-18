@@ -1,33 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styled from "styled-components";
 import { table } from "table";
 import { lightGray, vscBackground, vscInputBackground } from "../components";
 import { CopyIconButton } from "../components/gui/CopyIconButton";
 import { PageHeader } from "../components/PageHeader";
 import { IdeMessengerContext } from "../context/IdeMessenger";
 import { useNavigationListener } from "../hooks/useNavigationListener";
-
-const Th = styled.th`
-  padding: 0.5rem;
-  text-align: left;
-  border: 1px solid ${lightGray};
-`;
-
-const Tr = styled.tr`
-  &:hover {
-    background-color: ${vscInputBackground};
-  }
-
-  overflow-wrap: anywhere;
-
-  border: 1px solid ${lightGray};
-`;
-
-const Td = styled.td`
-  padding: 0.5rem;
-  border: 1px solid ${lightGray};
-`;
 
 function generateTable(data: unknown[][]) {
   return table(data);
@@ -59,6 +37,22 @@ function Stats() {
       });
   }, []);
 
+  const thStyle: React.CSSProperties = {
+    padding: "0.5rem",
+    textAlign: "left",
+    border: `1px solid ${lightGray}`,
+  };
+
+  const tdStyle: React.CSSProperties = {
+    padding: "0.5rem",
+    border: `1px solid ${lightGray}`,
+  };
+
+  const trStyle: React.CSSProperties = {
+    overflowWrap: "anywhere",
+    border: `1px solid ${lightGray}`,
+  };
+
   return (
     <div
       style={{
@@ -86,19 +80,32 @@ function Stats() {
         </div>
         <table className="w-full border-collapse">
           <thead>
-            <Tr>
-              <Th>Day</Th>
-              <Th>Generated Tokens</Th>
-              <Th>Prompt Tokens</Th>
-            </Tr>
+            <tr style={trStyle}>
+              <th style={thStyle}>Day</th>
+              <th style={thStyle}>Generated Tokens</th>
+              <th style={thStyle}>Prompt Tokens</th>
+            </tr>
           </thead>
           <tbody>
             {days.map((day) => (
-              <Tr key={day.day} className="">
-                <Td>{day.day}</Td>
-                <Td>{day.generatedTokens.toLocaleString()}</Td>
-                <Td>{day.promptTokens.toLocaleString()}</Td>
-              </Tr>
+              <tr
+                key={day.day}
+                style={trStyle}
+                onMouseEnter={(e) =>
+                  ((
+                    e.currentTarget as HTMLTableRowElement
+                  ).style.backgroundColor = vscInputBackground)
+                }
+                onMouseLeave={(e) =>
+                  ((
+                    e.currentTarget as HTMLTableRowElement
+                  ).style.backgroundColor = "")
+                }
+              >
+                <td style={tdStyle}>{day.day}</td>
+                <td style={tdStyle}>{day.generatedTokens.toLocaleString()}</td>
+                <td style={tdStyle}>{day.promptTokens.toLocaleString()}</td>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -121,19 +128,34 @@ function Stats() {
         </div>
         <table className="w-full border-collapse">
           <thead>
-            <Tr>
-              <Th>Model</Th>
-              <Th>Generated Tokens</Th>
-              <Th>Prompt Tokens</Th>
-            </Tr>
+            <tr style={trStyle}>
+              <th style={thStyle}>Model</th>
+              <th style={thStyle}>Generated Tokens</th>
+              <th style={thStyle}>Prompt Tokens</th>
+            </tr>
           </thead>
           <tbody>
             {models.map((model) => (
-              <Tr key={model.model} className="">
-                <Td>{model.model}</Td>
-                <Td>{model.generatedTokens.toLocaleString()}</Td>
-                <Td>{model.promptTokens.toLocaleString()}</Td>
-              </Tr>
+              <tr
+                key={model.model}
+                style={trStyle}
+                onMouseEnter={(e) =>
+                  ((
+                    e.currentTarget as HTMLTableRowElement
+                  ).style.backgroundColor = vscInputBackground)
+                }
+                onMouseLeave={(e) =>
+                  ((
+                    e.currentTarget as HTMLTableRowElement
+                  ).style.backgroundColor = "")
+                }
+              >
+                <td style={tdStyle}>{model.model}</td>
+                <td style={tdStyle}>
+                  {model.generatedTokens.toLocaleString()}
+                </td>
+                <td style={tdStyle}>{model.promptTokens.toLocaleString()}</td>
+              </tr>
             ))}
           </tbody>
         </table>

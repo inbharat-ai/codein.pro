@@ -1,6 +1,6 @@
-import styled from "styled-components";
-import { defaultBorderRadius, vscBackground, vscForeground } from ".";
 import { CheckIcon } from "@heroicons/react/24/outline";
+import React, { useState } from "react";
+import { defaultBorderRadius, vscBackground, vscForeground } from ".";
 
 interface CheckDivProps {
   title: string;
@@ -8,40 +8,36 @@ interface CheckDivProps {
   onClick: () => void;
 }
 
-const StyledDiv = styled.div<{ checked: boolean }>`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  border-radius: ${defaultBorderRadius};
-  cursor: pointer;
-  border: 1px solid ${vscForeground};
-
-  color: ${vscForeground};
-  background-color: ${vscBackground};
-
-  &:hover {
-    background-color: ${vscForeground};
-    color: ${vscBackground};
-  }
-  width: fit-content;
-
-  margin: 0.5rem;
-  height: 1.4em;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
 function CheckDiv(props: CheckDivProps) {
   const { title, checked, onClick } = props;
+  const [hovered, setHovered] = useState(false);
 
   return (
-    <StyledDiv onClick={onClick} checked={checked}>
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0.5rem",
+        borderRadius: defaultBorderRadius,
+        cursor: "pointer",
+        border: `1px solid ${vscForeground}`,
+        color: hovered ? vscBackground : vscForeground,
+        backgroundColor: hovered ? vscForeground : vscBackground,
+        width: "fit-content",
+        margin: "0.5rem",
+        height: "1.4em",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+      }}
+    >
       {checked && <CheckIcon width="1.4em" height="1.4em" />}
       {title}
-    </StyledDiv>
+    </div>
   );
 }
 

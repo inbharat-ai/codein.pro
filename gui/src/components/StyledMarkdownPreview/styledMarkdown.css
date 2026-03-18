@@ -1,0 +1,79 @@
+/* Styles migrated from styled-components StyledMarkdown */
+.codin-styled-markdown h1 {
+  font-size: 1.25em;
+}
+.codin-styled-markdown h2 {
+  font-size: 1.15em;
+}
+.codin-styled-markdown h3 {
+  font-size: 1.05em;
+}
+.codin-styled-markdown h4 {
+  font-size: 1em;
+}
+.codin-styled-markdown h5 {
+  font-size: 0.95em;
+}
+.codin-styled-markdown h6 {
+  font-size: 0.9em;
+}
+
+.codin-styled-markdown pre {
+  border-radius: var(--codin-radius-md, 0.5rem);
+  max-width: calc(100vw - 24px);
+  overflow-x: scroll;
+  overflow-y: hidden;
+  padding: 8px;
+  background-color: var(--codin-bg-surface, #201e3a);
+}
+
+.codin-styled-markdown code {
+  word-wrap: break-word;
+  border-radius: 0.3125rem;
+  background-color: var(--codin-bg-surface, #201e3a);
+  font-family: var(--codin-font-mono, monospace);
+}
+
+.codin-styled-markdown code span.line:empty {
+  display: none;
+}
+
+.codin-styled-markdown ul ul,
+.codin-styled-markdown ul ol,
+.codin-styled-markdown ol ul,
+.codin-styled-markdown ol ol {
+  padding-left: 1.5em;
+  margin-top: 1em;
+}
+
+.codin-styled-markdown li {
+  margin-bottom: 0.8em;
+}
+
+.codin-styled-markdown li:last-child {
+  margin-bottom: 0;
+}
+
+.codin-styled-markdown ul,
+.codin-styled-markdown ol {
+  padding-left: 2em;
+}
+
+.codin-styled-markdown code:not(pre > code) {
+  font-family: var(--codin-font-mono, monospace);
+}
+
+.codin-styled-markdown p,
+.codin-styled-markdown li,
+.codin-styled-markdown ol,
+.codin-styled-markdown ul {
+  line-height: 1.5;
+}
+
+.codin-styled-markdown * {
+  word-break: break-word;
+}
+
+.codin-styled-markdown > *:last-child {
+  margin-bottom: 0;
+}

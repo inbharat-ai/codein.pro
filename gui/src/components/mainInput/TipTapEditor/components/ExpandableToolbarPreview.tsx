@@ -5,7 +5,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { EyeIcon } from "@heroicons/react/24/solid";
 import { useEffect, useMemo, useState } from "react";
-import styled from "styled-components";
 import {
   defaultBorderRadius,
   lightGray,
@@ -19,50 +18,6 @@ import HeaderButtonWithToolTip from "../../../gui/HeaderButtonWithToolTip";
 
 const MAX_PREVIEW_HEIGHT = 100;
 const MAX_EXPANED_PREVIEW_HEIGHT = MAX_PREVIEW_HEIGHT * 3;
-
-const PreviewDiv = styled.div<{
-  borderColor?: string;
-}>`
-  background-color: ${vscEditorBackground};
-  border-radius: ${defaultBorderRadius};
-  border: 0.5px solid ${(props) => props.borderColor || lightGray};
-  margin-top: 4px;
-  margin-bottom: 4px;
-  overflow: hidden;
-  position: relative;
-
-  & div {
-    background-color: ${vscEditorBackground};
-  }
-`;
-
-const ContentContainer = styled.div<{ expanded: boolean }>`
-  position: relative;
-  max-height: ${(props) =>
-    props.expanded
-      ? `${MAX_EXPANED_PREVIEW_HEIGHT}px`
-      : `${MAX_PREVIEW_HEIGHT}px`};
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ScrollableContent = styled.div<{ shouldShowChevron: boolean }>`
-  overflow-y: auto;
-  padding-bottom: ${(props) => (props.shouldShowChevron ? "24px" : "0px")};
-`;
-
-const ChevronContainer = styled.div`
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  background: ${vscEditorBackground};
-  padding: 4px 0;
-  z-index: 10;
-`;
 
 /**
  * Props for the ExpandableToolbarPreview component
@@ -151,15 +106,28 @@ export function ExpandableToolbarPreview(props: ExpandableToolbarPreviewProps) {
     };
   }, [contentElement]);
 
+  const borderColor = props.isSelected
+    ? vscBadgeBackground
+    : vscCommandCenterInactiveBorder;
+
   return (
-    <PreviewDiv
+    <div
       spellCheck={false}
-      borderColor={
-        props.isSelected ? vscBadgeBackground : vscCommandCenterInactiveBorder
-      }
       className="find-widget-skip !my-0"
       contentEditable={false}
+      style={{
+        backgroundColor: vscEditorBackground,
+        borderRadius: defaultBorderRadius,
+        border: `0.5px solid ${props.borderColor || borderColor || lightGray}`,
+        marginTop: 4,
+        marginBottom: 4,
+        overflow: "hidden",
+        position: "relative",
+      }}
     >
+      {/* Inner divs need the editor bg */}
+      <style>{`.codin-expandable-preview-inner div { background-color: ${vscEditorBackground}; }`}</style>
+
       <div
         className="border-b-command-border m-0 flex cursor-pointer items-center justify-between break-all border-0 border-b-[1px] border-solid px-[5px] py-1.5 hover:opacity-90"
         style={{
@@ -205,16 +173,43 @@ export function ExpandableToolbarPreview(props: ExpandableToolbarPreviewProps) {
       </div>
 
       {!hidden && !!props.children && (
-        <ContentContainer expanded={isExpanded}>
-          <ScrollableContent
+        <div
+          className="codin-expandable-preview-inner"
+          style={{
+            position: "relative",
+            maxHeight: isExpanded
+              ? `${MAX_EXPANED_PREVIEW_HEIGHT}px`
+              : `${MAX_PREVIEW_HEIGHT}px`,
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div
             ref={setContentElement}
-            shouldShowChevron={contentDims.height > MAX_PREVIEW_HEIGHT}
+            style={{
+              overflowY: "auto",
+              paddingBottom:
+                contentDims.height > MAX_PREVIEW_HEIGHT ? "24px" : "0px",
+            }}
           >
             {props.children}
-          </ScrollableContent>
+          </div>
 
           {contentDims.height > MAX_PREVIEW_HEIGHT && (
-            <ChevronContainer>
+            <div
+              style={{
+                position: "sticky",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                display: "flex",
+                justifyContent: "center",
+                background: vscEditorBackground,
+                padding: "4px 0",
+                zIndex: 10,
+              }}
+            >
               <HeaderButtonWithToolTip
                 text={isExpanded ? "Collapse" : "Expand"}
               >
@@ -226,10 +221,10 @@ export function ExpandableToolbarPreview(props: ExpandableToolbarPreviewProps) {
                   onClick={() => setIsExpanded((v) => !v)}
                 />
               </HeaderButtonWithToolTip>
-            </ChevronContainer>
+            </div>
           )}
-        </ContentContainer>
+        </div>
       )}
-    </PreviewDiv>
+    </div>
   );
 }

@@ -2,7 +2,6 @@ import { JSONContent } from "@tiptap/react";
 import { InputModifiers } from "core";
 import React, { useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import styled from "styled-components";
 import InlineErrorMessage from "../../components/mainInput/InlineErrorMessage";
 import { useAppDispatch } from "../../redux/hooks";
 import {
@@ -12,19 +11,6 @@ import {
 import { useAutoScroll } from "./useAutoScroll";
 import { ChatHistoryItemRenderer } from "./ChatHistoryItemRenderer";
 import { fallbackRender } from "./ChatMessageErrorFallback";
-
-const StepsDiv = styled.div`
-  position: relative;
-  background-color: transparent;
-
-  & > * {
-    position: relative;
-  }
-
-  .thread-message {
-    margin: 0 0 0 1px;
-  }
-`;
 
 interface ChatMessageListProps {
   history: ChatHistoryItemWithMessageId[];
@@ -56,9 +42,10 @@ export const ChatMessageList = React.memo(function ChatMessageList({
   useAutoScroll(stepsDivRef, history);
 
   return (
-    <StepsDiv
+    <div
       ref={stepsDivRef}
-      className={`overflow-y-scroll pt-[8px] ${showScrollbar ? "thin-scrollbar" : "no-scrollbar"} ${history.length > 0 ? "flex-1" : ""}`}
+      className={`relative overflow-y-scroll pt-[8px] [&>*]:relative [&_.thread-message]:ml-px ${showScrollbar ? "thin-scrollbar" : "no-scrollbar"} ${history.length > 0 ? "flex-1" : ""}`}
+      style={{ backgroundColor: "transparent" }}
     >
       {highlights}
       {history
@@ -89,6 +76,6 @@ export const ChatMessageList = React.memo(function ChatMessageList({
             {index === history.length - 1 && <InlineErrorMessage />}
           </div>
         ))}
-    </StepsDiv>
+    </div>
   );
 });

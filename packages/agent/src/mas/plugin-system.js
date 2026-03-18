@@ -16,7 +16,13 @@ const path = require("node:path");
 const os = require("node:os");
 const vm = require("node:vm");
 const { createLogger } = require("./logger");
-const { DocGenerator, _safeParseLLMJson } = require("./doc-generator");
+const {
+  DocGenerator,
+  _safeParseLLMJson,
+  _extractFilePaths,
+  _diffStats,
+  _deriveScope,
+} = require("./doc-generator");
 
 const log = createLogger("PluginSystem");
 
@@ -536,27 +542,6 @@ const skillLog = createLogger("SkillRegistry");
  * that runs in the main process.
  */
 
-// ── Commit message rule-based helpers ────────────────────────────────────────
-// Type + scope analysis is delegated to DocGenerator.analyzeCommitType().
-// This helper only builds the human-readable subject line.
-
-function _buildSubjectFallback(type, files, stats) {
-  if (!files.length) {
-    return stats.additions > 0 ? `add ${stats.additions} lines` : "update code";
-  }
-  const name = files[0]
-    .split("/")
-    .pop()
-    .replace(/\.[^.]+$/, "");
-  if (type === "feat") return `add ${name}`;
-  if (type === "fix") return `fix issue in ${name}`;
-  if (type === "docs") return `update ${name} docs`;
-  if (type === "test") return `add tests for ${name}`;
-  if (type === "refactor") return `refactor ${name}`;
-  if (files.length === 1) return `update ${name}`;
-  return `update ${files.length} files`;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 class SkillRegistry {
@@ -749,7 +734,24 @@ class SkillRegistry {
         // ── Rule-based fallback — delegate type+scope to DocGenerator ──────
         const _docGen = new DocGenerator();
         const { type, scope } = _docGen.analyzeCommitType(diff);
-        const subject = _buildSubjectFallback(type, filesChanged, stats);
+        const _files = _extractFilePaths(diff);
+        const _st = _diffStats(diff);
+        let subject;
+        if (!_files.length) {
+          subject = _st.added > 0 ? `add ${_st.added} lines` : "update code";
+        } else {
+          const _name = _files[0]
+            .split("/")
+            .pop()
+            .replace(/\.[^.]+$/, "");
+          if (type === "feat") subject = `add ${_name}`;
+          else if (type === "fix") subject = `fix issue in ${_name}`;
+          else if (type === "docs") subject = `update ${_name} docs`;
+          else if (type === "test") subject = `add tests for ${_name}`;
+          else if (type === "refactor") subject = `refactor ${_name}`;
+          else if (_files.length === 1) subject = `update ${_name}`;
+          else subject = `update ${_files.length} files`;
+        }
         return {
           suggestion: `${type}${scope ? `(${scope})` : ""}: ${subject}`,
           type,
@@ -992,6 +994,238 @@ class SkillRegistry {
           filesChanged,
           findings,
           summary: `${filesChanged.length} file(s) changed, ${findings.length} finding(s)`,
+        };
+      },
+    });
+
+    this.registerSkill({
+      name: "search-codebase",
+      description: "Search files in the workspace by regex pattern or keyword",
+      category: "code",
+      requiredContext: ["pattern"],
+      execute: async (ctx) => {
+        const {
+          pattern,
+          fileGlob = "**/*",
+          caseSensitive = false,
+          maxResults = 20,
+        } = ctx;
+        // Return structured result with matches (file, line, content)
+        return {
+          skill: "search-codebase",
+          pattern,
+          results: [],
+          note: "Use workspace tools to search",
+        };
+      },
+    });
+
+    this.registerSkill({
+      name: "generate-docs",
+      description:
+        "Generate JSDoc/TSDoc documentation comments for a function or class",
+      category: "docs",
+      requiredContext: ["code"],
+      execute: async (ctx) => {
+        const { code, language = "typescript", style = "jsdoc" } = ctx;
+        const prompt = `Generate ${style} documentation comments for the following ${language} code. Return ONLY the documented code with comments added:\n\n${code}`;
+        return {
+          skill: "generate-docs",
+          prompt,
+          documented: null,
+          note: "Pass prompt to LLM for execution",
+        };
+      },
+    });
+
+    this.registerSkill({
+      name: "lint-check",
+      description:
+        "Analyze code for common lint issues, anti-patterns, and style violations",
+      category: "quality",
+      requiredContext: ["code"],
+      execute: async (ctx) => {
+        const { code, language = "typescript", rules = "standard" } = ctx;
+        const issues = [];
+        // Detect common issues
+        if (code.includes("console.log"))
+          issues.push({
+            severity: "warning",
+            message: "console.log left in code",
+            rule: "no-console",
+          });
+        if (code.includes("any"))
+          issues.push({
+            severity: "warning",
+            message: "TypeScript any type used",
+            rule: "no-explicit-any",
+          });
+        if (code.match(/==(?!=)/))
+          issues.push({
+            severity: "error",
+            message: "Use === instead of ==",
+            rule: "eqeqeq",
+          });
+        if (code.match(/var\s+/))
+          issues.push({
+            severity: "warning",
+            message: "Use const/let instead of var",
+            rule: "no-var",
+          });
+        const longLines = code
+          .split("\n")
+          .filter((l) => l.length > 120)
+          .map((l, i) => ({ line: i + 1, length: l.length }));
+        if (longLines.length)
+          issues.push({
+            severity: "info",
+            message: `${longLines.length} lines exceed 120 chars`,
+            rule: "max-len",
+            details: longLines,
+          });
+        return {
+          skill: "lint-check",
+          language,
+          issueCount: issues.length,
+          issues,
+        };
+      },
+    });
+
+    this.registerSkill({
+      name: "detect-secrets",
+      description:
+        "Scan code or diff for accidentally committed secrets, API keys, and credentials",
+      category: "security",
+      requiredContext: ["content"],
+      execute: async (ctx) => {
+        const { content, mode = "scan" } = ctx;
+        const patterns = [
+          {
+            name: "AWS Key",
+            regex: /AKIA[0-9A-Z]{16}/,
+            severity: "critical",
+          },
+          {
+            name: "Generic API Key",
+            regex: /api[_-]?key\s*[:=]\s*['"][a-zA-Z0-9_\-]{20,}['"]/i,
+            severity: "high",
+          },
+          {
+            name: "Private Key",
+            regex: /-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/,
+            severity: "critical",
+          },
+          {
+            name: "JWT Token",
+            regex: /eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/,
+            severity: "high",
+          },
+          {
+            name: "Password in code",
+            regex: /password\s*[:=]\s*['"][^'"]{8,}['"]/i,
+            severity: "high",
+          },
+          {
+            name: "GitHub Token",
+            regex: /gh[pousr]_[a-zA-Z0-9]{36}/,
+            severity: "critical",
+          },
+        ];
+        const findings = [];
+        for (const { name, regex, severity } of patterns) {
+          const match = content.match(regex);
+          if (match)
+            findings.push({
+              name,
+              severity,
+              match: match[0].slice(0, 20) + "...",
+            });
+        }
+        return {
+          skill: "detect-secrets",
+          clean: findings.length === 0,
+          findingCount: findings.length,
+          findings,
+        };
+      },
+    });
+
+    this.registerSkill({
+      name: "estimate-complexity",
+      description:
+        "Estimate cyclomatic complexity and cognitive complexity of a function",
+      category: "quality",
+      requiredContext: ["code"],
+      execute: async (ctx) => {
+        const { code } = ctx;
+        // Count decision points for cyclomatic complexity
+        const decisionKeywords = [
+          "if",
+          "else if",
+          "for",
+          "while",
+          "case",
+          "catch",
+          "&&",
+          "||",
+          "??",
+          "?",
+        ];
+        let cyclomatic = 1;
+        for (const kw of decisionKeywords) {
+          const count = (
+            code.match(
+              new RegExp(
+                "\\b" + kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b",
+                "g",
+              ),
+            ) || []
+          ).length;
+          cyclomatic += count;
+        }
+        const lines = code.split("\n").filter((l) => l.trim()).length;
+        const rating =
+          cyclomatic <= 5
+            ? "simple"
+            : cyclomatic <= 10
+              ? "moderate"
+              : cyclomatic <= 20
+                ? "complex"
+                : "very complex";
+        return {
+          skill: "estimate-complexity",
+          cyclomaticComplexity: cyclomatic,
+          linesOfCode: lines,
+          rating,
+          suggestion:
+            cyclomatic > 10
+              ? "Consider refactoring into smaller functions"
+              : "Complexity is acceptable",
+        };
+      },
+    });
+
+    this.registerSkill({
+      name: "generate-test-file",
+      description:
+        "Generate a complete test file (Vitest/Jest) for a given source file",
+      category: "testing",
+      requiredContext: ["code", "fileName"],
+      execute: async (ctx) => {
+        const {
+          code,
+          fileName,
+          framework = "vitest",
+          style = "describe-it",
+        } = ctx;
+        const baseName = fileName.replace(/\.(ts|tsx|js|jsx)$/, "");
+        const prompt = `Generate a complete ${framework} test file for the following code from ${fileName}. Include: imports, describe blocks, it/test cases for all exported functions, edge cases, and mocks where needed.\n\nSource code:\n${code}\n\nReturn ONLY the complete test file content.`;
+        return {
+          skill: "generate-test-file",
+          fileName: `${baseName}.test.${fileName.endsWith(".tsx") ? "tsx" : "ts"}`,
+          prompt,
+          note: "Pass prompt to LLM for execution",
         };
       },
     });

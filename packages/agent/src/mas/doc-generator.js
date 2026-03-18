@@ -920,7 +920,7 @@ function _safeParseLLMJson(raw) {
     return JSON.parse(cleaned);
   } catch {
     // Try to extract a JSON object from the string
-    const objMatch = cleaned.match(/\{[\s\S]*\}/);
+    const objMatch = cleaned.match(/\{[\s\S]*?\}/);
     if (objMatch) {
       try {
         return JSON.parse(objMatch[0]);

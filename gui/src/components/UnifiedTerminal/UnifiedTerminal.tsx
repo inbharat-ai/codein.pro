@@ -3,7 +3,6 @@ import Anser, { AnserJsonEntry } from "anser";
 import { ToolCallState } from "core";
 import { escapeCarriageReturn } from "escape-carriage";
 import { useMemo, useState } from "react";
-import styled, { keyframes } from "styled-components";
 import { useAppDispatch } from "../../redux/hooks";
 import { moveTerminalProcessToBackground } from "../../redux/thunks/moveTerminalProcessToBackground";
 import { getFontSize } from "../../util";
@@ -11,110 +10,45 @@ import { CopyButton } from "../StyledMarkdownPreview/StepContainerPreToolbar/Cop
 import { RunInTerminalButton } from "../StyledMarkdownPreview/StepContainerPreToolbar/RunInTerminalButton";
 import { ButtonContent, SpoilerButton } from "../ui/SpoilerButton";
 
-const blinkCursor = keyframes`
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-`;
-
-const BlinkingCursor = styled.span`
-  &::after {
-    content: "█";
-    animation: ${blinkCursor} 1s infinite;
-    color: var(--foreground);
+// Inject keyframes once
+if (typeof document !== "undefined") {
+  const styleId = "unified-terminal-keyframes";
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+      @keyframes blinkCursor {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+      }
+      .codin-blinking-cursor::after {
+        content: "█";
+        animation: blinkCursor 1s infinite;
+        color: var(--foreground);
+      }
+      .codin-terminal-content pre {
+        white-space: pre-wrap;
+        max-width: calc(100vw - 24px);
+        overflow-x: scroll;
+        overflow-y: hidden;
+        padding: 8px;
+        margin: 0;
+      }
+      .codin-terminal-content code {
+        word-wrap: break-word;
+        border-radius: 0.5rem;
+        background-color: var(--editor-background);
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+      .codin-terminal-content code:not(pre > code) {
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+        color: var(--input-placeholder);
+      }
+      .codin-terminal-content span.line:empty { display: none; }
+    `;
+    document.head.appendChild(style);
   }
-`;
-
-const AnsiSpan = styled.span<{
-  bg?: string;
-  fg?: string;
-  decoration?: string;
-}>`
-  ${({ bg }) => bg && `background-color: rgb(${bg});`}
-  ${({ fg }) => fg && `color: rgb(${fg});`}
-  ${({ decoration }) => {
-    switch (decoration) {
-      case "bold":
-        return "font-weight: bold;";
-      case "dim":
-        return "opacity: 0.5;";
-      case "italic":
-        return "font-style: italic;";
-      case "hidden":
-        return "visibility: hidden;";
-      case "strikethrough":
-        return "text-decoration: line-through;";
-      case "underline":
-        return "text-decoration: underline;";
-      case "blink":
-        return "text-decoration: blink;";
-      default:
-        return "";
-    }
-  }}
-`;
-
-const AnsiLink = styled.a`
-  color: var(--link);
-  text-decoration: none;
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const StyledTerminalContainer = styled.div<{
-  fontSize?: number;
-}>`
-  background-color: var(--background);
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial,
-    "Noto Sans",
-    sans-serif;
-  font-size: ${(props) => props.fontSize || getFontSize()}px;
-  color: var(--foreground);
-  line-height: 1.5;
-
-  > *:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const TerminalContent = styled.div`
-  pre {
-    white-space: pre-wrap;
-    max-width: calc(100vw - 24px);
-    overflow-x: scroll;
-    overflow-y: hidden;
-    padding: 8px;
-    margin: 0;
-  }
-
-  code {
-    span.line:empty {
-      display: none;
-    }
-    word-wrap: break-word;
-    border-radius: 0.5rem;
-    background-color: var(--editor-background);
-    font-size: ${getFontSize() - 2}px;
-    font-family:
-      ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono",
-      Menlo, monospace;
-  }
-
-  code:not(pre > code) {
-    font-family:
-      ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono",
-      Menlo, monospace;
-    color: var(--input-placeholder);
-  }
-`;
+}
 
 function ansiToJSON(
   input: string,
@@ -149,6 +83,29 @@ function createClass(bundle: AnserJsonEntry): string | null {
   return classNames;
 }
 
+function getDecorationStyle(
+  decoration: string | undefined,
+): React.CSSProperties {
+  switch (decoration) {
+    case "bold":
+      return { fontWeight: "bold" };
+    case "dim":
+      return { opacity: 0.5 };
+    case "italic":
+      return { fontStyle: "italic" };
+    case "hidden":
+      return { visibility: "hidden" };
+    case "strikethrough":
+      return { textDecoration: "line-through" };
+    case "underline":
+      return { textDecoration: "underline" };
+    case "blink":
+      return { textDecoration: "blink" as any };
+    default:
+      return {};
+  }
+}
+
 function convertBundleIntoReact(
   linkify: boolean,
   useClasses: boolean,
@@ -156,21 +113,21 @@ function convertBundleIntoReact(
   key: number,
 ): JSX.Element {
   const className = useClasses ? createClass(bundle) : null;
-  const decorationProp = bundle.decoration
-    ? String(bundle.decoration)
-    : undefined;
+  const decoration = bundle.decoration ? String(bundle.decoration) : undefined;
+
+  const spanStyle: React.CSSProperties = useClasses
+    ? {}
+    : {
+        ...(bundle.bg ? { backgroundColor: `rgb(${bundle.bg})` } : {}),
+        ...(bundle.fg ? { color: `rgb(${bundle.fg})` } : {}),
+        ...getDecorationStyle(decoration),
+      };
 
   if (!linkify) {
     return (
-      <AnsiSpan
-        key={key}
-        className={className || undefined}
-        bg={useClasses ? undefined : bundle.bg}
-        fg={useClasses ? undefined : bundle.fg}
-        decoration={decorationProp}
-      >
+      <span key={key} className={className || undefined} style={spanStyle}>
         {bundle.content}
-      </AnsiSpan>
+      </span>
     );
   }
 
@@ -191,9 +148,20 @@ function convertBundleIntoReact(
     const href = url.startsWith("www.") ? `http://${url}` : url;
 
     content.push(
-      <AnsiLink key={index} href={href} target="_blank">
+      <a
+        key={index}
+        href={href}
+        target="_blank"
+        style={{ color: "var(--link)", textDecoration: "none" }}
+        onMouseEnter={(e) =>
+          ((e.target as HTMLElement).style.textDecoration = "underline")
+        }
+        onMouseLeave={(e) =>
+          ((e.target as HTMLElement).style.textDecoration = "none")
+        }
+      >
         {url}
-      </AnsiLink>,
+      </a>,
     );
 
     index = linkRegex.lastIndex;
@@ -204,15 +172,9 @@ function convertBundleIntoReact(
   }
 
   return (
-    <AnsiSpan
-      key={key}
-      className={className || undefined}
-      bg={useClasses ? undefined : bundle.bg}
-      fg={useClasses ? undefined : bundle.fg}
-      decoration={decorationProp}
-    >
+    <span key={key} className={className || undefined} style={spanStyle}>
       {content}
-    </AnsiSpan>
+    </span>
   );
 }
 
@@ -418,9 +380,16 @@ export function UnifiedTerminalCommand({
   }, [command, output, hasOutput]);
 
   return (
-    <StyledTerminalContainer
-      fontSize={getFontSize()}
+    <div
       className="mx-2 mb-4"
+      style={{
+        backgroundColor: "var(--background)",
+        fontFamily:
+          'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif',
+        fontSize: `${getFontSize()}px`,
+        color: "var(--foreground)",
+        lineHeight: 1.5,
+      }}
       data-testid="terminal-container"
     >
       <div className="outline-command-border rounded-default bg-editor !my-2 flex min-w-0 flex-col outline outline-1">
@@ -455,7 +424,10 @@ export function UnifiedTerminalCommand({
 
         {/* Content */}
         {isExpanded && (
-          <TerminalContent>
+          <div
+            className="codin-terminal-content"
+            style={{ fontSize: `${getFontSize() - 2}px` }}
+          >
             <pre className="bg-editor">
               <code>
                 {/* Command is always visible */}
@@ -464,7 +436,7 @@ export function UnifiedTerminalCommand({
                 {/* Running state with cursor */}
                 {isRunning && !hasOutput && (
                   <div className="mt-1 flex items-center gap-1">
-                    <BlinkingCursor />
+                    <span className="codin-blinking-cursor" />
                   </div>
                 )}
 
@@ -504,7 +476,7 @@ export function UnifiedTerminalCommand({
                 )}
               </code>
             </pre>
-          </TerminalContent>
+          </div>
         )}
 
         {/* Status information */}
@@ -532,6 +504,6 @@ export function UnifiedTerminalCommand({
           </div>
         )}
       </div>
-    </StyledTerminalContainer>
+    </div>
   );
 }

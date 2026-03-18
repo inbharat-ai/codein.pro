@@ -336,7 +336,7 @@ npm run lint
 
 - Slack: #production-support
 - PagerDuty: [configured]
-- Email: support@example.com
+- Email: info@inbharat.ai
 
 ---
 

@@ -4,43 +4,51 @@ import {
   Cog6ToothIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
-import styled from "styled-components";
+import React, { useState } from "react";
 import { lightGray } from "..";
 import { cn } from "../../util/cn";
 import { ToolTip } from "../gui/Tooltip";
 
-export const OptionDiv = styled.div<{
+interface OptionDivProps extends React.HTMLAttributes<HTMLDivElement> {
   isDisabled?: boolean;
   isSelected?: boolean;
-}>`
-  padding: 6px 12px;
+  children?: React.ReactNode;
+}
 
-  min-width: 0px;
+export function OptionDiv({
+  isDisabled,
+  isSelected,
+  onClick,
+  children,
+  style,
+  ...rest
+}: OptionDivProps) {
+  const [hovered, setHovered] = useState(false);
 
-  ${({ isDisabled, isSelected }) =>
-    !isDisabled &&
-    `
-    cursor: pointer;
-
-    &:hover {
-      background: ${lightGray}33;
-    }
-
-    ${
-      isSelected &&
-      `
-      background: ${lightGray}22;
-    `
-    }
-  `}
-
-  ${({ isDisabled }) =>
-    isDisabled &&
-    `
-    opacity: 0.5;
-  `}
-`;
+  return (
+    <div
+      style={{
+        padding: "6px 12px",
+        minWidth: 0,
+        cursor: isDisabled ? undefined : "pointer",
+        opacity: isDisabled ? 0.5 : undefined,
+        backgroundColor:
+          !isDisabled && isSelected
+            ? `${lightGray}22`
+            : !isDisabled && hovered
+              ? `${lightGray}33`
+              : undefined,
+        ...style,
+      }}
+      onMouseEnter={() => !isDisabled && setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={!isDisabled ? onClick : undefined}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+}
 
 export const MAX_HEIGHT_PX = 300;
 

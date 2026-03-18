@@ -1,6 +1,5 @@
 import { BookOpenIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
-import styled from "styled-components";
 import {
   defaultBorderRadius,
   greenButtonColor,
@@ -30,62 +29,6 @@ interface ModelCardProps {
   providerOptions?: string[];
 }
 
-const Div = styled.div<{ color: string; disabled: boolean; hovered: boolean }>`
-  border: 1px solid ${lightGray};
-  border-radius: ${defaultBorderRadius};
-  position: relative;
-  width: 100%;
-  transition: all 0.5s;
-
-  ${(props) =>
-    props.disabled
-      ? `
-    opacity: 0.5;
-    `
-      : props.hovered
-        ? `
-    border: 1px solid ${props.color};
-    background-color: ${props.color}22;
-    cursor: pointer;`
-        : ""}
-`;
-
-const DimensionsDiv = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  margin-left: auto;
-  padding: 4px;
-  /* width: fit-content; */
-
-  flex-wrap: wrap;
-  row-gap: 12px;
-
-  border-top: 1px solid ${lightGray};
-`;
-
-const DimensionOptionDiv = styled.div<{ selected: boolean }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-right: 8px;
-  background-color: ${lightGray};
-  padding: 4px;
-  border-radius: ${defaultBorderRadius};
-  outline: 0.5px solid ${lightGray};
-
-  ${(props) =>
-    props.selected &&
-    `
-    background-color: ${greenButtonColor};
-    color: white;
-  `}
-
-  &:hover {
-    cursor: pointer;
-    outline: 1px solid ${vscFocusBorder};
-  }
-`;
-
 function ModelCard(props: ModelCardProps) {
   const [dimensionChoices, setDimensionChoices] = useState<string[]>(
     props.dimensions?.map((d) => Object.keys(d.options)[0]) || [],
@@ -103,12 +46,35 @@ function ModelCard(props: ModelCardProps) {
     }
   }, [props.providerOptions]);
 
+  const cardStyle: React.CSSProperties = {
+    border: `1px solid ${lightGray}`,
+    borderRadius: defaultBorderRadius,
+    position: "relative",
+    width: "100%",
+    transition: "all 0.5s",
+    ...(props.disabled
+      ? { opacity: 0.5 }
+      : hovered
+        ? {
+            border: `1px solid ${greenButtonColor}`,
+            backgroundColor: `${greenButtonColor}22`,
+            cursor: "pointer",
+          }
+        : {}),
+  };
+
+  const dimensionsDivStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginLeft: "auto",
+    padding: 4,
+    flexWrap: "wrap",
+    rowGap: 12,
+    borderTop: `1px solid ${lightGray}`,
+  };
+
   return (
-    <Div
-      disabled={props.disabled || false}
-      color={greenButtonColor}
-      hovered={hovered}
-    >
+    <div style={cardStyle}>
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -169,7 +135,7 @@ function ModelCard(props: ModelCardProps) {
       </div>
 
       {(props.dimensions?.length || props.providerOptions?.length) && (
-        <DimensionsDiv>
+        <div style={dimensionsDivStyle}>
           {props.dimensions?.map((dimension, i) => {
             return (
               <>
@@ -183,18 +149,40 @@ function ModelCard(props: ModelCardProps) {
                   </div>
                   <div className="flex items-center">
                     {Object.keys(dimension.options).map((key) => {
+                      const isSelected = dimensionChoices[i] === key;
                       return (
-                        <DimensionOptionDiv
+                        <div
                           onClick={(e) => {
                             e.stopPropagation();
                             const newChoices = [...dimensionChoices];
                             newChoices[i] = key;
                             setDimensionChoices(newChoices);
                           }}
-                          selected={dimensionChoices[i] === key}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            marginRight: 8,
+                            backgroundColor: isSelected
+                              ? greenButtonColor
+                              : lightGray,
+                            color: isSelected ? "white" : undefined,
+                            padding: 4,
+                            borderRadius: defaultBorderRadius,
+                            outline: `0.5px solid ${lightGray}`,
+                            cursor: "pointer",
+                          }}
+                          onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLElement).style.outline =
+                              `1px solid ${vscFocusBorder}`;
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLElement).style.outline =
+                              `0.5px solid ${lightGray}`;
+                          }}
                         >
                           {key}
-                        </DimensionOptionDiv>
+                        </div>
                       );
                     })}
                   </div>
@@ -247,9 +235,9 @@ function ModelCard(props: ModelCardProps) {
               </div>
             </div>
           )}
-        </DimensionsDiv>
+        </div>
       )}
-    </Div>
+    </div>
   );
 }
 

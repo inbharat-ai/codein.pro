@@ -1,36 +1,21 @@
 import React from "react";
-import styled, { keyframes } from "styled-components";
 import { vscForeground } from "..";
 
-const rotate = keyframes`
-  0% {
-    stroke-dashoffset: 100;
+// Inject keyframes once
+if (typeof document !== "undefined") {
+  const styleId = "ring-loader-keyframes";
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+      @keyframes ringRotate {
+        0% { stroke-dashoffset: 100; }
+        100% { stroke-dashoffset: 12; }
+      }
+    `;
+    document.head.appendChild(style);
   }
-  100% {
-    stroke-dashoffset: 12;
-  }
-`;
-
-const LoaderSvg = styled.svg<{
-  width?: string;
-  height?: string;
-  period?: number;
-}>`
-  transform: rotate(-90deg);
-  width: ${(props) => props.width || "40px"};
-  height: ${(props) => props.height || "40px"};
-  opacity: 50%;
-
-  circle {
-    fill: none;
-    stroke: ${vscForeground};
-    stroke-width: 2;
-    stroke-dasharray: 100;
-    stroke-dashoffset: 0;
-    animation: ${rotate} ${(props) => props.period || 6}s ease-out infinite;
-    stroke-linecap: round;
-  }
-`;
+}
 
 const RingLoader = (props: {
   size: number;
@@ -41,25 +26,45 @@ const RingLoader = (props: {
   period?: number;
 }) => {
   const viewBox = `0 0 ${props.size} ${props.size}`;
-  const size = (props.size / 2).toString();
-  const r = "14"; //(props.size / 2 - 2).toString();
+  const center = (props.size / 2).toString();
+  const r = "14";
+  const svgWidth = props.width || "40px";
+  const svgHeight = props.height || "40px";
+  const period = props.period || 6;
+
   return (
     <div
       className={
         "m-auto mt-2 text-center" +
         (props.wFull === false ? "" : " w-full") +
         " " +
-        props.className
+        (props.className ?? "")
       }
     >
-      <LoaderSvg
-        period={props.period}
-        width={props.width}
-        height={props.height}
+      <svg
         viewBox={viewBox}
+        style={{
+          transform: "rotate(-90deg)",
+          width: svgWidth,
+          height: svgHeight,
+          opacity: 0.5,
+        }}
       >
-        <circle cx={size} cy={size} r={r} />
-      </LoaderSvg>
+        <circle
+          cx={center}
+          cy={center}
+          r={r}
+          style={{
+            fill: "none",
+            stroke: vscForeground,
+            strokeWidth: 2,
+            strokeDasharray: 100,
+            strokeDashoffset: 0,
+            animation: `ringRotate ${period}s ease-out infinite`,
+            strokeLinecap: "round",
+          }}
+        />
+      </svg>
     </div>
   );
 };
