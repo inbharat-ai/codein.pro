@@ -44,7 +44,7 @@
 
 ## What is CodeIn?
 
-**CodeIn** is an open-source AI code editor with **13 autonomous agents**, **50+ LLM providers**, and **built-in support for 19 languages** — 18 Indian languages (Hindi, Tamil, Bengali, Telugu, Kannada, Malayalam, Punjabi, Assamese, Odia, Urdu, and more) plus English. Runs locally. **Your code never leaves your machine.**
+**CodeIn** is an open-source AI code editor with **13 autonomous agents**, **50+ LLM providers**, and **built-in support for 22 Indian languages** + English. 11 languages have full support (Unicode script detection + translation + voice), 11 more have partial support (translation + voice, shared script detection). Runs locally. **Your code never leaves your machine.**
 
 <div align="center">
 
@@ -54,7 +54,7 @@
 
 CodeIn is a **complete AI engineering system**, not a wrapper around a single LLM call. 13 specialized agents plan, code, test, and review together. 50+ LLM providers you swap with your own API keys. Local-first inference via llama.cpp that works fully offline. A code knowledge graph that maps your entire codebase before making a single edit.
 
-Write your prompt in any language you think in. Say _"login page bana do with Google auth"_ in Hinglish. Type in Tamil, Bengali, Marathi, or any of 18 Indian languages — CodeIn detects the script via Unicode analysis, preserves your technical terms, and translates to structured English for AI execution. The language system is open and extensible — add support for any language by contributing to `language-config.js`.
+Write your prompt in any language you think in. Say _"login page bana do with Google auth"_ in Hinglish. Type in Tamil, Bengali, Marathi, or any supported Indian language — CodeIn detects the script via Unicode analysis, preserves your technical terms, and translates to structured English for AI execution. The language system is open and extensible — add support for any language by contributing to `language-config.js`.
 
 No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 
@@ -67,7 +67,7 @@ No cloud dependency. No telemetry. No subscription. Apache 2.0, forever free.
 <td align="center"><h3>13</h3><b>Agent Types</b></td>
 <td align="center"><h3>2,429</h3><b>Tests Passing</b></td>
 <td align="center"><h3>50+</h3><b>LLM Providers</b></td>
-<td align="center"><h3>19</h3><b>Languages</b></td>
+<td align="center"><h3>22+1</h3><b>Languages</b></td>
 <td align="center"><h3>28</h3><b>Route Modules</b></td>
 <td align="center"><h3>$0</h3><b>Forever Free</b></td>
 </tr>
@@ -143,7 +143,7 @@ curl http://127.0.0.1:43120/api/v1/health
 | AI Chat & Agent Mode                  |    **Yes**     |       Yes       |       Yes        |        Yes        |
 | **Multi-Agent Swarm (13 agents)**     |    **Yes**     |       No        |        No        |        No         |
 | **Code Knowledge Graph (GitNexus)**   |    **Yes**     |       No        |        No        |        No         |
-| **19 Languages + Voice (18 Indian)**  |    **Yes**     |       No        |        No        |        No         |
+| **22 Indian Languages + Voice**       |    **Yes**     |       No        |        No        |        No         |
 | **GPU on Demand (RunPod)**            |    **Yes**     |       No        |        No        |        No         |
 | **Autonomous Computer Use**           |    **Yes**     |       No        |        No        |        No         |
 | **Web Research Agent**                |    **Yes**     |       No        |        No        |        No         |
@@ -395,26 +395,44 @@ Most AI coding tools only understand English. **CodeIn understands you** — whe
 | **"dashboard ko aur clean banao"**        | "Clean up and improve the dashboard UI"             |
 | **"testing likh do is function ke liye"** | "Write tests for this function"                     |
 
-### 18 Indian Languages — Every Script, Every State
+### All 22 Scheduled Indian Languages — Honest Coverage
 
 <div align="center">
 
-| Language | Script     |     | Language  | Script     |     | Language | Script   |
-| :------- | :--------- | --- | :-------- | :--------- | --- | :------- | :------- |
-| Hindi    | Devanagari |     | Bengali   | Bengali    |     | Tamil    | Tamil    |
-| Telugu   | Telugu     |     | Marathi   | Devanagari |     | Gujarati | Gujarati |
-| Kannada  | Kannada    |     | Malayalam | Malayalam  |     | Punjabi  | Gurmukhi |
-| Assamese | Assamese   |     | Odia      | Odia       |     | Urdu     | Nastaliq |
-| Sindhi   | Arabic     |     | Konkani   | Devanagari |     | Manipuri | Meitei   |
-| Dogri    | Devanagari |     | Bodo      | Devanagari |     | Santali  | Ol Chiki |
+| Language | Script | Detection | Translation | Voice | Status |
+| :------- | :----- | :-------: | :---------: | :---: | :----- |
+| Hindi | Devanagari | ✅ | ✅ | ✅ | **Full** |
+| Bengali | Bengali | ✅ | ✅ | ✅ | **Full** |
+| Tamil | Tamil | ✅ | ✅ | ✅ | **Full** |
+| Telugu | Telugu | ✅ | ✅ | ✅ | **Full** |
+| Marathi | Devanagari | ✅ | ✅ | ✅ | **Full** |
+| Gujarati | Gujarati | ✅ | ✅ | ✅ | **Full** |
+| Kannada | Kannada | ✅ | ✅ | ✅ | **Full** |
+| Malayalam | Malayalam | ✅ | ✅ | ✅ | **Full** |
+| Punjabi | Gurmukhi | ✅ | ✅ | ✅ | **Full** |
+| Odia | Odia | ✅ | ✅ | ✅ | **Full** |
+| Assamese | Assamese | ✅ | ✅ | ✅ | **Full** |
+| Urdu | Nastaliq | — | ✅ | ✅ | Partial (no script detection) |
+| Sindhi | Arabic | — | ✅ | ✅ | Partial (no script detection) |
+| Konkani | Devanagari | ✅* | ✅ | ✅ | Partial (shares Devanagari) |
+| Dogri | Devanagari | ✅* | ✅ | ✅ | Partial (shares Devanagari) |
+| Maithili | Devanagari | ✅* | ✅ | — | Partial (shares Devanagari) |
+| Nepali | Devanagari | ✅* | ✅ | — | Partial (shares Devanagari) |
+| Sanskrit | Devanagari | ✅* | ✅ | — | Partial (shares Devanagari) |
+| Kashmiri | Nastaliq | — | ✅ | — | Partial (no script detection) |
+| Manipuri | Meitei | — | — | ✅ | Voice only |
+| Bodo | Devanagari | ✅* | — | ✅ | Voice only |
+| Santali | Ol Chiki | — | — | ✅ | Voice only |
 
-Plus code-mixed patterns: **Hinglish** · **Benglish** · **Tanglish** and more.
+_✅* = Detected as Devanagari (language inferred from context, not unique script)_
 
 </div>
 
+**Summary:** 11 languages with full unique-script detection. 22 languages total with varying support levels. Plus code-mixed patterns: **Hinglish** · **Benglish** · **Tanglish** and more.
+
 ### Voice Input & Output
 
-Speech-to-text with AI4Bharat models. Say your prompt in Hindi, Tamil, or any supported language — CodeIn transcribes, detects the language, and executes. Text-to-speech reads AI responses back to you.
+Browser-based speech-to-text for real-time dictation (primary). Backend TTS via gTTS/Azure for high-quality Indian language speech output (18 languages). Text-to-speech reads AI responses back to you with automatic fallback to browser synthesis.
 
 <br/>
 
