@@ -102,30 +102,30 @@ jobs:
 
       - name: Install dependency packages
         run: |
-          cd packages/config-types && npm ci --ignore-scripts
-          cd ../config-yaml && npm ci --ignore-scripts
-          cd ../terminal-security && npm ci --ignore-scripts
-          cd ../fetch && npm ci --ignore-scripts
-          cd ../llm-info && npm ci --ignore-scripts
-          cd ../openai-adapters && npm ci --ignore-scripts
+          cd packages/config-types && npm install --ignore-scripts
+          cd ../config-yaml && npm install --ignore-scripts
+          cd ../terminal-security && npm install --ignore-scripts
+          cd ../fetch && npm install --ignore-scripts
+          cd ../llm-info && npm install --ignore-scripts
+          cd ../openai-adapters && npm install --ignore-scripts
 
       - name: Install core dependencies
         working-directory: core
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
 
       - name: Build GUI
         working-directory: gui
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Build Agent
         working-directory: packages/agent
-        run: npm ci
+        run: npm install
 
       - name: Install dependencies
         working-directory: electron-app
-        run: npm ci
+        run: npm install
 
       - name: Build TypeScript
         working-directory: electron-app
@@ -172,30 +172,30 @@ jobs:
 
       - name: Install dependency packages
         run: |
-          cd packages/config-types && npm ci --ignore-scripts
-          cd ../config-yaml && npm ci --ignore-scripts
-          cd ../terminal-security && npm ci --ignore-scripts
-          cd ../fetch && npm ci --ignore-scripts
-          cd ../llm-info && npm ci --ignore-scripts
-          cd ../openai-adapters && npm ci --ignore-scripts
+          cd packages/config-types && npm install --ignore-scripts
+          cd ../config-yaml && npm install --ignore-scripts
+          cd ../terminal-security && npm install --ignore-scripts
+          cd ../fetch && npm install --ignore-scripts
+          cd ../llm-info && npm install --ignore-scripts
+          cd ../openai-adapters && npm install --ignore-scripts
 
       - name: Install core dependencies
         working-directory: core
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
 
       - name: Build GUI
         working-directory: gui
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Build Agent
         working-directory: packages/agent
-        run: npm ci
+        run: npm install
 
       - name: Install dependencies
         working-directory: electron-app
-        run: npm ci
+        run: npm install
 
       - name: Build TypeScript
         working-directory: electron-app
@@ -244,30 +244,30 @@ jobs:
 
       - name: Install dependency packages
         run: |
-          cd packages/config-types && npm ci --ignore-scripts
-          cd ../config-yaml && npm ci --ignore-scripts
-          cd ../terminal-security && npm ci --ignore-scripts
-          cd ../fetch && npm ci --ignore-scripts
-          cd ../llm-info && npm ci --ignore-scripts
-          cd ../openai-adapters && npm ci --ignore-scripts
+          cd packages/config-types && npm install --ignore-scripts
+          cd ../config-yaml && npm install --ignore-scripts
+          cd ../terminal-security && npm install --ignore-scripts
+          cd ../fetch && npm install --ignore-scripts
+          cd ../llm-info && npm install --ignore-scripts
+          cd ../openai-adapters && npm install --ignore-scripts
 
       - name: Install core dependencies
         working-directory: core
-        run: npm ci --ignore-scripts
+        run: npm install --ignore-scripts
 
       - name: Build GUI
         working-directory: gui
         run: |
-          npm ci
+          npm install
           npm run build
 
       - name: Build Agent
         working-directory: packages/agent
-        run: npm ci
+        run: npm install
 
       - name: Install dependencies
         working-directory: electron-app
-        run: npm ci
+        run: npm install
 
       - name: Build TypeScript
         working-directory: electron-app
