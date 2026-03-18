@@ -10,8 +10,8 @@ import {
   RegistryClient,
   unrollAssistant,
   unrollAssistantFromContent,
-} from "@continuedev/config-yaml";
-import { DefaultApiInterface } from "@continuedev/sdk/dist/api/dist/index.js";
+} from "@codein/config-yaml";
+import { DefaultApiInterface } from "@codein/sdk/dist/api/dist/index.js";
 import chalk from "chalk";
 
 import { uriToPath, uriToSlug } from "./auth/uriUtils.js";

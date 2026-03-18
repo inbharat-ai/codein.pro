@@ -54,6 +54,7 @@
       {
         "filenames": [
           "config.json",
+          ".codeinrc.json",
           ".continuerc.json"
         ],
         "id": "jsonc"
@@ -502,7 +503,7 @@
     ],
     "submenus": [
       {
-        "id": "continue.continueSubMenu",
+        "id": "codein.subMenu",
         "label": "Continue"
       }
     ],
@@ -532,7 +533,7 @@
       ],
       "editor/context": [
         {
-          "submenu": "continue.continueSubMenu",
+          "submenu": "codein.subMenu",
           "group": "0_acontinue"
         }
       ],
@@ -543,7 +544,7 @@
           "when": "continue.streamingDiff"
         }
       ],
-      "continue.continueSubMenu": [
+      "codein.subMenu": [
         {
           "command": "continue.focusContinueInputWithoutClear",
           "group": "BharatCode"
@@ -564,34 +565,34 @@
         {
           "command": "continue.newSession",
           "group": "navigation@1",
-          "when": "view == continue.continueGUIView"
+          "when": "view == codein.guiView"
         },
         {
           "command": "continue.viewHistory",
           "group": "navigation@2",
-          "when": "view == continue.continueGUIView"
+          "when": "view == codein.guiView"
         },
         {
           "command": "continue.openConfigPage",
           "group": "navigation@4",
-          "when": "view == continue.continueGUIView"
+          "when": "view == codein.guiView"
         },
         {
           "command": "continue.clearConsole",
           "group": "navigation@1",
-          "when": "view == continue.continueConsoleView"
+          "when": "view == codein.consoleView"
         }
       ],
       "editor/title": [
         {
           "command": "continue.newSession",
           "group": "navigation@1",
-          "when": "activeWebviewPanelId == continue.continueGUIView"
+          "when": "activeWebviewPanelId == codein.guiView"
         },
         {
           "command": "continue.viewHistory",
           "group": "navigation@2",
-          "when": "activeWebviewPanelId == continue.continueGUIView"
+          "when": "activeWebviewPanelId == codein.guiView"
         }
       ],
       "terminal/context": [
@@ -604,33 +605,33 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "continue",
+          "id": "codein",
           "title": "CodeIn",
           "icon": "media/sidebar-icon.png"
         }
       ],
       "panel": [
         {
-          "id": "continueConsole",
+          "id": "codeinConsole",
           "title": "CodeIn Console",
           "icon": "$(window)"
         }
       ]
     },
     "views": {
-      "continue": [
+      "codein": [
         {
           "type": "webview",
-          "id": "continue.continueGUIView",
+          "id": "codein.guiView",
           "name": "CodeIn",
           "icon": "media/sidebar-icon.png",
           "visibility": "visible"
         }
       ],
-      "continueConsole": [
+      "codeinConsole": [
         {
           "type": "webview",
-          "id": "continue.continueConsoleView",
+          "id": "codein.consoleView",
           "name": "CodeIn Console",
           "icon": "$(window)",
           "visibility": "visible",
@@ -642,6 +643,10 @@
       {
         "fileMatch": "**/.continue*/config.json",
         "url": "./config_schema.json"
+      },
+      {
+        "fileMatch": ".codeinrc.json",
+        "url": "./continue_rc_schema.json"
       },
       {
         "fileMatch": ".continuerc.json",
@@ -727,8 +732,8 @@
     "vscode-extension-tester": "^8.14.1"
   },
   "dependencies": {
-    "@continuedev/config-types": "file:../../packages/config-types",
-    "@continuedev/fetch": "file:../../packages/fetch",
+    "@codein/config-types": "file:../../packages/config-types",
+    "@codein/fetch": "file:../../packages/fetch",
     "@electron/rebuild": "^3.7.2",
     "@reduxjs/toolkit": "^1.9.3",
     "@vscode/ripgrep": "^1.15.9",

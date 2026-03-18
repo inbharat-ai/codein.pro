@@ -6,8 +6,8 @@ import {
   DataLogLevel,
   DevDataLogEvent,
   devDataVersionedSchemas,
-} from "@continuedev/config-yaml";
-import { fetchwithRequestOptions } from "@continuedev/fetch";
+} from "@codein/config-yaml";
+import { fetchwithRequestOptions } from "@codein/fetch";
 import * as URI from "uri-js";
 import { fileURLToPath } from "url";
 import { AnyZodObject } from "zod";

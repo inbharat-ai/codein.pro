@@ -1,4 +1,4 @@
-import { type AssistantConfig } from "@continuedev/sdk";
+import { type AssistantConfig } from "@codein/sdk";
 import { Box, Text } from "ink";
 import React, { useMemo } from "react";
 

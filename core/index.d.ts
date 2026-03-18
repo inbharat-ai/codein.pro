@@ -3,8 +3,8 @@ import {
   ModelRole,
   PromptTemplates,
   ToolOverrideConfig,
-} from "@continuedev/config-yaml";
-import { ToolPolicy } from "@continuedev/terminal-security";
+} from "@codein/config-yaml";
+import { ToolPolicy } from "@codein/terminal-security";
 import { McpUiResourceMeta } from "@modelcontextprotocol/ext-apps";
 import { TextResourceContents } from "@modelcontextprotocol/sdk/types.js";
 import Parser from "web-tree-sitter";
@@ -1925,6 +1925,7 @@ export type RuleSource =
   | "rules-block"
   | "colocated-markdown"
   | "json-systemMessage"
+  | ".codeinrules"
   | ".continuerules"
   | "agentFile";
 

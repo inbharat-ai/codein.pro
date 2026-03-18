@@ -110,7 +110,12 @@ async function resolveFromHub(): Promise<ResolvedReview[]> {
  * Resolve reviews from local .continue/agents/*.md files.
  */
 function resolveFromLocal(): ResolvedReview[] {
-  const agentsDir = path.join(process.cwd(), ".continue", "agents");
+  // Check .codein/agents first, fall back to .continue/agents
+  const cwd = process.cwd();
+  let agentsDir = path.join(cwd, ".codein", "agents");
+  if (!fs.existsSync(agentsDir)) {
+    agentsDir = path.join(cwd, ".continue", "agents");
+  }
   if (!fs.existsSync(agentsDir)) {
     return [];
   }

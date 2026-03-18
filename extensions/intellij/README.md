@@ -37,6 +37,6 @@
 
 ## License
 
-[Apache 2.0 © 2023-2025 Continue Dev, Inc.](./LICENSE)
+[Apache 2.0 © 2023-2025 inBharat AI (CodeIn)](./LICENSE)
 
 <!-- Plugin description end -->

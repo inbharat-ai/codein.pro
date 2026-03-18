@@ -29,7 +29,7 @@ Run AI-powered code checks locally against your working tree changes using the C
 ### Install the CLI
 
 ```bash
-npm install -g @continuedev/cli
+npm install -g @codein/cli
 ```
 
 ### Authenticate (required for Hub checks, optional for local-only)

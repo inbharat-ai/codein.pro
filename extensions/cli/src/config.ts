@@ -1,13 +1,13 @@
-import { AssistantUnrolled, ModelConfig } from "@continuedev/config-yaml";
+import { AssistantUnrolled, ModelConfig } from "@codein/config-yaml";
 import {
   BaseLlmApi,
   constructLlmApi,
   LLMConfig,
-} from "@continuedev/openai-adapters";
+} from "@codein/openai-adapters";
 import {
   Configuration,
   DefaultApi,
-} from "@continuedev/sdk/dist/api/dist/index.js";
+} from "@codein/sdk/dist/api/dist/index.js";
 
 import {
   AuthConfig,

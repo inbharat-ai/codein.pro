@@ -2,7 +2,7 @@ import {
   decodePackageIdentifier,
   mergeUnrolledAssistants,
   ModelRole,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import * as workos from "../auth/workos.js";
@@ -18,7 +18,7 @@ vi.mock("../configLoader.js", () => ({
 }));
 vi.mock("../util/logger.js");
 vi.mock("./ServiceContainer.js");
-vi.mock("@continuedev/config-yaml");
+vi.mock("@codein/config-yaml");
 
 const defaultModel = {
   provider: "anthropic",

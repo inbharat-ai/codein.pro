@@ -8,7 +8,7 @@ import {
   ConfigValidationError,
   mergeConfigYamlRequestOptions,
   ModelRole,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 import * as JSONC from "comment-json";
 
 import {
@@ -53,7 +53,7 @@ import {
   getConfigJsPath,
   getConfigJsPathForRemote,
   getConfigTsPath,
-  getContinueDotEnv,
+  getCodeinDotEnv,
   getEsbuildBinaryPath,
 } from "../util/paths";
 import { localPathToUri } from "../util/pathToUri";
@@ -81,7 +81,7 @@ export function resolveSerializedConfig(
   if (config.env && Array.isArray(config.env)) {
     const env = {
       ...process.env,
-      ...getContinueDotEnv(),
+      ...getCodeinDotEnv(),
     };
 
     config.env.forEach((envVar) => {
@@ -709,18 +709,17 @@ async function handleEsbuildInstallation(
     await import("esbuild");
     return true; // available
   } catch {
-    // Try resolving from ~/.continue/node_modules as a courtesy
+    // Try resolving from ~/.codein/node_modules (or ~/.continue/) as a courtesy
     try {
-      const userEsbuild = path.join(
-        os.homedir(),
-        ".continue",
-        "node_modules",
-        "esbuild",
-      );
-      const candidate = require.resolve("esbuild", { paths: [userEsbuild] });
+      const homedir = os.homedir();
+      const paths = [
+        path.join(homedir, ".codein", "node_modules", "esbuild"),
+        path.join(homedir, ".continue", "node_modules", "esbuild"),
+      ];
+      const candidate = require.resolve("esbuild", { paths });
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(candidate);
-      return true; // available via ~/.continue
+      return true; // available via ~/.codein or ~/.continue
     } catch {
       // Not available → show friendly instructions and opt out of building
       await ide.showToast(
@@ -746,7 +745,7 @@ async function tryBuildConfigTs() {
     }
   } catch (e) {
     console.log(
-      `Build error. Please check your ~/.continue/config.ts file: ${e}`,
+      `Build error. Please check your ~/.codein/config.ts file: ${e}`,
     );
   }
 }

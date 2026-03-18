@@ -1,4 +1,4 @@
-import { BLOCK_TYPES } from "@continuedev/config-yaml";
+import { BLOCK_TYPES } from "@codein/config-yaml";
 import ignore from "ignore";
 import * as URI from "uri-js";
 import { IDE } from "..";
@@ -15,16 +15,17 @@ import { SYSTEM_PROMPT_DOT_FILE } from "./getWorkspaceContinueRuleDotFiles";
 import { SUPPORTED_AGENT_FILES } from "./markdown";
 export function isContinueConfigRelatedUri(uri: string): boolean {
   return (
+    uri.endsWith(".codeinrc.json") ||
     uri.endsWith(".continuerc.json") ||
     uri.endsWith(".prompt") ||
     !!SUPPORTED_AGENT_FILES.find((file) => uri.endsWith(`/${file}`)) ||
     uri.endsWith(SYSTEM_PROMPT_DOT_FILE) ||
-    (uri.includes(".continue") &&
+    ((uri.includes(".codein") || uri.includes(".continue")) &&
       (uri.endsWith(".yaml") ||
         uri.endsWith(".yml") ||
         uri.endsWith(".json"))) ||
     [...BLOCK_TYPES, "agents", "assistants"].some((blockType) =>
-      uri.includes(`.continue/${blockType}`),
+      uri.includes(`.codein/${blockType}`) || uri.includes(`.continue/${blockType}`),
     )
   );
 }
@@ -37,6 +38,8 @@ export function isContinueAgentConfigFile(uri: string): boolean {
 
   const normalizedUri = URI.normalize(uri);
   return (
+    normalizedUri.includes(`/.codein/agents/`) ||
+    normalizedUri.includes(`/.codein/assistants/`) ||
     normalizedUri.includes(`/.continue/agents/`) ||
     normalizedUri.includes(`/.continue/assistants/`)
   );
@@ -108,11 +111,12 @@ export function getDotContinueSubDirs(
 ): string[] {
   let fullDirs: string[] = [];
 
-  // Workspace .continue/<subDirName>
+  // Workspace .codein/<subDirName> (with .continue/ fallback)
   if (options.includeWorkspace) {
-    fullDirs = workspaceDirs.map((dir) =>
+    fullDirs = workspaceDirs.flatMap((dir) => [
+      joinPathsToUri(dir, ".codein", subDirName),
       joinPathsToUri(dir, ".continue", subDirName),
-    );
+    ]);
   }
 
   // ~/.continue/<subDirName>

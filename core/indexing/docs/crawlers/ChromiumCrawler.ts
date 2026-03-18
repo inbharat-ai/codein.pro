@@ -11,7 +11,7 @@ import { ContinueConfig, IDE } from "../../..";
 import {
   editConfigFile,
   getChromiumPath,
-  getContinueUtilsPath,
+  getCodeinUtilsPath,
 } from "../../../util/paths";
 import { PageData } from "./DocsCrawler";
 
@@ -199,7 +199,7 @@ export class ChromiumCrawler {
 }
 
 export class ChromiumInstaller {
-  static PCR_CONFIG = { downloadPath: getContinueUtilsPath() };
+  static PCR_CONFIG = { downloadPath: getCodeinUtilsPath() };
 
   constructor(
     private readonly ide: IDE,

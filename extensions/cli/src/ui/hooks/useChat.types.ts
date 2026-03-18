@@ -1,5 +1,5 @@
-import { AssistantUnrolled, ModelConfig } from "@continuedev/config-yaml";
-import { BaseLlmApi } from "@continuedev/openai-adapters";
+import { AssistantUnrolled, ModelConfig } from "@codein/config-yaml";
+import { BaseLlmApi } from "@codein/openai-adapters";
 import type { Session } from "core/index.js";
 
 import { ToolCallPreview } from "../../tools/types.js";

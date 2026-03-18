@@ -1,8 +1,10 @@
 import { ContextProviderName } from "..";
 
 export const DEFAULT_PROMPTS_FOLDER_V1 = ".prompts";
-export const DEFAULT_PROMPTS_FOLDER_V2 = ".continue/prompts";
-export const DEFAULT_RULES_FOLDER = ".continue/rules";
+export const DEFAULT_PROMPTS_FOLDER_V2 = ".codein/prompts";
+export const DEFAULT_PROMPTS_FOLDER_V2_LEGACY = ".continue/prompts";
+export const DEFAULT_RULES_FOLDER = ".codein/rules";
+export const DEFAULT_RULES_FOLDER_LEGACY = ".continue/rules";
 
 // Subdirectory names (without .continue/ prefix)
 export const RULES_DIR_NAME = "rules";

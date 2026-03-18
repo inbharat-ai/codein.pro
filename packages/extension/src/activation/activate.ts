@@ -1,4 +1,4 @@
-import { getContinueRcPath, getTsConfigPath } from "core/util/paths";
+import { getCodeinRcPath, getTsConfigPath } from "core/util/paths";
 import { Telemetry } from "core/util/posthog";
 import * as vscode from "vscode";
 
@@ -44,7 +44,7 @@ export async function activateExtension(context: vscode.ExtensionContext) {
 
   // Add necessary files
   getTsConfigPath();
-  getContinueRcPath();
+  getCodeinRcPath();
 
   // Register commands and providers
   setupInlineTips(context);
@@ -105,7 +105,7 @@ export async function activateExtension(context: vscode.ExtensionContext) {
   }
 
   // Register config.yaml schema by removing old entries and adding new one (uri.fsPath changes with each version)
-  const yamlMatcher = ".continue/**/*.yaml";
+  const yamlMatchers = [".codein/**/*.yaml", ".continue/**/*.yaml"];
   const yamlConfig = vscode.workspace.getConfiguration("yaml");
   const yamlSchemas = yamlConfig.get<object>("schemas", {});
 
@@ -119,7 +119,7 @@ export async function activateExtension(context: vscode.ExtensionContext) {
       "schemas",
       {
         ...yamlSchemas,
-        [newPath]: [yamlMatcher],
+        [newPath]: yamlMatchers,
       },
       vscode.ConfigurationTarget.Global,
     );

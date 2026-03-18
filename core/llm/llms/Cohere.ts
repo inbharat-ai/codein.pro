@@ -1,4 +1,4 @@
-import { streamSse } from "@continuedev/fetch";
+import { streamSse } from "@codein/fetch";
 import {
   ChatMessage,
   Chunk,

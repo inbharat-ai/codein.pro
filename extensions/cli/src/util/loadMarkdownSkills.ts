@@ -2,7 +2,7 @@ import * as fs from "fs";
 import fsPromises from "fs/promises";
 import * as path from "path";
 
-import { parseMarkdownRule } from "@continuedev/config-yaml";
+import { parseMarkdownRule } from "@codein/config-yaml";
 import { WalkerSync } from "ignore-walk";
 import { z } from "zod";
 
@@ -93,6 +93,7 @@ export async function loadMarkdownSkills(): Promise<LoadSkillsResult> {
 
   try {
     const skillsDirs = [
+      path.join(cwd, ".codein", SKILLS_DIR),
       path.join(cwd, ".continue", SKILLS_DIR),
       path.join(cwd, ".claude", SKILLS_DIR),
       path.join(env.continueHome, SKILLS_DIR),

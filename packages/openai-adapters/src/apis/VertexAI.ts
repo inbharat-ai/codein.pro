@@ -1,4 +1,4 @@
-import { streamSse } from "@continuedev/fetch";
+import { streamSse } from "@codein/fetch";
 import { GoogleGenAI } from "@google/genai";
 import { AuthClient, GoogleAuth, JWT, auth } from "google-auth-library";
 import {

@@ -1,10 +1,10 @@
 import type {
   ArtifactType,
   EmbeddingsCacheResponse,
-  IContinueServerClient,
+  ICodeinServerClient,
 } from "../interface.js";
 
-export class ContinueServerClient implements IContinueServerClient {
+export class CodeinServerClient implements ICodeinServerClient {
   url: URL | undefined;
 
   constructor(
@@ -17,7 +17,7 @@ export class ContinueServerClient implements IContinueServerClient {
           ? undefined
           : new URL(serverUrl.endsWith("/") ? serverUrl : `${serverUrl}/`);
     } catch (e) {
-      console.warn("Invalid Continue server url", e);
+      console.warn("Invalid CodeIn server url", e);
       this.url = undefined;
     }
   }

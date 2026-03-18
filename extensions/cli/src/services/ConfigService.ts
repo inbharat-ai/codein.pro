@@ -3,8 +3,8 @@ import {
   decodePackageIdentifier,
   mergeUnrolledAssistants,
   PackageIdentifier,
-} from "@continuedev/config-yaml";
-import { DefaultApiInterface } from "@continuedev/sdk/dist/api/dist/index.js";
+} from "@codein/config-yaml";
+import { DefaultApiInterface } from "@codein/sdk/dist/api/dist/index.js";
 
 import { isStringRule } from "src/hubLoader.js";
 import { getErrorString } from "src/util/error.js";

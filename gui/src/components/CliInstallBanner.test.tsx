@@ -184,7 +184,7 @@ describe("CliInstallBanner", () => {
     });
 
     it("displays the installation command", () => {
-      expect(screen.getByText("npm i -g @continuedev/cli")).toBeInTheDocument();
+      expect(screen.getByText("npm i -g @codein/cli")).toBeInTheDocument();
     });
 
     it("displays the Learn more link", () => {
@@ -244,7 +244,7 @@ describe("CliInstallBanner", () => {
 
     it("displays the installation command with interactive controls", async () => {
       // The installation command should be visible
-      expect(screen.getByText("npm i -g @continuedev/cli")).toBeInTheDocument();
+      expect(screen.getByText("npm i -g @codein/cli")).toBeInTheDocument();
       // The "Run" text should be visible for the run button
       expect(screen.getByText(/Run/i)).toBeInTheDocument();
     });
@@ -258,7 +258,7 @@ describe("CliInstallBanner", () => {
         fireEvent.click(runButton);
 
         expect(postSpy).toHaveBeenCalledWith("runCommand", {
-          command: `npm i -g @continuedev/cli && cn "Explore this repo and provide a concise summary of it's contents"`,
+          command: `npm i -g @codein/cli && cn "Explore this repo and provide a concise summary of it's contents"`,
         });
       }
     });

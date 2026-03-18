@@ -3,11 +3,11 @@ import {
   PlatformClient,
   SecretResult,
   SecretType,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 import * as dotenv from "dotenv";
 import { IDE } from "../..";
 import { ControlPlaneClient } from "../../control-plane/client";
-import { getContinueDotEnv } from "../../util/paths";
+import { getCodeinDotEnv } from "../../util/paths";
 import { joinPathsToUri } from "../../util/uri";
 
 export class LocalPlatformClient implements PlatformClient {
@@ -44,11 +44,11 @@ export class LocalPlatformClient implements PlatformClient {
 
   private findSecretInLocalEnvFile(fqsn: FQSN): string | undefined {
     try {
-      const dotEnv = getContinueDotEnv();
+      const dotEnv = getCodeinDotEnv();
       return dotEnv[fqsn.secretName];
     } catch (error) {
       console.warn(
-        `Error reading ~/.continue/.env file: ${error instanceof Error ? error.message : String(error)}`,
+        `Error reading ~/.codein/.env file: ${error instanceof Error ? error.message : String(error)}`,
       );
       return undefined;
     }
@@ -61,11 +61,14 @@ export class LocalPlatformClient implements PlatformClient {
     try {
       const workspaceDirs = await this.ide.getWorkspaceDirs();
       for (const folder of workspaceDirs) {
-        const envFilePath = joinPathsToUri(
-          folder,
-          insideContinue ? ".continue" : "",
-          ".env",
-        );
+        // Check .codein/.env first, then .continue/.env for backward compat
+        const envPaths = insideContinue
+          ? [
+              joinPathsToUri(folder, ".codein", ".env"),
+              joinPathsToUri(folder, ".continue", ".env"),
+            ]
+          : [joinPathsToUri(folder, ".env")];
+        for (const envFilePath of envPaths) {
         try {
           const fileExists = await this.ide.fileExists(envFilePath);
           if (fileExists) {
@@ -79,7 +82,8 @@ export class LocalPlatformClient implements PlatformClient {
           console.warn(
             `Error reading workspace .env file at ${envFilePath}: ${error instanceof Error ? error.message : String(error)}`,
           );
-          // Continue to next workspace folder
+          // Continue to next env path / workspace folder
+        }
         }
       }
 

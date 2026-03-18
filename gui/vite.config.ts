@@ -10,10 +10,11 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    sentryVitePlugin({
-      org: "continue-xd",
-      project: "continue",
-    }),
+    // Sentry plugin disabled - configure CodeIn Sentry org/project before re-enabling
+    // sentryVitePlugin({
+    //   org: "codein-org",
+    //   project: "codein",
+    // }),
   ],
   build: {
     sourcemap: true,

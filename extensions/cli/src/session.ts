@@ -41,7 +41,7 @@ export interface ExtendedSessionMetadata extends BaseSessionMetadata {
 function getSessionDir(): string {
   // For tests, use the test directory if we're in test mode
   if (process.env.CONTINUE_CLI_TEST && process.env.HOME) {
-    const sessionDir = path.join(process.env.HOME, ".continue", "sessions");
+    const sessionDir = path.join(process.env.HOME, ".codein", "sessions");
 
     // Create directory if it doesn't exist
     if (!fs.existsSync(sessionDir)) {
@@ -51,9 +51,9 @@ function getSessionDir(): string {
     return sessionDir;
   }
 
-  // Use CONTINUE_GLOBAL_DIR if set (for testing)
+  // Use CODEIN_GLOBAL_DIR / CONTINUE_GLOBAL_DIR if set (for testing)
   const continueHome =
-    process.env.CONTINUE_GLOBAL_DIR || path.join(os.homedir(), ".continue");
+    process.env.CODEIN_GLOBAL_DIR || process.env.CONTINUE_GLOBAL_DIR || path.join(os.homedir(), ".codein");
   const sessionDir = path.join(continueHome, "sessions");
 
   // Create directory if it doesn't exist

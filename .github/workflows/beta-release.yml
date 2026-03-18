@@ -17,7 +17,7 @@ jobs:
     name: Beta Release
     runs-on: ubuntu-latest
     # Only run this workflow on the main repository (continuedev/continue)
-    if: github.repository == 'continuedev/continue'
+    if: github.repository == 'inbharat-ai/codein.pro'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -60,7 +60,7 @@ jobs:
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           if [[ "$CURRENT_VERSION" == "0.0.0-dev" ]]; then
             # If it's dev version, get latest from npm registry
-            LATEST_VERSION=$(npm view @continuedev/cli version --silent 2>/dev/null || echo "0.0.0")
+            LATEST_VERSION=$(npm view @codein/cli version --silent 2>/dev/null || echo "0.0.0")
             echo "Using latest npm version: $LATEST_VERSION"
             CURRENT_VERSION=$LATEST_VERSION
           fi
@@ -70,7 +70,7 @@ jobs:
           BETA_VERSION="${CURRENT_VERSION}-beta.${DATE_SUFFIX}"
 
           # Check if this version already exists on npm
-          if npm view @continuedev/cli@$BETA_VERSION version --silent >/dev/null 2>&1; then
+          if npm view @codein/cli@$BETA_VERSION version --silent >/dev/null 2>&1; then
             echo "Version $BETA_VERSION already exists, adding timestamp"
             # Add hour and minute to make it unique
             TIMESTAMP_SUFFIX=$(date -u +%Y%m%d.%H%M)

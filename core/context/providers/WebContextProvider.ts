@@ -5,7 +5,7 @@ import {
   ContextProviderExtras,
   FetchFunction,
 } from "../..";
-import { getHeaders } from "../../continueServer/stubs/headers";
+import { getHeaders } from "../../codeinServer/stubs/headers";
 import { TRIAL_PROXY_URL } from "../../control-plane/client";
 
 export const fetchSearchResults = async (

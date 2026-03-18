@@ -1,5 +1,5 @@
 {
-  "name": "@continuedev/sdk",
+  "name": "@codein/sdk",
   "version": "0.0.13",
   "description": "SDK for Continue.dev",
   "main": "dist/src/index.js",
@@ -10,7 +10,7 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch"
   },
-  "author": "Continue Dev, Inc.",
+  "author": "inBharat AI (CodeIn)",
   "license": "Apache-2.0",
   "dependencies": {
     "openai": "^4.104.0"

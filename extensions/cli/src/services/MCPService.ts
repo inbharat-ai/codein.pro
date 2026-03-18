@@ -1,5 +1,5 @@
-import { decodeFQSN, getTemplateVariables } from "@continuedev/config-yaml";
-import { type AssistantConfig } from "@continuedev/sdk";
+import { decodeFQSN, getTemplateVariables } from "@codein/config-yaml";
+import { type AssistantConfig } from "@codein/sdk";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
 import { isAuthenticated, loadAuthConfig } from "src/auth/workos.js";

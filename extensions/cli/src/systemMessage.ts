@@ -32,7 +32,7 @@ function getDirectoryStructure(): string {
       path: process.cwd(),
       includeEmpty: false,
       follow: false,
-      ignoreFiles: [".gitignore", ".continueignore", ".customignore"],
+      ignoreFiles: [".gitignore", ".codeignore", ".continueignore", ".customignore"],
     });
 
     (walker.ignoreRules as any)[".customignore"] = [
@@ -178,7 +178,7 @@ export async function constructSystemMessage(
       systemMessage += `\n<context name="commitSignature">When creating commits using any CLI or tool, include the following in the commit message:
 Generated with [Continue](https://continue.dev)
 
-Co-Authored-By: Continue <noreply@continue.dev>
+Co-Authored-By: CodeIn <info@inbharat.ai>
 </context>\n`;
     }
   }

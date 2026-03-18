@@ -4,10 +4,10 @@ import {
   ModelConfig,
   parseAgentFileRules,
   parseAgentFileTools,
-} from "@continuedev/config-yaml";
-import { BaseLlmApi } from "@continuedev/openai-adapters";
-import { AssistantConfig } from "@continuedev/sdk";
-import { DefaultApiInterface } from "@continuedev/sdk/dist/api/dist/index.js";
+} from "@codein/config-yaml";
+import { BaseLlmApi } from "@codein/openai-adapters";
+import { AssistantConfig } from "@codein/sdk";
+import { DefaultApiInterface } from "@codein/sdk/dist/api/dist/index.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
 import { AuthConfig } from "../auth/workos.js";

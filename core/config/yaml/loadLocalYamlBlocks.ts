@@ -4,7 +4,7 @@ import {
   PackageIdentifier,
   RegistryClient,
   unrollAssistantFromContent,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 import { IDE } from "../..";
 import { ControlPlaneClient } from "../../control-plane/client";
 import { LocalPlatformClient } from "./LocalPlatformClient";

@@ -21,7 +21,9 @@ extensions/vscode/e2e/vsix
 extensions/vscode/models
 extensions/intellij/src/main/resources
 gui/dist
+**/.codeignore
 **/.continueignore
+.codein/rules/mintlify-formatting.md
 .continue/rules/mintlify-formatting.md
 CHANGELOG.md
 **/continue_tutorial.py
@@ -30,6 +32,6 @@ CHANGELOG.md
 core/vendor
 coverage
 # e2e
-packages/continue-sdk
+packages/codein-sdk
 .conductor
 THOROUGH_CODE_INSPECTION_AUDIT.json

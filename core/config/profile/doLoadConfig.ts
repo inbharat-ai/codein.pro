@@ -6,7 +6,7 @@ import {
   ConfigValidationError,
   ModelRole,
   PackageIdentifier,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 
 import {
   ContinueConfig,

@@ -1,7 +1,7 @@
 import {
   mergeConfigYamlRequestOptions,
   ModelConfig,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 
 import { ContinueConfig, ILLMLogger, LLMOptions } from "../..";
 import { BaseLLM } from "../../llm";

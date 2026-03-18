@@ -1,6 +1,6 @@
 import net from "node:net";
 
-import { Analytics } from "@continuedev/config-types";
+import { Analytics } from "@codein/config-types";
 
 import {
   ControlPlaneProxyInfo,

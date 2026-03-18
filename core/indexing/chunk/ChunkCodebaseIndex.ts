@@ -2,7 +2,7 @@ import * as path from "path";
 
 import { RunResult } from "sqlite3";
 
-import { IContinueServerClient } from "../../continueServer/interface.js";
+import { ICodeinServerClient } from "../../codeinServer/interface.js";
 import { Chunk, IndexTag, IndexingProgressUpdate } from "../../index.js";
 import { DatabaseConnection, SqliteDb } from "../refreshIndex.js";
 import {
@@ -24,7 +24,7 @@ export class ChunkCodebaseIndex implements CodebaseIndex {
 
   constructor(
     private readonly readFile: (filepath: string) => Promise<string>,
-    private readonly continueServerClient: IContinueServerClient,
+    private readonly codeinServerClient: ICodeinServerClient,
     private readonly maxChunkSize: number,
   ) {}
 
@@ -39,10 +39,10 @@ export class ChunkCodebaseIndex implements CodebaseIndex {
     const tagString = tagToString(tag);
 
     // Check the remote cache
-    if (this.continueServerClient.connected) {
+    if (this.codeinServerClient.connected) {
       try {
         const keys = results.compute.map(({ cacheKey }) => cacheKey);
-        const resp = await this.continueServerClient.getFromIndexCache(
+        const resp = await this.codeinServerClient.getFromIndexCache(
           keys,
           "chunks",
           repoName,

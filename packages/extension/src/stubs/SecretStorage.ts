@@ -4,7 +4,8 @@ import * as path from "path";
 
 import * as vscode from "vscode";
 
-const ENCRYPTION_KEY_NAME = "dev.continue.continue";
+const ENCRYPTION_KEY_NAME = "dev.codein.codein";
+const OLD_ENCRYPTION_KEY_NAME = "dev.continue.continue";
 
 /**
  * vscode.SecretStorage is not reliable (often loads older values for a key)
@@ -14,6 +15,7 @@ const ENCRYPTION_KEY_NAME = "dev.continue.continue";
 export class SecretStorage {
   private globalStoragePath: string;
   private secrets: vscode.SecretStorage;
+  private migrationDone = false;
 
   constructor(context: vscode.ExtensionContext) {
     this.globalStoragePath = context.globalStorageUri.fsPath;
@@ -29,7 +31,34 @@ export class SecretStorage {
   private saltLength = 64;
   private tagLength = 16;
 
+  /**
+   * Migrate encryption key from the old "dev.continue.continue" secret
+   * to the new "dev.codein.codein" secret. Runs once per session.
+   */
+  private async migrateKeyIfNeeded(): Promise<void> {
+    if (this.migrationDone) {
+      return;
+    }
+    this.migrationDone = true;
+
+    const newKey = await this.secrets.get(ENCRYPTION_KEY_NAME);
+    if (newKey) {
+      // New key already exists, no migration needed
+      return;
+    }
+
+    const oldKey = await this.secrets.get(OLD_ENCRYPTION_KEY_NAME);
+    if (oldKey) {
+      // Copy old key to new location and delete old key
+      await this.secrets.store(ENCRYPTION_KEY_NAME, oldKey);
+      await this.secrets.delete(OLD_ENCRYPTION_KEY_NAME);
+      console.log("Migrated encryption key from dev.continue.continue to dev.codein.codein");
+    }
+  }
+
   async getOrCreateEncryptionKey(): Promise<Buffer> {
+    await this.migrateKeyIfNeeded();
+
     let key = await this.secrets.get(ENCRYPTION_KEY_NAME);
     if (!key) {
       key = crypto.randomBytes(this.keyLength).toString("hex");

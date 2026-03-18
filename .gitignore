@@ -142,6 +142,7 @@ continue_server.dist
 Icon
 Icon?
 
+.codeinrc.json
 .continuerc.json
 .aider*
 

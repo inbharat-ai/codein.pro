@@ -6,7 +6,7 @@ import {
   McpJsonConfig,
   mcpServersJsonSchema,
   RequestOptions,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 import * as JSONC from "comment-json";
 import ignore from "ignore";
 import { IDE, InternalMcpOptions } from "../../..";
@@ -36,9 +36,10 @@ export async function loadJsonMcpConfigs(
 
   // Get dirs
   const workspaceDirs = await ide.getWorkspaceDirs();
-  const mcpDirs = workspaceDirs.map((dir) =>
+  const mcpDirs = workspaceDirs.flatMap((dir) => [
+    joinPathsToUri(dir, ".codein", "mcpServers"),
     joinPathsToUri(dir, ".continue", "mcpServers"),
-  );
+  ]);
   if (includeGlobal) {
     mcpDirs.push(localPathToUri(getGlobalFolderWithName("mcpServers")));
   }

@@ -1,4 +1,4 @@
-import { streamJSON } from "@continuedev/fetch";
+import { streamJSON } from "@codein/fetch";
 import { OpenAI } from "openai/index";
 import {
   ChatCompletion,

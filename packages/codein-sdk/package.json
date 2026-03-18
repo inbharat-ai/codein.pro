@@ -1,5 +1,5 @@
 {
-  "name": "@continuedev/sdk-generator",
+  "name": "@codein/sdk-generator",
   "version": "0.0.1",
   "description": "SDK Generator for Continue.dev",
   "type": "module",
@@ -11,10 +11,10 @@
     "generate-client:ALL": "npm run generate-client:typescript && npm run generate-client:python",
     "swagger-ui": "node swagger-ui-server.js"
   },
-  "author": "Continue Dev, Inc.",
+  "author": "inBharat AI (CodeIn)",
   "license": "Apache-2.0",
   "dependencies": {
-    "@continuedev/config-yaml": "^1.38.0",
+    "@codein/config-yaml": "file:../config-yaml",
     "@openapitools/openapi-generator-cli": "^2.28.3",
     "express": "^4.22.0",
     "swagger-ui-express": "^5.0.0"

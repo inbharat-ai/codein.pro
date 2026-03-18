@@ -1,6 +1,6 @@
 import * as fs from "fs";
 
-import { ContinueServerClient } from "core/continueServer/stubs/client";
+import { CodeinServerClient } from "core/codeinServer/stubs/client";
 import { EXTENSION_NAME } from "core/control-plane/env";
 import { getConfigJsonPathForRemote } from "core/util/paths";
 import { canParseUrl } from "core/util/url";
@@ -108,7 +108,7 @@ export class RemoteConfigSync {
 
   async sync(userToken: string, remoteConfigServerUrl: string) {
     try {
-      const client = new ContinueServerClient(
+      const client = new CodeinServerClient(
         remoteConfigServerUrl.toString(),
         userToken,
       );

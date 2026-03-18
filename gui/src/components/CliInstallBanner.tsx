@@ -27,7 +27,7 @@ export function CliInstallBanner({
   const [cliInstalled, setCliInstalled] = useState<boolean | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const commandTextRef = useRef<HTMLSpanElement>(null);
-  const { copyText } = useCopy("npm i -g @continuedev/cli");
+  const { copyText } = useCopy("npm i -g @codein/cli");
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
 
   const handleCommandClick = () => {
@@ -139,7 +139,7 @@ export function CliInstallBanner({
                   style={{ fontFamily: "var(--codin-font-mono, monospace)" }}
                   onClick={handleCommandClick}
                 >
-                  npm i -g @continuedev/cli
+                  npm i -g @codein/cli
                 </span>
                 {showCopiedMessage && (
                   <span className="bg-editor rounded-l-default absolute inset-0 flex items-center justify-center px-2 text-xs font-medium">
@@ -149,10 +149,10 @@ export function CliInstallBanner({
               </div>
               <div className="bg-background rounded-r-default flex items-center gap-2 px-3 py-3">
                 <CopyButton
-                  text={`npm i -g @continuedev/cli && cn "Explore this repo and provide a concise summary of it's contents"`}
+                  text={`npm i -g @codein/cli && cn "Explore this repo and provide a concise summary of it's contents"`}
                 />
                 <RunInTerminalButton
-                  command={`npm i -g @continuedev/cli && cn "Explore this repo and provide a concise summary of it's contents"`}
+                  command={`npm i -g @codein/cli && cn "Explore this repo and provide a concise summary of it's contents"`}
                 />
               </div>
             </div>

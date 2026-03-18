@@ -1,4 +1,4 @@
-import { parseProxyModelName } from "@continuedev/config-yaml";
+import { parseProxyModelName } from "@codein/config-yaml";
 import { ModelDescription } from "..";
 
 export const PROVIDER_TOOL_SUPPORT: Record<string, (model: string) => boolean> =

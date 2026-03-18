@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { ILLM } from "../../../index.js";
 import ContinueProxy from "./ContinueProxy.js";
 
-vi.mock("@continuedev/config-yaml", async (importOriginal) => {
+vi.mock("@codein/config-yaml", async (importOriginal) => {
   const mod = (await importOriginal()) as any;
   return {
     ...mod,

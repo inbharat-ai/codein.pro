@@ -1,4 +1,4 @@
-name: Release @continuedev/config-yaml
+name: Release @codein/config-yaml
 
 on:
   push:
@@ -17,7 +17,7 @@ permissions:
 jobs:
   release:
     # Only run this workflow on the main repository (continuedev/continue)
-    if: github.repository == 'continuedev/continue'
+    if: github.repository == 'inbharat-ai/codein.pro'
     uses: ./.github/workflows/reusable-release.yml
     with:
       package-name: "config-yaml"

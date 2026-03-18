@@ -1,5 +1,5 @@
 {
-  "name": "@continuedev/core",
+  "name": "@codein/core",
   "version": "1.1.0",
   "description": "The CodeIn Core contains AI code generation and agent logic for local inference, offline-first design",
   "scripts": {
@@ -11,10 +11,10 @@
     "build:npm": "npm run build && npm run sentry:sourcemaps",
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --ext ts --fix",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org continue-xd --project continue ./dist && sentry-cli sourcemaps upload --org continue-xd --project continue ./dist"
+    "sentry:sourcemaps": "echo 'Sentry source map upload disabled - configure CodeIn Sentry org/project before re-enabling'"
   },
   "type": "module",
-  "author": "Continue Dev, Inc",
+  "author": "inBharat AI (CodeIn)",
   "license": "Apache-2.0",
   "devDependencies": {
     "@babel/preset-env": "^7.24.7",
@@ -60,12 +60,12 @@
     "@aws-sdk/client-bedrock-runtime": "^3.931.0",
     "@aws-sdk/client-sagemaker-runtime": "^3.894.0",
     "@aws-sdk/credential-providers": "^3.974.0",
-    "@continuedev/config-types": "^1.0.14",
-    "@continuedev/config-yaml": "file:../packages/config-yaml",
-    "@continuedev/fetch": "file:../packages/fetch",
-    "@continuedev/llm-info": "file:../packages/llm-info",
-    "@continuedev/openai-adapters": "file:../packages/openai-adapters",
-    "@continuedev/terminal-security": "file:../packages/terminal-security",
+    "@codein/config-types": "file:../packages/config-types",
+    "@codein/config-yaml": "file:../packages/config-yaml",
+    "@codein/fetch": "file:../packages/fetch",
+    "@codein/llm-info": "file:../packages/llm-info",
+    "@codein/openai-adapters": "file:../packages/openai-adapters",
+    "@codein/terminal-security": "file:../packages/terminal-security",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "@mozilla/readability": "^0.5.0",
     "@octokit/rest": "^20.1.1",

@@ -4,7 +4,7 @@ import {
   FQSN,
   FullSlug,
   SecretResult,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 import { IContinueHubClient } from "./IContinueHubClient.js";
 
 interface ContinueHubClientOptions {

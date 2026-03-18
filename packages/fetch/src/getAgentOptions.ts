@@ -1,4 +1,4 @@
-import { RequestOptions } from "@continuedev/config-types";
+import { RequestOptions } from "@codein/config-types";
 import { CertsCache, getCertificateContent } from "./certs.js";
 
 /**

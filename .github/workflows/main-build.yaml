@@ -14,7 +14,7 @@ on:
 
 jobs:
   republish-pr-artifacts:
-    if: github.repository == 'continuedev/continue'
+    if: github.repository == 'inbharat-ai/codein.pro'
     runs-on: ubuntu-latest
     strategy:
       matrix:

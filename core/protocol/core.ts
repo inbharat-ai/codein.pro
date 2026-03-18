@@ -3,8 +3,8 @@ import {
   ConfigResult,
   DevDataLogEvent,
   ModelRole,
-} from "@continuedev/config-yaml";
-import { ToolPolicy } from "@continuedev/terminal-security";
+} from "@codein/config-yaml";
+import { ToolPolicy } from "@codein/terminal-security";
 
 import {
   AutocompleteInput,

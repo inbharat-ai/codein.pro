@@ -30,7 +30,7 @@ jobs:
     name: Stable Release
     runs-on: ubuntu-latest
     # Only run this workflow on the main repository (continuedev/continue)
-    if: github.repository == 'continuedev/continue'
+    if: github.repository == 'inbharat-ai/codein.pro'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -80,7 +80,7 @@ jobs:
             echo "Looking for beta versions from $SEVEN_DAYS_AGO or earlier"
             
             # Get all beta versions from npm
-            BETA_VERSIONS=$(npm view @continuedev/cli versions --json | jq -r '.[] | select(contains("-beta."))' | sort -V)
+            BETA_VERSIONS=$(npm view @codein/cli versions --json | jq -r '.[] | select(contains("-beta."))' | sort -V)
             
             CANDIDATE_VERSION=""
             for version in $BETA_VERSIONS; do
@@ -121,7 +121,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           # Download the specific beta version
-          npm pack @continuedev/cli@${{ steps.find_beta.outputs.beta_version }}
+          npm pack @codein/cli@${{ steps.find_beta.outputs.beta_version }}
 
           # Extract and verify the package
           PACKAGE_FILE=$(ls continuedev-cli-*.tgz)

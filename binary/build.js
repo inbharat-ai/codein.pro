@@ -93,7 +93,7 @@ async function buildWithEsbuild() {
       {
         name: "binary",
         version: "1.0.0",
-        author: "Continue Dev, Inc",
+        author: "inBharat AI (CodeIn)",
         license: "Apache-2.0",
       },
       undefined,

@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import {
   decodeSecretLocation,
   getTemplateVariables,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 import {
   SSEClientTransport,
   SseError,

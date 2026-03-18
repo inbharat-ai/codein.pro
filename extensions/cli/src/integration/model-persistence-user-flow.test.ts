@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-import { AssistantUnrolled, ModelConfig } from "@continuedev/config-yaml";
+import { AssistantUnrolled, ModelConfig } from "@codein/config-yaml";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { AuthenticatedConfig } from "src/auth/workos-types.js";

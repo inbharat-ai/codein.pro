@@ -15,8 +15,8 @@ import { Logger } from "../util/Logger.js";
 import { getIndexSqlitePath, getLanceDbPath } from "../util/paths.js";
 import { findUriInDirs, getUriPathBasename } from "../util/uri.js";
 
-import { ConfigResult } from "@continuedev/config-yaml";
-import { ContinueServerClient } from "../continueServer/stubs/client";
+import { ConfigResult } from "@codein/config-yaml";
+import { CodeinServerClient } from "../codeinServer/stubs/client";
 import { LLMError } from "../llm/index.js";
 import { getRootCause } from "../util/errors.js";
 import { ChunkCodebaseIndex } from "./chunk/ChunkCodebaseIndex.js";
@@ -160,11 +160,11 @@ export class CodebaseIndexer {
     if (!ideSettings) {
       return [];
     }
-    const continueServerClient = new ContinueServerClient(
+    const codeinServerClient = new CodeinServerClient(
       ideSettings.remoteConfigServerUrl,
       ideSettings.userToken,
     );
-    if (!continueServerClient) {
+    if (!codeinServerClient) {
       return [];
     }
 
@@ -182,7 +182,7 @@ export class CodebaseIndexer {
       chunk: async () =>
         new ChunkCodebaseIndex(
           this.ide.readFile.bind(this.ide),
-          continueServerClient,
+          codeinServerClient,
           embeddingsModel.maxEmbeddingChunkSize,
         ),
       codeSnippets: async () => new CodeSnippetsCodebaseIndex(this.ide),

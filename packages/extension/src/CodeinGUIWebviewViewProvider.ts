@@ -7,10 +7,10 @@ import { VsCodeWebviewProtocol } from "./webviewProtocol";
 
 import type { FileEdit } from "core";
 
-export class ContinueGUIWebviewViewProvider
+export class CodeinGUIWebviewViewProvider
   implements vscode.WebviewViewProvider
 {
-  public static readonly viewType = "continue.continueGUIView";
+  public static readonly viewType = "codein.guiView";
   public webviewProtocol: VsCodeWebviewProtocol;
 
   public get isReady(): boolean {

@@ -1,4 +1,4 @@
-import { type AssistantConfig } from "@continuedev/sdk";
+import { type AssistantConfig } from "@codein/sdk";
 
 // Export command functions
 export { chat } from "./chat.js";

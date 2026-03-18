@@ -1,10 +1,10 @@
 import fs from "fs";
 import { IDE } from "..";
-import { getGlobalContinueIgnorePath } from "../util/paths";
+import { getGlobalCodeinIgnorePath } from "../util/paths";
 import { gitIgArrayFromFile } from "./ignore";
 
 export const getGlobalContinueIgArray = () => {
-  const contents = fs.readFileSync(getGlobalContinueIgnorePath(), "utf8");
+  const contents = fs.readFileSync(getGlobalCodeinIgnorePath(), "utf8");
   return gitIgArrayFromFile(contents);
 };
 
@@ -13,13 +13,16 @@ export const getWorkspaceContinueIgArray = async (ide: IDE) => {
   return await dirs.reduce(
     async (accPromise, dir) => {
       const acc = await accPromise;
-      try {
-        const contents = await ide.readFile(`${dir}/.continueignore`);
-        return [...acc, ...gitIgArrayFromFile(contents)];
-      } catch (err) {
-        console.error(err);
-        return acc;
+      // Check .codeignore first, then .continueignore for backward compat
+      for (const ignoreFile of [".codeignore", ".continueignore"]) {
+        try {
+          const contents = await ide.readFile(`${dir}/${ignoreFile}`);
+          return [...acc, ...gitIgArrayFromFile(contents)];
+        } catch {
+          // File doesn't exist, try next
+        }
       }
+      return acc;
     },
     Promise.resolve([] as string[]),
   );

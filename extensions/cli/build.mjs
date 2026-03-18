@@ -52,28 +52,28 @@ try {
 
     // Handle TypeScript paths and local packages
     alias: {
-      "@continuedev/config-yaml": resolve(
+      "@codein/config-yaml": resolve(
         __dirname,
         "../../packages/config-yaml/dist/index.js",
       ),
-      "@continuedev/openai-adapters": resolve(
+      "@codein/openai-adapters": resolve(
         __dirname,
         "../../packages/openai-adapters/dist/index.js",
       ),
-      "@continuedev/config-types": resolve(
+      "@codein/config-types": resolve(
         __dirname,
         "../../packages/config-types/dist/index.js",
       ),
       core: resolve(__dirname, "../../core"),
-      "@continuedev/fetch": resolve(
+      "@codein/fetch": resolve(
         __dirname,
         "../../packages/fetch/dist/index.js",
       ),
-      "@continuedev/llm-info": resolve(
+      "@codein/llm-info": resolve(
         __dirname,
         "../../packages/llm-info/dist/index.js",
       ),
-      "@continuedev/terminal-security": resolve(
+      "@codein/terminal-security": resolve(
         __dirname,
         "../../packages/terminal-security/dist/index.js",
       ),

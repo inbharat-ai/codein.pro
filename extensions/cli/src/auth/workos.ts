@@ -19,7 +19,7 @@ if (!globalThis.fetch) {
 // Config file path - define as a function to avoid initialization order issues
 function getAuthConfigPath() {
   const continueHome =
-    process.env.CONTINUE_GLOBAL_DIR || path.join(os.homedir(), ".continue");
+    process.env.CODEIN_GLOBAL_DIR || process.env.CONTINUE_GLOBAL_DIR || path.join(os.homedir(), ".codein");
   return path.join(continueHome, "auth.json");
 }
 
@@ -671,7 +671,7 @@ export async function hasMultipleOrganizations(): Promise<boolean> {
  */
 export function logout(): void {
   const continueHome =
-    process.env.CONTINUE_GLOBAL_DIR || path.join(os.homedir(), ".continue");
+    process.env.CODEIN_GLOBAL_DIR || process.env.CONTINUE_GLOBAL_DIR || path.join(os.homedir(), ".codein");
   const onboardingFlagPath = path.join(continueHome, ".onboarding_complete");
 
   // Remove onboarding completion flag so user will go through onboarding again

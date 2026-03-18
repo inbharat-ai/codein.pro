@@ -1,4 +1,4 @@
-# @continuedev/sdk
+# @codein/sdk
 
 > **⚠️ EXPERIMENTAL: This package is in early development and subject to frequent breaking changes without notice.**
 
@@ -7,7 +7,7 @@ This SDK provides a drop-in replacement for OpenAI libraries to easily integrate
 ## Installation
 
 ```bash
-npm install @continuedev/sdk
+npm install @codein/sdk
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ npm install @continuedev/sdk
 The SDK provides a `Continue.from()` method that initializes an assistant and returns a client you can use as a drop-in replacement for the OpenAI SDK:
 
 ```typescript
-import { Continue } from "@continuedev/sdk";
+import { Continue } from "@codein/sdk";
 
 // Initialize the Continue client with your API key and assistant
 const { client, assistant } = await Continue.from({
@@ -38,7 +38,7 @@ console.log(response.choices[0].message.content);
 You can also use the SDK without specifying an assistant to just get the Continue API client:
 
 ```typescript
-import { Continue } from "@continuedev/sdk";
+import { Continue } from "@codein/sdk";
 
 // Initialize just the Continue API client
 const { api } = await Continue.from({

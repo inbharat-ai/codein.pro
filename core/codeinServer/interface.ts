@@ -18,7 +18,7 @@ export interface EmbeddingsCacheResponse<T extends ArtifactType> {
   files: { [cacheKey: string]: ArtifactReturnTypes[T] };
 }
 
-export interface IContinueServerClient {
+export interface ICodeinServerClient {
   connected: boolean;
   url: URL | undefined;
   getUserToken(): string | undefined;

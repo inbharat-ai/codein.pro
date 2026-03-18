@@ -1,4 +1,4 @@
-## [1.0.95](https://github.com/continuedev/continue/compare/@continuedev/config-yaml@1.0.94...@continuedev/config-yaml@1.0.95) (2025-06-22)
+## [1.0.95](https://github.com/continuedev/continue/compare/@codein/config-yaml@1.0.94...@codein/config-yaml@1.0.95) (2025-06-22)
 
 ### Bug Fixes
 

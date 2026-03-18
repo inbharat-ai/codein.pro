@@ -4,10 +4,10 @@ import {
   createPromptMarkdown,
   createRuleMarkdown,
   sanitizeRuleName,
-} from "@continuedev/config-yaml";
+} from "@codein/config-yaml";
 import * as YAML from "yaml";
 import { IDE } from "../..";
-import { getContinueGlobalPath } from "../../util/paths";
+import { getCodeinGlobalPath } from "../../util/paths";
 import { localPathToUri } from "../../util/pathToUri";
 import { joinPathsToUri } from "../../util/uri";
 
@@ -166,7 +166,7 @@ export async function createNewWorkspaceBlockFile(
     );
   }
 
-  const baseDirUri = joinPathsToUri(workspaceDirs[0], `.continue/${blockType}`);
+  const baseDirUri = joinPathsToUri(workspaceDirs[0], `.codein/${blockType}`);
 
   const fileUri = await findAvailableFilename(
     baseDirUri,
@@ -188,7 +188,7 @@ export async function createNewGlobalRuleFile(
   baseFilename?: string,
 ): Promise<void> {
   try {
-    const globalDir = localPathToUri(getContinueGlobalPath());
+    const globalDir = localPathToUri(getCodeinGlobalPath());
 
     // Create the rules subdirectory within the global directory
     const rulesDir = joinPathsToUri(globalDir, "rules");

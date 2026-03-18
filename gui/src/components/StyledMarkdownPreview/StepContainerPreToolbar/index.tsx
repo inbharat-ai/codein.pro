@@ -1,4 +1,4 @@
-import { evaluateTerminalCommandSecurity } from "@continuedev/terminal-security";
+import { evaluateTerminalCommandSecurity } from "@codein/terminal-security";
 import {
   ChevronDownIcon,
   ExclamationTriangleIcon,
