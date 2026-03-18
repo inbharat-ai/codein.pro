@@ -10,8 +10,8 @@ permissions:
 jobs:
   dependency-submission:
     runs-on: ubuntu-latest
-    # Only run this workflow on the main repository (continuedev/continue)
-    if: github.repository == 'inbharat-ai/codein.pro'
+    # Disabled: IntelliJ extension not actively maintained
+    if: false
     steps:
       - name: Checkout sources
         uses: actions/checkout@v6

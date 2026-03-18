@@ -16,8 +16,8 @@ jobs:
   upload-blueprints:
     name: Upload Blueprints to Runloop
     runs-on: ubuntu-latest
-    # Only run this workflow on the main repository (continuedev/continue)
-    if: github.repository == 'inbharat-ai/codein.pro'
+    # Disabled: Runloop integration not configured for CodeIn
+    if: false
     strategy:
       matrix:
         include:

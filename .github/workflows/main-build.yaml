@@ -26,6 +26,7 @@ jobs:
 
       - name: Get merged PR number
         id: get-pr
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -38,7 +39,7 @@ jobs:
             | jq -r '.[0].number // empty')
 
           if [ -z "$PR_NUMBER" ]; then
-            echo "❌ Could not find PR for commit $COMMIT_SHA"
+            echo "⚠️ No PR found for commit $COMMIT_SHA — skipping artifact republish"
             exit 1
           fi
 
@@ -46,6 +47,7 @@ jobs:
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Find PR workflow run
+        if: steps.get-pr.outputs.pr_number
         id: find-run
         env:
           PR_NUMBER: ${{ steps.get-pr.outputs.pr_number }}
@@ -81,6 +83,7 @@ jobs:
           echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
 
       - name: Download PR artifact
+        if: steps.get-pr.outputs.pr_number
         env:
           RUN_ID: ${{ steps.find-run.outputs.run_id }}
           PLATFORM: ${{ matrix.platform }}
@@ -103,6 +106,7 @@ jobs:
           echo "✅ Successfully downloaded artifact"
 
       - name: Republish as main branch artifact
+        if: steps.get-pr.outputs.pr_number
         uses: actions/upload-artifact@v6
         with:
           name: vscode-extension-build-${{ matrix.platform }}
