@@ -7,6 +7,9 @@
 const GITHUB_REPO = "inbharat-ai/codein.pro";
 const MANIFEST_URL = "downloads.json"; // local fallback
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
+const RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases/latest`;
+const GITHUB_STARS_URL = `https://github.com/${GITHUB_REPO}`;
+let releaseExists = false; // set true when GitHub API returns a valid release
 
 // ─── OS Detection ───────────────────────────────────────────
 function detectOS() {
@@ -130,6 +133,7 @@ async function loadManifest() {
       if (res.ok) {
         const data = await res.json();
         manifest = parseGitHubRelease(data);
+        releaseExists = true;
         updateReleaseMeta(data);
         return;
       }
@@ -280,6 +284,22 @@ function renderDownloadCards(platform) {
   const config = PLATFORM_CONFIG[platform];
   if (!config) return;
 
+  // If no release exists on GitHub, show "Coming Soon" banner
+  if (!releaseExists) {
+    container.innerHTML = `
+      <div class="col-span-full text-center py-12 px-6 rounded-2xl border border-brand-500/20 bg-brand-500/5">
+        <div class="text-4xl mb-4" aria-hidden="true">&#x1f680;</div>
+        <h3 class="text-xl font-bold text-white mb-2">Coming Soon</h3>
+        <p class="text-gray-400 mb-6 max-w-md mx-auto">CodeIn v1.0.0 is being prepared for release. Star us on GitHub to get notified when it's ready!</p>
+        <a href="${GITHUB_STARS_URL}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm transition-all duration-200 shadow-lg shadow-brand-600/20">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          Star on GitHub
+        </a>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = config.assets
     .map((asset) => {
       const data = manifest.assets?.[asset.key];
@@ -291,6 +311,7 @@ function renderDownloadCards(platform) {
       const badgeBg = isPrimary
         ? "bg-brand-500/20 text-brand-300"
         : "bg-surface-700 text-gray-400";
+      const isDirectDownload = data.directDownload === true;
 
       return `
       <div class="download-card relative p-6 rounded-2xl border ${borderColor} ${bgColor} hover:border-brand-500/40 transition-all duration-300 group">
@@ -319,7 +340,7 @@ function renderDownloadCards(platform) {
         </div>
 
         <!-- Download button -->
-        <a href="${data.url}" class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl ${isPrimary ? "bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/20" : "bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10"} font-medium text-sm transition-all duration-200">
+        <a href="${data.url}" ${isDirectDownload ? `onclick="return handleDownloadClick(event, '${data.url}')"` : ""} class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl ${isPrimary ? "bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/20" : "bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10"} font-medium text-sm transition-all duration-200">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           Download ${isPrimary ? "" : "(alternate)"}
         </a>
@@ -336,17 +357,28 @@ function updateHeroForOS() {
   const osLabel = document.getElementById("hero-os-label");
   const ctaText = document.getElementById("cta-btn-text");
 
-  if (btnText)
-    btnText.textContent = `Download for ${config?.label || "your OS"}`;
-  if (osLabel)
-    osLabel.textContent = `Detected: ${config?.label || "Unknown OS"}`;
-  if (ctaText)
-    ctaText.textContent = `Download for ${config?.label || "your OS"}`;
+  if (releaseExists) {
+    if (btnText)
+      btnText.textContent = `Download for ${config?.label || "your OS"}`;
+    if (osLabel)
+      osLabel.textContent = `Detected: ${config?.label || "Unknown OS"}`;
+    if (ctaText)
+      ctaText.textContent = `Download for ${config?.label || "your OS"}`;
+  } else {
+    if (btnText) btnText.textContent = "Coming Soon — Star on GitHub";
+    if (osLabel) osLabel.textContent = "Release in progress";
+    if (ctaText) ctaText.textContent = "Star on GitHub";
+  }
 }
 
 function downloadForCurrentOS() {
+  if (!releaseExists) {
+    window.location.href = GITHUB_STARS_URL;
+    return;
+  }
+
   if (!manifest) {
-    window.location.href = `https://github.com/${GITHUB_REPO}/releases/latest`;
+    window.location.href = RELEASES_PAGE;
     return;
   }
 
@@ -355,10 +387,38 @@ function downloadForCurrentOS() {
   const data = manifest.assets?.[primaryAsset?.key];
 
   if (data?.url) {
-    window.location.href = data.url;
+    handleDownloadClick(null, data.url);
   } else {
-    window.location.href = `https://github.com/${GITHUB_REPO}/releases/latest`;
+    window.location.href = RELEASES_PAGE;
   }
+}
+
+/**
+ * Attempt a direct download; if the asset 404s, redirect to the releases page.
+ */
+function handleDownloadClick(event, url) {
+  if (event) event.preventDefault();
+
+  // Use a HEAD request to check if the asset exists
+  fetch(url, { method: "HEAD", mode: "no-cors" })
+    .then(() => {
+      // no-cors always resolves opaque — just navigate and let the browser handle it
+      window.location.href = url;
+    })
+    .catch(() => {
+      // Network error — fall back to releases page
+      showToast("Download not available yet. Redirecting to releases page...");
+      setTimeout(() => {
+        window.location.href = RELEASES_PAGE;
+      }, 1500);
+    });
+
+  // Safety: if we're here from a direct call (not event), start navigation
+  // The fetch race will handle the fallback
+  if (!event) {
+    window.location.href = url;
+  }
+  return false;
 }
 
 // ─── Clipboard ──────────────────────────────────────────────

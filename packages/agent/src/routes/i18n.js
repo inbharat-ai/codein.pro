@@ -52,7 +52,24 @@ function registerI18nRoutes(router, deps) {
           return;
         }
 
-        const validation = validateAndSanitizeInput(parsed.value, {
+        // Normalize parameter names for backward compatibility
+        const body = parsed.value;
+        if (
+          !body.targetLang &&
+          (body.target || body.targetLanguage || body.target_language)
+        ) {
+          body.targetLang =
+            body.target || body.targetLanguage || body.target_language;
+        }
+        if (
+          !body.sourceLang &&
+          (body.source || body.sourceLanguage || body.source_language)
+        ) {
+          body.sourceLang =
+            body.source || body.sourceLanguage || body.source_language;
+        }
+
+        const validation = validateAndSanitizeInput(body, {
           text: {
             required: true,
             type: "string",
@@ -259,7 +276,24 @@ function registerI18nRoutes(router, deps) {
       return;
     }
 
-    const validation = validateAndSanitizeInput(parsed.value, {
+    // Normalize parameter names for backward compatibility
+    const body = parsed.value;
+    if (
+      !body.target &&
+      (body.targetLang || body.targetLanguage || body.target_language)
+    ) {
+      body.target =
+        body.targetLang || body.targetLanguage || body.target_language;
+    }
+    if (
+      !body.source &&
+      (body.sourceLang || body.sourceLanguage || body.source_language)
+    ) {
+      body.source =
+        body.sourceLang || body.sourceLanguage || body.source_language;
+    }
+
+    const validation = validateAndSanitizeInput(body, {
       text: {
         required: true,
         type: "string",
@@ -373,7 +407,24 @@ function registerI18nRoutes(router, deps) {
           return;
         }
 
-        const validation = validateAndSanitizeInput(parsed.value, {
+        // Normalize parameter names for backward compatibility
+        const body = parsed.value;
+        if (
+          !body.target_language &&
+          (body.targetLang || body.target || body.targetLanguage)
+        ) {
+          body.target_language =
+            body.targetLang || body.target || body.targetLanguage;
+        }
+        if (
+          !body.source_language &&
+          (body.sourceLang || body.source || body.sourceLanguage)
+        ) {
+          body.source_language =
+            body.sourceLang || body.source || body.sourceLanguage;
+        }
+
+        const validation = validateAndSanitizeInput(body, {
           text: {
             required: true,
             type: "string",

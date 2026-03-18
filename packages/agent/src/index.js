@@ -289,6 +289,7 @@ const server = http.createServer(async (req, res) => {
         ? req.headers["x-request-id"]
         : crypto.randomUUID();
     res.setHeader("x-request-id", requestId);
+    res.setHeader("X-API-Version", "1.0");
     req.requestId = requestId;
     const requestLogger = createRequestLogger(requestId);
     const startTime = process.hrtime.bigint();

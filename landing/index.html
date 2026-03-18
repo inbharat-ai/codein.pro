@@ -38,15 +38,65 @@
     <!-- To rebuild: npx tailwindcss -i tailwind-input.css -o tailwind-built.css --minify -->
     <link rel="stylesheet" href="tailwind-built.css" />
 
-    <!-- Fonts -->
+    <!-- Fonts: Critical (Inter + JetBrains Mono) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+    <!-- Fonts: Indian languages (deferred — loaded on demand when user switches language) -->
+    <link
+      id="indic-fonts"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
 
     <link rel="stylesheet" href="style.css" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "CodeIn",
+      "description": "Free, open-source AI coding IDE with 50+ LLM providers, 19 Indian languages, and multi-agent swarm intelligence.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Windows, macOS, Linux",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "inBharat AI",
+        "url": "https://inbharat.ai",
+        "email": "info@inbharat.ai"
+      },
+      "license": "https://opensource.org/licenses/Apache-2.0",
+      "url": "https://codein.pro",
+      "downloadUrl": "https://github.com/inbharat-ai/codein.pro/releases/latest",
+      "softwareVersion": "1.0.0",
+      "programmingLanguage": ["JavaScript", "TypeScript", "Python"],
+      "featureList": [
+        "50+ AI providers",
+        "19 Indian languages",
+        "Multi-agent swarm",
+        "Local AI inference",
+        "Vibe coding mode",
+        "Voice input"
+      ]
+    }
+    </script>
   </head>
 
   <body
@@ -1025,7 +1075,7 @@
                 data-i18n="skill.voice.desc"
               >
                 Speak in Hindi, Tamil, Bengali, or 15 other Indian languages and
-                watch code appear. Real-time speech-to-text, voice commands, and
+                watch code appear. Real-time speech-to-text voice input, and
                 AI reads answers back to you.
               </p>
             </div>
@@ -2003,7 +2053,7 @@
           >
         </div>
         <p class="mx-auto max-w-2xl text-sm text-gray-400">
-          Voice commands, AI chat, code comments, error messages, documentation
+          Voice input, AI chat, code comments, error messages, documentation
           — all in your preferred language. Auto-translate bridge ensures the AI
           understands you perfectly.
         </p>

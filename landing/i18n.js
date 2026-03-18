@@ -84,7 +84,7 @@ const I18N = {
       "Air-gapped, zero-telemetry computing. Every feature works without internet. Built for defense, government, and sensitive environments. AES-256 encrypted config.",
     "skill.voice.title": "Voice Coding",
     "skill.voice.desc":
-      "Speak in Hindi, Tamil, Bengali, or 11 other Indian languages and watch code appear. Real-time speech-to-text, voice commands, and AI reads answers back to you.",
+      "Speak in Hindi, Tamil, Bengali, or 11 other Indian languages and watch code appear. Real-time speech-to-text voice input, and AI reads answers back to you.",
     "skill.compute.title": "CodeIn Computer",
     "skill.compute.desc":
       "Full local compute engine with auto-setup on first launch. Give it a goal in any language, it plans, codes, tests, and delivers. Process isolation with pause, resume, cancel. LLM auto-installs or reuses existing model.",

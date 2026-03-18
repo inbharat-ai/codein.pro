@@ -936,7 +936,8 @@ class SkillRegistry {
 
     this.registerSkill({
       name: "review-diff",
-      description: "Review a git diff for potential issues",
+      description:
+        "Review a git diff for potential issues including security vulnerabilities",
       category: "git",
       requiredContext: ["gitDiff"],
       execute: async (ctx) => {
@@ -945,13 +946,157 @@ class SkillRegistry {
 
         const findings = [];
 
+        // ── Security pattern definitions ────────────────────────
+        // Each pattern has a test function (not just regex) to
+        // reduce false positives via context-aware checks.
+        const securityPatterns = [
+          {
+            id: "sql-injection-template-literal",
+            severity: "critical",
+            message: "Potential SQL injection via template literal",
+            test: (content) => {
+              // Match template literals containing ${...} near SQL keywords.
+              // Ignore lines that are clearly comments or string constants
+              // used with parameterized queries.
+              if (_isComment(content)) return false;
+              const sqlKeywords =
+                /\b(SELECT|INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|UNION|WHERE|FROM|SET|INTO|VALUES)\b/i;
+              if (!sqlKeywords.test(content)) return false;
+              // Must contain a template interpolation ${...}
+              if (!/\$\{[^}]+\}/.test(content)) return false;
+              // Exclude parameterized-query patterns like $1, ?, :name
+              if (/\b(prepare|parameteriz|sanitiz|escape)/i.test(content))
+                return false;
+              return true;
+            },
+          },
+          {
+            id: "sql-injection-concatenation",
+            severity: "critical",
+            message: "Potential SQL injection via string concatenation",
+            test: (content) => {
+              if (_isComment(content)) return false;
+              const sqlConcat =
+                /["']\s*\+\s*\w+.*\b(SELECT|INSERT|UPDATE|DELETE|WHERE|FROM)\b/i;
+              const sqlConcat2 =
+                /\b(SELECT|INSERT|UPDATE|DELETE|WHERE|FROM)\b.*["']\s*\+\s*\w+/i;
+              return sqlConcat.test(content) || sqlConcat2.test(content);
+            },
+          },
+          {
+            id: "eval-usage",
+            severity: "critical",
+            message: "eval() usage detected — can execute arbitrary code",
+            test: (content) => {
+              if (_isComment(content)) return false;
+              // Match eval( but not .evaluate( or evalSync(
+              return (
+                /\beval\s*\(/.test(content) && !/\.eval\w+\s*\(/.test(content)
+              );
+            },
+          },
+          {
+            id: "command-injection",
+            severity: "critical",
+            message:
+              "child_process.exec with potential user input — use execFile or spawn instead",
+            test: (content) => {
+              if (_isComment(content)) return false;
+              // exec() or execSync() with template literal or concatenation
+              if (!/\bexec(Sync)?\s*\(/.test(content)) return false;
+              // Check for dynamic input (template literal, variable concat, req.)
+              return (
+                /\$\{/.test(content) ||
+                /\+\s*(req\.|params|query|body|input|args|user)/i.test(
+                  content,
+                ) ||
+                /req\.(query|params|body)/.test(content)
+              );
+            },
+          },
+          {
+            id: "xss-dangerously-set",
+            severity: "high",
+            message: "dangerouslySetInnerHTML with dynamic content — XSS risk",
+            test: (content) => {
+              if (_isComment(content)) return false;
+              if (!/dangerouslySetInnerHTML/.test(content)) return false;
+              // Flag if the value comes from a variable (not a static string)
+              return (
+                /\{[^}]*\b(?!['"])[a-zA-Z_$]/.test(content) ||
+                /\$\{/.test(content)
+              );
+            },
+          },
+          {
+            id: "path-traversal",
+            severity: "high",
+            message:
+              "File system operation with user-controlled path — path traversal risk",
+            test: (content) => {
+              if (_isComment(content)) return false;
+              const fsOps =
+                /\b(readFile|writeFile|readdir|unlink|rmdir|createReadStream|createWriteStream|access|stat|open)(Sync)?\s*\(/;
+              if (!fsOps.test(content)) return false;
+              // Check for user-controlled input indicators
+              return (
+                /req\.(query|params|body|url)/.test(content) ||
+                /\$\{/.test(content) ||
+                /\+\s*(user|input|param|query|filename|filepath|dir)/i.test(
+                  content,
+                )
+              );
+            },
+          },
+          {
+            id: "prototype-pollution",
+            severity: "high",
+            message:
+              "Dynamic property assignment — potential prototype pollution",
+            test: (content) => {
+              if (_isComment(content)) return false;
+              // obj[userInput] = ... pattern
+              return /\[[^[\]]*(?:req\.|params|query|body|input|user|key)\b[^[\]]*\]\s*=/.test(
+                content,
+              );
+            },
+          },
+          {
+            id: "insecure-regex",
+            severity: "warning",
+            message: "RegExp constructor with dynamic input — potential ReDoS",
+            test: (content) => {
+              if (_isComment(content)) return false;
+              if (!/new\s+RegExp\s*\(/.test(content)) return false;
+              // Flag if input is not a string literal
+              return !/new\s+RegExp\s*\(\s*['"]/.test(content);
+            },
+          },
+        ];
+
+        /**
+         * Heuristic: is this line a comment?
+         * Handles //, /*, *, #, and <!-- style comments.
+         */
+        function _isComment(line) {
+          const trimmed = line.trim();
+          return (
+            trimmed.startsWith("//") ||
+            trimmed.startsWith("/*") ||
+            trimmed.startsWith("*") ||
+            trimmed.startsWith("#") ||
+            trimmed.startsWith("<!--")
+          );
+        }
+
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
 
-          // Detect common issues in added lines.
+          // Only inspect added lines (skip diff headers and removed lines)
           if (!line.startsWith("+") || line.startsWith("+++")) continue;
           const content = line.slice(1);
 
+          // ── Code quality checks ─────────────────────────────
           if (/console\.log\(/.test(content)) {
             findings.push({
               line: i + 1,
@@ -983,6 +1128,19 @@ class SkillRegistry {
               message: "Very long line (>200 chars)",
             });
           }
+
+          // ── Security vulnerability checks ───────────────────
+          for (const pattern of securityPatterns) {
+            if (pattern.test(content)) {
+              findings.push({
+                line: i + 1,
+                severity: pattern.severity,
+                message: pattern.message,
+                category: "security",
+                patternId: pattern.id,
+              });
+            }
+          }
         }
 
         const filesChanged = lines
@@ -990,10 +1148,15 @@ class SkillRegistry {
           .map((l) => l.split(" b/")[1])
           .filter(Boolean);
 
+        const securityFindings = findings.filter(
+          (f) => f.category === "security",
+        );
+
         return {
           filesChanged,
           findings,
-          summary: `${filesChanged.length} file(s) changed, ${findings.length} finding(s)`,
+          securityFindings,
+          summary: `${filesChanged.length} file(s) changed, ${findings.length} finding(s)${securityFindings.length ? `, ${securityFindings.length} security issue(s)` : ""}`,
         };
       },
     });
