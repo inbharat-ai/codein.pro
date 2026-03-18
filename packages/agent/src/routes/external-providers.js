@@ -293,7 +293,15 @@ function registerExternalProviderRoutes(router, deps) {
         const body = parsed.value;
         const provider = body.provider;
         const messages = body.messages;
-        const options = body.options || {};
+        // Support both flat body (OpenAI-style: model/temperature/max_tokens at top level)
+        // and nested options object { options: { model, ... } }
+        const {
+          provider: _p,
+          messages: _m,
+          options: _opts,
+          ...topLevelOpts
+        } = body;
+        const options = { ...topLevelOpts, ...(_opts || {}) };
 
         if (!provider || typeof provider !== "string") {
           jsonResponse(res, 400, { error: "provider is required" });
@@ -337,7 +345,9 @@ function registerExternalProviderRoutes(router, deps) {
     const body = parsed.value;
     const provider = body.provider;
     const messages = body.messages;
-    const options = body.options || {};
+    // Support flat body (OpenAI-style) and nested options
+    const { provider: _sp, messages: _sm, options: _sopts, ...sTopOpts } = body;
+    const options = { ...sTopOpts, ...(_sopts || {}) };
 
     if (!provider || !externalProviders.isConfigured(provider)) {
       jsonResponse(res, 400, {
