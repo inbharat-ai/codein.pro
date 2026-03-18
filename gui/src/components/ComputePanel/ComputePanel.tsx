@@ -16,9 +16,9 @@ import { ComputeArtifacts } from "./ComputeArtifacts";
 import { ComputeGoalInput } from "./ComputeGoalInput";
 import { ComputeHeader } from "./ComputeHeader";
 import { ComputeHistory } from "./ComputeHistory";
-import { ComputeJobMetadata } from "./ComputeJobMetadata";
 import { ComputeJobView } from "./ComputeJobView";
-import { ComputeLogs } from "./ComputeLogs";
+import { ComputeMetrics } from "./ComputeMetrics";
+import { ComputeSSEFeed } from "./ComputeSSEFeed";
 import { ComputeWorkflows } from "./ComputeWorkflows";
 import { useComputeJob } from "./useComputeJob";
 import "./ComputePanel.css";
@@ -114,8 +114,11 @@ const ComputePanel: React.FC = () => {
             onCancel={job.cancelJob}
           />
           <ComputeArtifacts artifacts={job.activeJob.artifacts} />
-          <ComputeLogs logs={job.activeJob.logs} logsEndRef={job.logsEndRef} />
-          {job.isTerminal && <ComputeJobMetadata job={job.activeJob} />}
+          <ComputeSSEFeed
+            logs={job.activeJob.logs}
+            logsEndRef={job.logsEndRef}
+          />
+          {job.isTerminal && <ComputeMetrics job={job.activeJob} />}
         </>
       )}
 

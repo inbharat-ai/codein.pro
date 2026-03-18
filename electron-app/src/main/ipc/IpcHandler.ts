@@ -124,7 +124,7 @@ export class IpcHandler {
       try {
         // Forward to agent service HTTP API
         const agentUrl = `http://127.0.0.1:43120`;
-        const response = await fetch(`${agentUrl}/api/gui/${messageType}`, {
+        const response = await fetch(`${agentUrl}/api/v1/gui/${messageType}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ messageId, data }),

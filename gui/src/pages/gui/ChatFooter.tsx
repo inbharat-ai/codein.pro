@@ -5,6 +5,7 @@ import React from "react";
 import { BackgroundModeView } from "../../components/BackgroundMode/BackgroundModeView";
 import { CliInstallBanner } from "../../components/CliInstallBanner";
 import { FatalErrorIndicator } from "../../components/config/FatalErrorNotice";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 import ContinueInputBox from "../../components/mainInput/ContinueInputBox";
 import { NewSessionButton } from "../../components/mainInput/belowMainInput/NewSessionButton";
 import { VibeModeView } from "../../components/VibeModeView";
@@ -14,7 +15,7 @@ import { ChatHistoryItemWithMessageId } from "../../redux/slices/sessionSlice";
 import { loadLastSession } from "../../redux/thunks/session";
 import { EmptyChatBody } from "./EmptyChatBody";
 import { ExploreDialogWatcher } from "./ExploreDialogWatcher";
-import { MAIN_EDITOR_INPUT_ID } from "./Chat";
+import { MAIN_EDITOR_INPUT_ID } from "./chatConstants";
 
 export const ChatFooter = React.memo(function ChatFooter({
   sendInput,
@@ -82,14 +83,20 @@ export const ChatFooter = React.memo(function ChatFooter({
               </NewSessionButton>
             )}
           </div>
-          <VoicePanel />
+          <ErrorBoundary>
+            <VoicePanel />
+          </ErrorBoundary>
         </div>
         <FatalErrorIndicator />
         {!hasDismissedExploreDialog && <ExploreDialogWatcher />}
         {mode === "background" ? (
-          <BackgroundModeView isCreatingAgent={isCreatingAgent} />
+          <ErrorBoundary>
+            <BackgroundModeView isCreatingAgent={isCreatingAgent} />
+          </ErrorBoundary>
         ) : mode === "vibe" ? (
-          <VibeModeView />
+          <ErrorBoundary>
+            <VibeModeView />
+          </ErrorBoundary>
         ) : (
           history.length === 0 && (
             <EmptyChatBody showOnboardingCard={onboardingCard.show} />

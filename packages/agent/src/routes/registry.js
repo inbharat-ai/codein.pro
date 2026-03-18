@@ -26,6 +26,7 @@ const { registerPipelineRoutes } = require("./pipeline");
 const { registerRepoIntelligenceRoutes } = require("./repo-intelligence");
 const { registerAIHubRoutes } = require("./ai-hub");
 const { registerComputerRoutes } = require("./computer");
+const { registerGitNexusRoutes } = require("./gitnexus");
 
 /**
  * Creates and configures the full application router.
@@ -105,6 +106,9 @@ function createAppRouter(deps) {
 
   // Computer Use — Autonomous execution, workflow templates, skill discovery
   registerComputerRoutes(router, deps);
+
+  // GitNexus — Code-intelligence graph (optional external MCP service)
+  registerGitNexusRoutes(router, deps);
 
   // Expose deps object for late binding of observability references
   router._deps = deps;

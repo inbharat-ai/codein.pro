@@ -52,11 +52,13 @@ class BaseAgent {
     this._llmTimeout = opts.llmTimeout || 30000; // 30s default
 
     // Initialize circuit breaker for LLM calls.
-    // Reset timeout = 1.5x the LLM timeout so the agent retries quickly
-    // after failures instead of being stuck for an extra 60s doing nothing.
+    // Timeout must be slightly above the LLM timeout so the circuit breaker
+    // actually trips when LLM calls time out (the most common failure).
+    // Using 35s (LLM timeout + 5s buffer) so the breaker reliably opens
+    // on repeated LLM timeouts instead of letting them pass undetected.
     this._llmCircuitBreaker = new CircuitBreaker({
       failureThreshold: 5,
-      timeout: Math.round(this._llmTimeout * 1.5), // 45s default — aligned with LLM timeout
+      timeout: this._llmTimeout + 5000, // 35s default — just above LLM timeout
       successThreshold: 2,
       halfOpenAttempts: 2,
       windowSize: 10,

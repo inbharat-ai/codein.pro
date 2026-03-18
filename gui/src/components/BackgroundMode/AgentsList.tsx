@@ -1,5 +1,5 @@
 import { ArrowPathIcon, PlayIcon } from "@heroicons/react/24/outline";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState, memo } from "react";
 import { normalizeRepoUrl } from "core/util/repoUrl";
 import { useAuth } from "../../context/Auth";
 import { IdeMessengerContext } from "../../context/IdeMessenger";
@@ -17,6 +17,70 @@ interface Agent {
     github_repo?: string;
   };
 }
+
+interface AgentItemProps {
+  agent: Agent;
+  isInWorkspace: boolean;
+  repoName: string | null;
+  onOpenLocally: (agent: Agent, e: React.MouseEvent) => void;
+  onOpenDetail: (agentId: string) => void;
+}
+
+const AgentItem = memo(function AgentItem({
+  agent,
+  isInWorkspace,
+  repoName,
+  onOpenLocally,
+  onOpenDetail,
+}: AgentItemProps) {
+  const canOpenLocally = isInWorkspace;
+  return (
+    <div
+      key={agent.id}
+      className="border-command-border bg-input cursor-pointer rounded-md border p-3 shadow-md transition-colors hover:brightness-110"
+      onClick={() => onOpenDetail(agent.id)}
+    >
+      <div className="flex items-start justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium">
+            {agent.name || "Unnamed Agent"}
+          </div>
+          <div className="text-description mt-0.5 truncate text-xs">
+            {agent.metadata?.github_repo || agent.repoUrl}
+          </div>
+        </div>
+        <div className="ml-2 flex items-center gap-2">
+          <AgentStatusBadge status={agent.status} />
+          <Button
+            onClick={(e) => canOpenLocally && onOpenLocally(agent, e)}
+            disabled={!canOpenLocally}
+            variant="icon"
+            size="lg"
+            aria-label={
+              canOpenLocally
+                ? "Open this agent workflow locally"
+                : repoName
+                  ? `Open agent for repository ${repoName} locally`
+                  : "Open agent workflow locally"
+            }
+            title={
+              canOpenLocally
+                ? "Open this agent workflow locally"
+                : repoName
+                  ? `This agent is for a different repository (${repoName}). Open that workspace to take over this workflow.`
+                  : "This agent is for a different repository. Open the correct workspace to take over this workflow."
+            }
+          >
+            <PlayIcon className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+      <div className="text-description-muted mt-1 text-xs">
+        {formatRelativeTime(agent.createdAt)}
+      </div>
+    </div>
+  );
+});
 
 interface AgentsListProps {
   isCreatingAgent?: boolean;
@@ -105,9 +169,9 @@ export function AgentsList({ isCreatingAgent = false }: AgentsListProps) {
           setAgents([]);
           setTotalCount(0);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Agent fetch failed
-        setError(err.message || "Failed to load agents");
+        setError(err instanceof Error ? err.message : "Failed to load agents");
         setAgents([]);
         setTotalCount(0);
       }
@@ -156,9 +220,25 @@ export function AgentsList({ isCreatingAgent = false }: AgentsListProps) {
     }
   };
 
+  const agentMetadata = useMemo(
+    () =>
+      (agents ?? []).map((agent) => ({
+        isInWorkspace: isAgentInCurrentWorkspace(agent),
+        repoName: getAgentRepoName(agent),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [agents, workspaces],
+  );
+
   const handleOpenLocally = (agent: Agent, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening the agent detail page
     ideMessenger.post("openAgentLocally", { agentSessionId: agent.id });
+  };
+
+  const handleOpenDetail = (agentId: string) => {
+    ideMessenger.post("controlPlane/openUrl", {
+      path: `agents/${agentId}`,
+    });
   };
 
   if (error) {
@@ -190,59 +270,21 @@ export function AgentsList({ isCreatingAgent = false }: AgentsListProps) {
       <div className="text-description-muted px-2 text-xs font-semibold">
         Background Tasks
       </div>
-      <div className="flex flex-col gap-1 px-2">
-        {agents.map((agent) => {
-          const isInWorkspace = isAgentInCurrentWorkspace(agent);
-          const canOpenLocally = isInWorkspace;
-          const agentRepoName = getAgentRepoName(agent);
-
-          return (
-            <div
-              key={agent.id}
-              className="border-command-border bg-input cursor-pointer rounded-md border p-3 shadow-md transition-colors hover:brightness-110"
-              onClick={() => {
-                // Open agent detail in browser
-                ideMessenger.post("controlPlane/openUrl", {
-                  path: `agents/${agent.id}`,
-                });
-              }}
-            >
-              <div className="flex items-start justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
-                    {agent.name || "Unnamed Agent"}
-                  </div>
-                  <div className="text-description mt-0.5 truncate text-xs">
-                    {agent.metadata?.github_repo || agent.repoUrl}
-                  </div>
-                </div>
-                <div className="ml-2 flex items-center gap-2">
-                  <AgentStatusBadge status={agent.status} />
-                  <Button
-                    onClick={(e) =>
-                      canOpenLocally && handleOpenLocally(agent, e)
-                    }
-                    disabled={!canOpenLocally}
-                    variant="icon"
-                    size="lg"
-                    title={
-                      canOpenLocally
-                        ? "Open this agent workflow locally"
-                        : agentRepoName
-                          ? `This agent is for a different repository (${agentRepoName}). Open that workspace to take over this workflow.`
-                          : "This agent is for a different repository. Open the correct workspace to take over this workflow."
-                    }
-                  >
-                    <PlayIcon className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              <div className="text-description-muted mt-1 text-xs">
-                {formatRelativeTime(agent.createdAt)}
-              </div>
-            </div>
-          );
-        })}
+      <div
+        className="flex flex-col gap-1 px-2"
+        aria-live="polite"
+        aria-label="Background tasks"
+      >
+        {agents.map((agent, index) => (
+          <AgentItem
+            key={agent.id}
+            agent={agent}
+            isInWorkspace={agentMetadata[index]?.isInWorkspace ?? false}
+            repoName={agentMetadata[index]?.repoName ?? null}
+            onOpenLocally={handleOpenLocally}
+            onOpenDetail={handleOpenDetail}
+          />
+        ))}
         {totalCount > agents.length && (
           <div className="mt-2">
             <Button

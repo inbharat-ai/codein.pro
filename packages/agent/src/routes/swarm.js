@@ -142,14 +142,18 @@ function registerSwarmRoutes(router, deps) {
   });
   deps.swarmManager = swarmManager;
 
-  // ─── GET /api/health ───────────────────────────────────────
-  // Health check endpoint for extension client
+  // ─── GET /api/v1/health ────────────────────────────────────
+  // Versioned health check — canonical endpoint for v1 clients.
+  // NOTE: /api/v1/health is normalised to /api/health by index.js,
+  // so this handler is reached for both /api/v1/health and /api/health.
+  // The legacy /api/health alias below is kept for backward compatibility.
   router.get("/api/health", (_req, res) => {
     try {
       sendJson(res, 200, {
+        version: "1",
         status: "ok",
         service: "CodingAgent",
-        version: "1.0.0",
+        agentVersion: "1.0.0",
         timestamp: new Date().toISOString(),
       });
     } catch (err) {

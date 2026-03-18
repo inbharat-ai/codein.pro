@@ -124,16 +124,16 @@ interface SwarmState {
   workspaceProfile: WorkspaceProfile | null;
   conventions: string[];
   // New endpoint state
-  terminalSessions: any[];
+  terminalSessions: TerminalSession[];
   gitStatus: {
     branch: string;
-    files: any[];
+    files: GitFile[];
     ahead: number;
     behind: number;
     clean: boolean;
   } | null;
   sandboxAvailable: boolean;
-  activePlans: any[];
+  activePlans: ActivePlan[];
   // Fetch tracking flags
   analyticsLoaded: boolean;
   workspaceLoaded: boolean;
@@ -325,6 +325,24 @@ export interface CostSuggestion {
   priority: string;
 }
 
+export interface TerminalSession {
+  id: string;
+  agentId?: string;
+  createdAt?: string;
+}
+
+export interface GitFile {
+  path: string;
+  status: string;
+}
+
+export interface ActivePlan {
+  id: string;
+  goal: string;
+  status: string;
+  createdAt?: string;
+}
+
 export const fetchBudgetStatus = createAsyncThunk<{ budget: BudgetStatus }>(
   "swarm/fetchBudget",
   async () => swarmFetch("/budget"),
@@ -462,13 +480,12 @@ export const fetchWorkspaceSummary = createAsyncThunk<
 
 // ─── Terminal, Git, Autonomous, Sandbox Thunks ──────────────
 
-export const fetchTerminalSessions = createAsyncThunk<{ sessions: any[] }>(
-  "swarm/fetchTerminalSessions",
-  async () => swarmFetch("/terminal/sessions"),
-);
+export const fetchTerminalSessions = createAsyncThunk<{
+  sessions: TerminalSession[];
+}>("swarm/fetchTerminalSessions", async () => swarmFetch("/terminal/sessions"));
 
 export const createTerminalSession = createAsyncThunk<
-  any,
+  TerminalSession,
   { agentId?: string }
 >("swarm/createTerminalSession", async (opts) =>
   swarmFetch("/terminal/sessions", {
@@ -489,7 +506,7 @@ export const executeTerminalCommand = createAsyncThunk<
 
 export const fetchGitStatus = createAsyncThunk<{
   branch: string;
-  files: any[];
+  files: GitFile[];
   ahead: number;
   behind: number;
   clean: boolean;
@@ -515,7 +532,7 @@ export const fetchGitLog = createAsyncThunk<
 
 export const runAutonomousPlan = createAsyncThunk<
   { planId: string },
-  { goal: string; context?: Record<string, any> }
+  { goal: string; context?: Record<string, unknown> }
 >("swarm/runAutonomousPlan", async (params) =>
   swarmFetch("/autonomous/run", {
     method: "POST",
@@ -523,7 +540,7 @@ export const runAutonomousPlan = createAsyncThunk<
   }),
 );
 
-export const fetchActivePlans = createAsyncThunk<{ plans: any[] }>(
+export const fetchActivePlans = createAsyncThunk<{ plans: ActivePlan[] }>(
   "swarm/fetchActivePlans",
   async () => swarmFetch("/autonomous/plans"),
 );
@@ -750,21 +767,34 @@ export const {
 // ─── Selectors ───────────────────────────────────────────────
 
 export const selectSwarmStatus = (state: RootState) => state.swarm?.status;
-export const selectSwarmAgents = (state: RootState) =>
-  state.swarm?.agents ?? [];
-export const selectSwarmTasks = (state: RootState) => state.swarm?.tasks ?? [];
-export const selectSwarmEvents = (state: RootState) =>
-  state.swarm?.events ?? [];
-export const selectPendingPermissions = (state: RootState) =>
-  state.swarm?.pendingPermissions ?? [];
+export const selectSwarmAgents = createSelector(
+  (state: RootState) => state.swarm?.agents,
+  (agents) => agents ?? [],
+);
+export const selectSwarmTasks = createSelector(
+  (state: RootState) => state.swarm?.tasks,
+  (tasks) => tasks ?? [],
+);
+export const selectSwarmEvents = createSelector(
+  (state: RootState) => state.swarm?.events,
+  (events) => events ?? [],
+);
+export const selectPendingPermissions = createSelector(
+  (state: RootState) => state.swarm?.pendingPermissions,
+  (pendingPermissions) => pendingPermissions ?? [],
+);
 export const selectMemoryUsage = (state: RootState) => state.swarm?.memory;
 export const selectActiveTaskId = (state: RootState) =>
   state.swarm?.activeTaskId;
-export const selectSwarmLoading = (state: RootState) =>
-  state.swarm?.loading ?? false;
+export const selectSwarmLoading = createSelector(
+  (state: RootState) => state.swarm?.loading,
+  (loading) => loading ?? false,
+);
 export const selectSwarmError = (state: RootState) => state.swarm?.error;
-export const selectSseConnected = (state: RootState) =>
-  state.swarm?.sseConnected ?? false;
+export const selectSseConnected = createSelector(
+  (state: RootState) => state.swarm?.sseConnected,
+  (sseConnected) => sseConnected ?? false,
+);
 
 export const selectActiveTask = createSelector(
   [selectSwarmTasks, selectActiveTaskId],
@@ -778,35 +808,63 @@ export const selectSwarmIsActive = createSelector(
 );
 
 // Extended selectors
-export const selectSwarmBudget = (state: RootState) =>
-  state.swarm?.budget ?? null;
-export const selectSwarmAnalytics = (state: RootState) =>
-  state.swarm?.analytics ?? null;
-export const selectCostSuggestions = (state: RootState) =>
-  state.swarm?.costSuggestions ?? [];
-export const selectBackgroundTasks = (state: RootState) =>
-  state.swarm?.backgroundTasks ?? [];
-export const selectSwarmPlugins = (state: RootState) =>
-  state.swarm?.plugins ?? [];
-export const selectSwarmSkills = (state: RootState) =>
-  state.swarm?.skills ?? [];
-export const selectWorkspaceProfile = (state: RootState) =>
-  state.swarm?.workspaceProfile ?? null;
-export const selectConventions = (state: RootState) =>
-  state.swarm?.conventions ?? [];
-export const selectAnalyticsLoaded = (state: RootState) =>
-  state.swarm?.analyticsLoaded ?? false;
-export const selectWorkspaceLoaded = (state: RootState) =>
-  state.swarm?.workspaceLoaded ?? false;
+export const selectSwarmBudget = createSelector(
+  (state: RootState) => state.swarm?.budget,
+  (budget) => budget ?? null,
+);
+export const selectSwarmAnalytics = createSelector(
+  (state: RootState) => state.swarm?.analytics,
+  (analytics) => analytics ?? null,
+);
+export const selectCostSuggestions = createSelector(
+  (state: RootState) => state.swarm?.costSuggestions,
+  (costSuggestions) => costSuggestions ?? [],
+);
+export const selectBackgroundTasks = createSelector(
+  (state: RootState) => state.swarm?.backgroundTasks,
+  (backgroundTasks) => backgroundTasks ?? [],
+);
+export const selectSwarmPlugins = createSelector(
+  (state: RootState) => state.swarm?.plugins,
+  (plugins) => plugins ?? [],
+);
+export const selectSwarmSkills = createSelector(
+  (state: RootState) => state.swarm?.skills,
+  (skills) => skills ?? [],
+);
+export const selectWorkspaceProfile = createSelector(
+  (state: RootState) => state.swarm?.workspaceProfile,
+  (workspaceProfile) => workspaceProfile ?? null,
+);
+export const selectConventions = createSelector(
+  (state: RootState) => state.swarm?.conventions,
+  (conventions) => conventions ?? [],
+);
+export const selectAnalyticsLoaded = createSelector(
+  (state: RootState) => state.swarm?.analyticsLoaded,
+  (analyticsLoaded) => analyticsLoaded ?? false,
+);
+export const selectWorkspaceLoaded = createSelector(
+  (state: RootState) => state.swarm?.workspaceLoaded,
+  (workspaceLoaded) => workspaceLoaded ?? false,
+);
 
 // New endpoint selectors
-export const selectTerminalSessions = (state: RootState) =>
-  state.swarm?.terminalSessions ?? [];
-export const selectGitStatus = (state: RootState) =>
-  state.swarm?.gitStatus ?? null;
-export const selectSandboxAvailable = (state: RootState) =>
-  state.swarm?.sandboxAvailable ?? false;
-export const selectActivePlans = (state: RootState) =>
-  state.swarm?.activePlans ?? [];
+export const selectTerminalSessions = createSelector(
+  (state: RootState) => state.swarm?.terminalSessions,
+  (terminalSessions) => terminalSessions ?? [],
+);
+export const selectGitStatus = createSelector(
+  (state: RootState) => state.swarm?.gitStatus,
+  (gitStatus) => gitStatus ?? null,
+);
+export const selectSandboxAvailable = createSelector(
+  (state: RootState) => state.swarm?.sandboxAvailable,
+  (sandboxAvailable) => sandboxAvailable ?? false,
+);
+export const selectActivePlans = createSelector(
+  (state: RootState) => state.swarm?.activePlans,
+  (activePlans) => activePlans ?? [],
+);
 
 export default swarmSlice.reducer;

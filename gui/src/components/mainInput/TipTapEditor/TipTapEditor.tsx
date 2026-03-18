@@ -235,10 +235,10 @@ function TipTapEditorInner(props: TipTapEditorProps) {
             "info",
             "Vibe image analysis completed and attached to input.",
           ]);
-        } catch (error: any) {
+        } catch (error: unknown) {
           ideMessenger.post("showToast", [
             "warning",
-            `Image attached, but Vibe analysis failed: ${error?.message || "unknown error"}`,
+            `Image attached, but Vibe analysis failed: ${error instanceof Error ? error.message : "unknown error"}`,
           ]);
         }
       });

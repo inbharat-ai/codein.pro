@@ -8,6 +8,7 @@ import {
   setShowDialog,
 } from "../../../redux/slices/uiSlice";
 import { getLocalStorage, setLocalStorage } from "../../../util/localStorage";
+import { defaultOnboardingCardState } from "../utils";
 
 export interface UseOnboardingCard {
   show: OnboardingCardState["show"];
@@ -21,7 +22,9 @@ export function useOnboardingCard(): UseOnboardingCard {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const onboardingCard = useAppSelector((state) => state.ui.onboardingCard);
+  const onboardingCard = useAppSelector(
+    (state) => state.ui.onboardingCard ?? defaultOnboardingCardState,
+  );
 
   const onboardingStatus = getLocalStorage("onboardingStatus");
   const hasDismissedOnboardingCard = getLocalStorage(

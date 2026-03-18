@@ -318,10 +318,11 @@ test("BaseAgent circuit breaker timeout defaults to 1.5x LLM timeout (45s)", () 
     },
   );
 
-  // Default: 30s LLM timeout * 1.5 = 45s circuit breaker timeout
+  // Default: 30s LLM timeout + 5s buffer = 35s circuit breaker timeout
+  // This ensures LLM timeouts are counted as CB failures (CB fires just after LLM timeout)
   assert.equal(agent._llmTimeout, 30000, "Default LLM timeout should be 30s");
-  assert.equal(agent._llmCircuitBreaker.timeout, 45000,
-    "CB timeout should be 45s (1.5x LLM timeout)");
+  assert.equal(agent._llmCircuitBreaker.timeout, 35000,
+    "CB timeout should be 35s (LLM timeout + 5s buffer)");
 });
 
 test("BaseAgent circuit breaker timeout scales with custom LLM timeout", () => {
@@ -342,8 +343,8 @@ test("BaseAgent circuit breaker timeout scales with custom LLM timeout", () => {
   );
 
   assert.equal(agent._llmTimeout, 60000, "Custom LLM timeout should be 60s");
-  assert.equal(agent._llmCircuitBreaker.timeout, 90000,
-    "CB timeout should be 90s (1.5x 60s LLM timeout)");
+  assert.equal(agent._llmCircuitBreaker.timeout, 65000,
+    "CB timeout should be 65s (60s LLM timeout + 5s buffer)");
 });
 
 // ─── Bug 3: retryCount logic in state-machine.js ─────────────────

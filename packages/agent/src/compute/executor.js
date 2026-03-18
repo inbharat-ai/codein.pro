@@ -339,10 +339,15 @@ class ComputeExecutor {
           stepId: step.id,
         });
 
+        // Update retryCount before checking attempt limit so escalation
+        // manager always sees the correct number of retries exhausted.
+        // attempt is 1-indexed, so retryCount = attempt - 1 maps to the
+        // 0-based maxRetries value (e.g. maxRetries=2 means 2 retries used).
+        step.retryCount = attempt - 1;
+
         if (attempt < maxAttempts) {
           // Wait before retry (exponential backoff)
           await new Promise((r) => setTimeout(r, 1000 * attempt));
-          step.retryCount = attempt;
         }
       }
     }

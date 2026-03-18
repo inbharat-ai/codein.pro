@@ -53,15 +53,14 @@ interface ModelOptionProps {
   onOpenConfig: () => void;
   onClick: () => void;
   errors?: ConfigValidationError[];
-  onClickError?: (e: any) => void;
+  onClickError?: (e: React.MouseEvent<HTMLElement>) => void;
 }
 
-interface IconBaseProps {
+interface IconBaseProps extends React.HTMLAttributes<HTMLDivElement> {
   $hovered: boolean;
-  onClick?: (e: any) => void;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void;
   className?: string;
   children?: React.ReactNode;
-  [key: string]: any;
 }
 
 function IconBase({
@@ -92,7 +91,7 @@ const StyledCog6ToothIcon = ({
   onClick,
 }: {
   $hovered: boolean;
-  onClick?: (e: any) => void;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void;
 }) => (
   <IconBase $hovered={$hovered} onClick={onClick}>
     <Cog6ToothIcon />
@@ -104,7 +103,7 @@ const StyledArrowTopRightOnSquareIcon = ({
   onClick,
 }: {
   $hovered: boolean;
-  onClick?: (e: any) => void;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void;
 }) => (
   <IconBase $hovered={$hovered} onClick={onClick}>
     <ArrowTopRightOnSquareIcon />
@@ -118,10 +117,9 @@ const StyledExclamationTriangleIcon = ({
   ...props
 }: {
   $hovered: boolean;
-  onClick?: (e: any) => void;
+  onClick?: (e: React.MouseEvent<HTMLElement>) => void;
   className?: string;
-  [key: string]: any;
-}) => (
+} & React.HTMLAttributes<HTMLDivElement>) => (
   <IconBase
     $hovered={$hovered}
     onClick={onClick}
@@ -145,7 +143,7 @@ export function Option({
 }: ModelOptionProps) {
   const [hovered, setHovered] = useState(false);
 
-  function handleOptionClick(e: any) {
+  function handleOptionClick(e: React.MouseEvent<HTMLDivElement>) {
     if (disabled) {
       e.preventDefault();
       e.stopPropagation();

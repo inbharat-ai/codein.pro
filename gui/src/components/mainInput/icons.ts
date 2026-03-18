@@ -1,3 +1,4 @@
+import type React from "react";
 import {
   ArrowUpOnSquareIcon,
   Bars3BottomLeftIcon,
@@ -25,7 +26,10 @@ import { GithubIcon } from "../svg/GithubIcon";
 import { GitlabIcon } from "../svg/GitlabIcon";
 import { GoogleIcon } from "../svg/GoogleIcon";
 
-export const NAMED_ICONS: { [key: string]: any } = {
+export const NAMED_ICONS: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   file: FolderIcon,
   code: CodeBracketIcon,
   terminal: CommandLineIcon,

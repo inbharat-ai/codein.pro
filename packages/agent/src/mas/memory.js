@@ -672,6 +672,10 @@ class MemoryManager {
   }
 
   onTaskComplete(taskGraph) {
+    // Security fix: clear approve_always grants when a task ends so they
+    // don't leak into subsequent tasks within the same swarm session.
+    this.working.clearPermissionGrants();
+
     this.shortTerm.set(
       `task:${taskGraph.id}:completed`,
       new Date().toISOString(),

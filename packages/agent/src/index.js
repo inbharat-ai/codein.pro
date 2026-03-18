@@ -295,9 +295,15 @@ const server = http.createServer(async (req, res) => {
       req.url || "/",
       `http://${req.headers.host || "localhost"}`,
     );
-    // Strip /v1 API prefix for forward-compat versioning while keeping
+    // Strip versioned API prefixes for forward-compat while keeping
     // legacy un-prefixed routes working unchanged.
-    if (url.pathname.startsWith("/v1/") || url.pathname === "/v1") {
+    // Supported prefix forms (evaluated in order of specificity):
+    //   /api/v1/foo  →  /api/foo   (versioned canonical form)
+    //   /v1/foo      →  /foo       (short versioned form)
+    if (url.pathname.startsWith("/api/v1/") || url.pathname === "/api/v1") {
+      // /api/v1/foo → /api/foo  (preserves /api/ namespace used by some routes)
+      url.pathname = "/api" + (url.pathname.slice(7) || "/");
+    } else if (url.pathname.startsWith("/v1/") || url.pathname === "/v1") {
       url.pathname = url.pathname.slice(3) || "/";
     }
     requestLogger.info(
@@ -332,89 +338,10 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    // Public auth routes handled before JWT check
-    if (req.method === "POST" && url.pathname === "/auth/login") {
-      const raw = await readBody(req);
-      const parsed = parseJsonBody(raw);
-      if (!parsed.ok) {
-        jsonResponse(res, 400, { error: parsed.error });
-        return;
-      }
-
-      const validation = validateAndSanitizeInput(parsed.value, {
-        username: {
-          required: true,
-          type: "string",
-          minLength: 3,
-          maxLength: 100,
-          sanitize: true,
-        },
-        role: {
-          required: false,
-          type: "string",
-          minLength: 3,
-          maxLength: 30,
-          sanitize: true,
-        },
-      });
-
-      if (!validation.valid) {
-        jsonResponse(res, 400, { error: validation.errors.join(", ") });
-        return;
-      }
-
-      const username = validation.data.username;
-      const role = "developer";
-      const userId = crypto
-        .createHash("sha256")
-        .update(username)
-        .digest("hex")
-        .slice(0, 16);
-      const tokens = jwtManager.generateRefreshToken({
-        userId,
-        username,
-        role,
-      });
-
-      jsonResponse(res, 200, { success: true, ...tokens });
-      return;
-    }
-
-    if (req.method === "POST" && url.pathname === "/auth/refresh") {
-      const raw = await readBody(req);
-      const parsed = parseJsonBody(raw);
-      if (!parsed.ok) {
-        jsonResponse(res, 400, { error: parsed.error });
-        return;
-      }
-
-      const validation = validateAndSanitizeInput(parsed.value, {
-        refreshToken: {
-          required: true,
-          type: "string",
-          minLength: 20,
-          maxLength: 5000,
-        },
-      });
-
-      if (!validation.valid) {
-        jsonResponse(res, 400, { error: validation.errors.join(", ") });
-        return;
-      }
-
-      const refreshed = jwtManager.refreshAccessToken(
-        validation.data.refreshToken,
-      );
-      if (!refreshed.success) {
-        jsonResponse(res, 401, { error: "Unauthorized" });
-        return;
-      }
-
-      jsonResponse(res, 200, { success: true, ...refreshed });
-      return;
-    }
-
     // ─── JWT VERIFICATION FOR ALL PROTECTED ROUTES ──────────────
+    // NOTE: /auth/login and /auth/refresh are handled by the AppRouter
+    // (routes/auth.js) which enforces per-IP rate limiting. Inline duplicates
+    // were removed to prevent bypass of those rate limiters.
     const authPayload = authenticateJWTRequest(req, res, requestLogger);
     if (!authPayload && !isPublicRoute(req.method, url.pathname)) {
       return;
@@ -509,9 +436,13 @@ const server = http.createServer(async (req, res) => {
       "Unhandled request error",
     );
     const status = error.statusCode || 500;
-    jsonResponse(res, status, {
-      error: error instanceof Error ? error.message : "Unexpected error",
-    });
+    const clientMessage =
+      config.nodeEnv === "production"
+        ? "Internal server error"
+        : error instanceof Error
+          ? error.message
+          : "Unexpected error";
+    jsonResponse(res, status, { error: clientMessage });
   }
 });
 

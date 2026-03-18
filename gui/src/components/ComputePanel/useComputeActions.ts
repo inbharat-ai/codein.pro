@@ -2,9 +2,32 @@
 import { agentFetch } from "./compute-api";
 import type { Job } from "./compute-types";
 
+export interface ComputeBridge {
+  pauseJob(id: string): Promise<unknown>;
+  resumeJob(id: string): Promise<unknown>;
+  cancelJob(id: string): Promise<unknown>;
+  getJob(id: string): Promise<{ job?: Job } | Job>;
+  subscribeToJobEvents(
+    jobId: string,
+    handler: (eventName: string, rawPayload: unknown) => void,
+  ): () => void;
+  submitJob(params: {
+    goal: string;
+    policy: {
+      allowNetwork: boolean;
+      allowEscalation: boolean;
+      allowFSWrite: boolean;
+    };
+  }): Promise<{ job?: Job } | Job>;
+  runWorkflow(
+    name: string,
+    params: Record<string, unknown>,
+  ): Promise<{ job?: Job } | Job>;
+}
+
 interface UseComputeActionsOptions {
   activeJob: Job | null;
-  computeBridge: any;
+  computeBridge: ComputeBridge | null | undefined;
   useIpcCompute: boolean;
   setActiveJob: React.Dispatch<React.SetStateAction<Job | null>>;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
@@ -54,13 +77,13 @@ export function useComputeActions({
 
   const viewJob = async (jobId: string) => {
     try {
-      let result: any;
+      let result: { job?: Job } | Job;
       if (useIpcCompute && computeBridge) {
         result = await computeBridge.getJob(jobId);
       } else {
         result = await agentFetch<{ job: Job }>(`/compute/jobs/${jobId}`);
       }
-      const job = result.job || result;
+      const job = ("job" in result ? result.job : undefined) ?? (result as Job);
       setActiveJob(job as Job);
       if (job.status === "running" || job.status === "planning") {
         subscribeToJob(jobId);

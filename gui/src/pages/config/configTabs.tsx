@@ -12,8 +12,10 @@ import {
   QuestionMarkCircleIcon,
   RocketLaunchIcon,
   ServerStackIcon,
+  ShareIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 import { ConfigSection } from "./components/ConfigSection";
 import { ConfigsSection } from "./sections/ConfigsSection";
 import { DeploySection } from "./sections/DeploySection";
@@ -28,6 +30,7 @@ import { RunSection } from "./sections/RunSection";
 import { ToolsSection } from "./sections/ToolsSection";
 import { UserSettingsSection } from "./sections/UserSettingsSection";
 import { AgentActivitySection } from "./sections/AgentActivitySection";
+import { GitNexusSection } from "./sections/GitNexusSection";
 
 interface TabOption {
   id: string;
@@ -64,9 +67,11 @@ export const topTabSections: TabSection[] = [
         id: "models",
         label: "Models",
         component: (
-          <ConfigSection>
-            <ModelsSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <ModelsSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: <CubeIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
       },
@@ -74,9 +79,11 @@ export const topTabSections: TabSection[] = [
         id: "rules",
         label: "Rules",
         component: (
-          <ConfigSection>
-            <RulesSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <RulesSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: <PencilIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
       },
@@ -84,9 +91,11 @@ export const topTabSections: TabSection[] = [
         id: "tools",
         label: "Tools",
         component: (
-          <ConfigSection>
-            <ToolsSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <ToolsSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <WrenchScrewdriverIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
@@ -102,9 +111,11 @@ export const topTabSections: TabSection[] = [
         id: "agent-activity",
         label: "Agent Activity",
         component: (
-          <ConfigSection>
-            <AgentActivitySection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <AgentActivitySection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <ClipboardDocumentListIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
@@ -114,9 +125,11 @@ export const topTabSections: TabSection[] = [
         id: "run",
         label: "Run",
         component: (
-          <ConfigSection>
-            <RunSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <RunSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <PlayCircleIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
@@ -126,9 +139,11 @@ export const topTabSections: TabSection[] = [
         id: "git",
         label: "Git",
         component: (
-          <ConfigSection>
-            <GitSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <GitSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <CodeBracketSquareIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
@@ -138,9 +153,11 @@ export const topTabSections: TabSection[] = [
         id: "deploy",
         label: "Deploy",
         component: (
-          <ConfigSection>
-            <DeploySection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <DeploySection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <RocketLaunchIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
@@ -150,9 +167,11 @@ export const topTabSections: TabSection[] = [
         id: "mcp",
         label: "MCP",
         component: (
-          <ConfigSection>
-            <McpSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <McpSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <ServerStackIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
@@ -168,9 +187,11 @@ export const topTabSections: TabSection[] = [
         id: "configs",
         label: "Configs",
         component: (
-          <ConfigSection>
-            <ConfigsSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <ConfigsSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: <DocumentIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
       },
@@ -178,9 +199,11 @@ export const topTabSections: TabSection[] = [
         id: "organizations",
         label: "Organizations",
         component: (
-          <ConfigSection>
-            <OrganizationsSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <OrganizationsSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <BuildingOfficeIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
@@ -196,13 +219,27 @@ export const topTabSections: TabSection[] = [
         id: "indexing",
         label: "Indexing",
         component: (
-          <ConfigSection>
-            <IndexingSettingsSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <IndexingSettingsSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <CircleStackIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
         ),
+      },
+      {
+        id: "code-graph",
+        label: "Code Graph",
+        component: (
+          <ErrorBoundary>
+            <ConfigSection>
+              <GitNexusSection />
+            </ConfigSection>
+          </ErrorBoundary>
+        ),
+        icon: <ShareIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
       },
     ],
   },
@@ -216,9 +253,11 @@ export const bottomTabSections: TabSection[] = [
         id: "settings",
         label: "Settings",
         component: (
-          <ConfigSection>
-            <UserSettingsSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <UserSettingsSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: <Cog6ToothIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
       },
@@ -226,9 +265,11 @@ export const bottomTabSections: TabSection[] = [
         id: "help",
         label: "Help",
         component: (
-          <ConfigSection>
-            <HelpSection />
-          </ConfigSection>
+          <ErrorBoundary>
+            <ConfigSection>
+              <HelpSection />
+            </ConfigSection>
+          </ErrorBoundary>
         ),
         icon: (
           <QuestionMarkCircleIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />

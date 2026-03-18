@@ -13,7 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { MCPConnectionStatus, MCPServerStatus } from "core";
 import { BUILT_IN_GROUP_NAME } from "core/tools/builtIn";
-import { useContext, useMemo, useState } from "react";
+import { memo, useContext, useMemo, useState } from "react";
 import Alert from "../../../components/gui/Alert";
 import { ToolTip } from "../../../components/gui/Tooltip";
 import { useEditBlock } from "../../../components/mainInput/Lump/useEditBlock";
@@ -59,7 +59,7 @@ const ServerStatusColor: Record<MCPConnectionStatus, string> = {
   error: "bg-error",
 };
 
-function MCPServerPreview({
+const MCPServerPreview = memo(function MCPServerPreview({
   server,
   serverFromYaml,
   allToolsOff,
@@ -403,7 +403,7 @@ function MCPServerPreview({
       )}
     </div>
   );
-}
+});
 
 export function ToolsSection() {
   const availableTools = useAppSelector((state) => state.config.config.tools);

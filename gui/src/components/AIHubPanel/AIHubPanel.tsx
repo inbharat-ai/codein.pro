@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { EmptyState } from "../ui/EmptyState";
 import { LoadingPanel } from "../ui/LoadingState";
@@ -29,7 +29,7 @@ import {
 
 // ─── Status Dot ──────────────────────────────────────────────
 
-function StatusDot({ status }: { status: string }) {
+const StatusDot = memo(function StatusDot({ status }: { status: string }) {
   const colors: Record<string, string> = {
     healthy: "bg-green-500",
     untested: "bg-yellow-500",
@@ -42,11 +42,15 @@ function StatusDot({ status }: { status: string }) {
       title={status}
     />
   );
-}
+});
 
 // ─── Capability Badge ────────────────────────────────────────
 
-function CapabilityBadge({ label }: { label: string }) {
+const CapabilityBadge = memo(function CapabilityBadge({
+  label,
+}: {
+  label: string;
+}) {
   const capColors: Record<string, string> = {
     chat: "bg-blue-900/50 text-blue-300",
     completion: "bg-cyan-900/50 text-cyan-300",
@@ -63,7 +67,7 @@ function CapabilityBadge({ label }: { label: string }) {
       {label}
     </span>
   );
-}
+});
 
 // ─── Spinner ─────────────────────────────────────────────────
 
@@ -94,7 +98,11 @@ function Spinner({ size = "h-4 w-4" }: { size?: string }) {
 
 // ─── Model List ──────────────────────────────────────────────
 
-function ModelList({ models }: { models: ProviderModel[] }) {
+const ModelList = memo(function ModelList({
+  models,
+}: {
+  models: ProviderModel[];
+}) {
   if (models.length === 0) {
     return (
       <p className="text-codin-fg-muted py-2 text-center text-[10px]">
@@ -134,7 +142,7 @@ function ModelList({ models }: { models: ProviderModel[] }) {
       ))}
     </div>
   );
-}
+});
 
 // ─── Provider Card ───────────────────────────────────────────
 
@@ -412,7 +420,7 @@ function HealthDashboard() {
   );
 }
 
-function DashboardCard({
+const DashboardCard = memo(function DashboardCard({
   label,
   value,
   sub,
@@ -432,7 +440,7 @@ function DashboardCard({
       <div className="text-codin-fg-muted text-[9px]">{sub}</div>
     </div>
   );
-}
+});
 
 // ─── Main Panel ──────────────────────────────────────────────
 

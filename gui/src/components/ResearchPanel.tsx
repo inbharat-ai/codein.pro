@@ -27,12 +27,12 @@ export default function ResearchPanel() {
     try {
       const response =
         mode === "search"
-          ? await baseAgentFetch("/api/research/web-search", {
+          ? await baseAgentFetch("/api/v1/research/web-search", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ query, num_results: 10 }),
             })
-          : await baseAgentFetch("/api/research/code-documentation-search", {
+          : await baseAgentFetch("/api/v1/research/code-documentation-search", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

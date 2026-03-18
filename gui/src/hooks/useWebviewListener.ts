@@ -1,12 +1,12 @@
 import type { ToWebviewProtocol } from "core/protocol/index.js";
 import { Message } from "core/protocol/messenger";
-import { useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { IdeMessengerContext } from "../context/IdeMessenger";
 
 export function useWebviewListener<T extends keyof ToWebviewProtocol>(
   messageType: T,
   handler: (data: ToWebviewProtocol[T][0]) => Promise<ToWebviewProtocol[T][1]>,
-  dependencies?: any[],
+  dependencies?: React.DependencyList,
   skip?: boolean,
 ) {
   const ideMessenger = useContext(IdeMessengerContext);

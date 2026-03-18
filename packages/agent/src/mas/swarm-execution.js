@@ -20,6 +20,7 @@ const {
 } = require("./types");
 
 const { createTopologyScheduler } = require("./topologies");
+const { PermissionDeniedError } = require("./errors");
 const { createLogger } = require("./logger");
 
 // Optional modules — loaded lazily
@@ -593,6 +594,31 @@ function applyExecutionMethods(SwarmManager) {
           node.status = NODE_STATUS.CANCELLED;
           node.error = node.error || "Cancelled";
           node.completedAt = new Date().toISOString();
+          return;
+        }
+        // Permission denial is a terminal condition — retrying will not help.
+        // Release the agent explicitly here and null it out so the finally
+        // block does not attempt a second release.
+        if (err instanceof PermissionDeniedError) {
+          if (agent) {
+            try {
+              this._agentRouter.release(agent.id);
+            } catch {
+              // Already released — safe to ignore
+            }
+            agent = null;
+          }
+          node.status = NODE_STATUS.FAILED;
+          node.error = err.message;
+          node.completedAt = new Date().toISOString();
+          taskGraph.metadata.nodesFailed++;
+          this._memory.onNodeEnd(node);
+          this._broadcast(
+            createSwarmEvent({
+              type: EVENT_TYPE.NODE_FAILED,
+              data: { nodeId: node.id, error: node.error },
+            }),
+          );
           return;
         }
         // Retry logic — actually re-execute the node

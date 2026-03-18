@@ -1,5 +1,5 @@
 {
-  "name": "codin-electron",
+  "name": "@codein/electron-app",
   "productName": "CodeIn",
   "version": "1.0.0",
   "description": "CodeIn - Multilingual AI-powered code editor for Indian languages",

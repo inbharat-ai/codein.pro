@@ -9,11 +9,40 @@ const {
   validateAndSanitizeInput,
   handleRoute: _handleRoute,
 } = require("../utils/http-helpers");
+const { RateLimiter } = require("../utils/rate-limiter");
+
+function getClientIp(req) {
+  return (
+    req.socket?.remoteAddress ||
+    req.connection?.remoteAddress ||
+    req.ip ||
+    "0.0.0.0"
+  );
+}
+
+function checkRateLimit(limiter, key, res) {
+  const result = limiter.check(key);
+  if (!result.allowed) {
+    res.setHeader("Retry-After", Math.ceil(result.retryAfterMs / 1000));
+    jsonResponse(res, 429, {
+      error: "Rate limit exceeded",
+      retryAfterMs: result.retryAfterMs,
+      remaining: result.remaining,
+    });
+    return false;
+  }
+  return true;
+}
 
 function registerAuthRoutes(router, deps) {
   const { jwtManager } = deps;
 
+  // Per-route rate limiters for auth endpoints
+  const loginLimiter = new RateLimiter({ maxRequests: 5, windowMs: 60000 }); // 5 req/min per IP
+  const refreshLimiter = new RateLimiter({ maxRequests: 10, windowMs: 60000 }); // 10 req/min per IP
+
   router.post("/auth/login", async (req, res) => {
+    if (!checkRateLimit(loginLimiter, getClientIp(req), res)) return;
     const raw = await readBody(req);
     const parsed = parseJsonBody(raw);
     if (!parsed.ok) {
@@ -54,6 +83,7 @@ function registerAuthRoutes(router, deps) {
   });
 
   router.post("/auth/refresh", async (req, res) => {
+    if (!checkRateLimit(refreshLimiter, getClientIp(req), res)) return;
     const raw = await readBody(req);
     const parsed = parseJsonBody(raw);
     if (!parsed.ok) {

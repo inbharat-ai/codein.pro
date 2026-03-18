@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
-function useUpdatingRef<T>(value: T, deps: any[] = []) {
+function useUpdatingRef<T>(value: T, deps: React.DependencyList = []) {
   const ref = useRef(value);
 
   useEffect(() => {

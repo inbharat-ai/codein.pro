@@ -74,11 +74,12 @@ export function BackgroundModeView({
           // If we got here without error, GitHub is connected
           setShowGitHubSetup(false);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Check if error is related to GitHub token
+        const message = error instanceof Error ? error.message : String(error);
         if (
-          error?.message?.includes("GitHub token") ||
-          error?.message?.includes("GitHub App")
+          message.includes("GitHub token") ||
+          message.includes("GitHub App")
         ) {
           setShowGitHubSetup(true);
         }
@@ -93,7 +94,10 @@ export function BackgroundModeView({
   if (!session) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 px-4 py-8">
-        <RocketLaunchIcon className="text-description-muted h-16 w-16" />
+        <RocketLaunchIcon
+          className="text-description-muted h-16 w-16"
+          aria-hidden="true"
+        />
         <div className="max-w-md text-center">
           <h3 className="mb-2 text-lg font-semibold">Background Agents</h3>
           <p className="text-description mb-4 text-sm">
@@ -113,11 +117,18 @@ export function BackgroundModeView({
   }
 
   return (
-    <div className="flex flex-col gap-4 py-4">
+    <div
+      className="flex flex-col gap-4 py-4"
+      aria-live="polite"
+      aria-busy={isCreatingAgent}
+    >
       {!checkingGitHub && showGitHubSetup && (
         <div className="mx-2 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
           <div className="flex items-start gap-3">
-            <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0 text-yellow-600" />
+            <ExclamationTriangleIcon
+              className="h-5 w-5 flex-shrink-0 text-yellow-600"
+              aria-hidden="true"
+            />
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-yellow-900">
                 Connect GitHub

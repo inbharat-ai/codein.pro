@@ -31,6 +31,9 @@ const { IndianLanguageProcessor } = require("./indian-lang");
 const { CostRouter } = require("./cost-router");
 const { createLogger } = require("./logger");
 
+const log = createLogger("SwarmManager");
+const logger = createLogger("swarm-lifecycle");
+
 // Optional modules — loaded lazily to avoid startup errors if files don't exist yet
 let WorkspaceMemory,
   BackgroundTaskManager,
@@ -50,60 +53,71 @@ let WorkspaceMemory,
 try {
   ({ WorkspaceMemory } = require("./workspace-memory"));
 } catch {
+  logger.debug("Optional module not available: WorkspaceMemory");
   WorkspaceMemory = null;
 }
 try {
   ({ BackgroundTaskManager, TaskRecovery } = require("./background-tasks"));
 } catch {
+  logger.debug("Optional module not available: BackgroundTaskManager");
   BackgroundTaskManager = null;
   TaskRecovery = null;
 }
 try {
   ({ PluginManager, SkillRegistry } = require("./plugin-system"));
 } catch {
+  logger.debug("Optional module not available: PluginManager");
   PluginManager = null;
   SkillRegistry = null;
 }
 try {
   ({ DocGenerator } = require("./doc-generator"));
 } catch {
+  logger.debug("Optional module not available: DocGenerator");
   DocGenerator = null;
 }
 try {
   ({ TerminalManager } = require("./terminal-manager"));
 } catch {
+  logger.debug("Optional module not available: TerminalManager");
   TerminalManager = null;
 }
 try {
   ({ GitWorkflow } = require("./git-workflow"));
 } catch {
+  logger.debug("Optional module not available: GitWorkflow");
   GitWorkflow = null;
 }
 try {
   ({ AutonomousPlanner } = require("./autonomous-planner"));
 } catch {
+  logger.debug("Optional module not available: AutonomousPlanner");
   AutonomousPlanner = null;
 }
 try {
   ({ DockerSandbox } = require("./docker-sandbox"));
 } catch {
+  logger.debug("Optional module not available: DockerSandbox");
   DockerSandbox = null;
 }
 try {
   ({ SqliteMemoryStore, SqliteTaskQueue } = require("./sqlite-store"));
 } catch {
+  logger.debug("Optional module not available: SqliteMemoryStore");
   SqliteMemoryStore = null;
   SqliteTaskQueue = null;
 }
 try {
   ({ PluginHookManager, HOOK_EVENT } = require("./plugin-hooks"));
 } catch {
+  logger.debug("Optional module not available: PluginHookManager");
   PluginHookManager = null;
   HOOK_EVENT = null;
 }
 try {
   ({ SmartApply } = require("./smart-apply"));
 } catch {
+  logger.debug("Optional module not available: SmartApply");
   SmartApply = null;
 }
 
@@ -116,30 +130,33 @@ let AuditTrail,
 try {
   ({ AuditTrail } = require("./audit-trail"));
 } catch {
+  logger.debug("Optional module not available: AuditTrail");
   AuditTrail = null;
 }
 try {
   ({ EnhancedSkillRegistry } = require("./skill-registry"));
 } catch {
+  logger.debug("Optional module not available: EnhancedSkillRegistry");
   EnhancedSkillRegistry = null;
 }
 try {
   ({ ExecutionEngine } = require("./execution-engine"));
 } catch {
+  logger.debug("Optional module not available: ExecutionEngine");
   ExecutionEngine = null;
 }
 try {
   ({ ContextualMemory } = require("./contextual-memory"));
 } catch {
+  logger.debug("Optional module not available: ContextualMemory");
   ContextualMemory = null;
 }
 try {
   ({ WorkflowEngine } = require("./workflow-engine"));
 } catch {
+  logger.debug("Optional module not available: WorkflowEngine");
   WorkflowEngine = null;
 }
-
-const log = createLogger("SwarmManager");
 
 // ─── Swarm States ────────────────────────────────────────────
 const SWARM_STATE = Object.freeze({

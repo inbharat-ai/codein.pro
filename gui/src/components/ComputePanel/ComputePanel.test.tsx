@@ -22,11 +22,11 @@ vi.mock("./ComputeJobView", () => ({
 vi.mock("./ComputeArtifacts", () => ({
   ComputeArtifacts: () => <div data-testid="compute-artifacts" />,
 }));
-vi.mock("./ComputeLogs", () => ({
-  ComputeLogs: () => <div data-testid="compute-logs" />,
+vi.mock("./ComputeSSEFeed", () => ({
+  ComputeSSEFeed: () => <div data-testid="compute-sse-feed" />,
 }));
-vi.mock("./ComputeJobMetadata", () => ({
-  ComputeJobMetadata: () => <div data-testid="compute-job-metadata" />,
+vi.mock("./ComputeMetrics", () => ({
+  ComputeMetrics: () => <div data-testid="compute-metrics" />,
 }));
 vi.mock("./ComputeHistory", () => ({
   ComputeHistory: ({ jobs }: { jobs: Array<{ id: string; goal: string }> }) => (

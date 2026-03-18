@@ -19,7 +19,7 @@ import {
   DEFAULT_PLAN_SYSTEM_MESSAGE,
 } from "core/llm/defaultSystemMessages";
 import { getRuleDisplayName } from "core/llm/rules/rules-utils";
-import { useContext, useMemo, useState } from "react";
+import { memo, useCallback, useContext, useMemo, useState } from "react";
 import { DropdownButton } from "../../../components/DropdownButton";
 import AddRuleDialog from "../../../components/dialogs/AddRuleDialog";
 import ConfirmationDialog from "../../../components/dialogs/ConfirmationDialog";
@@ -58,7 +58,7 @@ interface PromptRowProps {
 /**
  * Displays a single prompt row with bookmark and edit controls
  */
-function PromptRow({
+const PromptRow = memo(function PromptRow({
   prompt,
   isBookmarked,
   setIsBookmarked,
@@ -66,26 +66,35 @@ function PromptRow({
 }: PromptRowProps) {
   const { mainEditor } = useMainEditor();
 
-  const handlePromptClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    mainEditor?.commands.insertPrompt({
-      title: prompt.name,
-      description: prompt.description,
-      content: prompt.prompt,
-    });
-  };
+  const handlePromptClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      mainEditor?.commands.insertPrompt({
+        title: prompt.name,
+        description: prompt.description,
+        content: prompt.prompt,
+      });
+    },
+    [mainEditor, prompt.name, prompt.description, prompt.prompt],
+  );
 
-  const handleBookmarkClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsBookmarked(!isBookmarked);
-  };
+  const handleBookmarkClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setIsBookmarked(!isBookmarked);
+    },
+    [setIsBookmarked, isBookmarked],
+  );
 
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onEdit) {
-      onEdit();
-    }
-  };
+  const handleEditClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onEdit) {
+        onEdit();
+      }
+    },
+    [onEdit],
+  );
 
   const canEdit = prompt.source !== "built-in";
 
@@ -126,7 +135,7 @@ function PromptRow({
       </div>
     </div>
   );
-}
+});
 
 interface RuleCardProps {
   rule: RuleWithSource;

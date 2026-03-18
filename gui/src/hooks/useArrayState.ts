@@ -3,7 +3,7 @@ import { useState } from "react";
 function useArrayState<T>(initialValue: T[]) {
   const [value, setValue] = useState(initialValue);
 
-  function add(item: any) {
+  function add(item: T) {
     setValue((prev) => [...prev, item]);
   }
 

@@ -1,5 +1,5 @@
 {
-  "name": "gui",
+  "name": "@codein/gui",
   "private": true,
   "type": "module",
   "author": "Continue Dev, Inc",

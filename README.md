@@ -16,7 +16,7 @@
 <!-- Primary Badges -->
 
 [![Version](https://img.shields.io/badge/v1.1.0-6366f1?style=for-the-badge&label=version)](https://github.com/AIS-Developers/CodeIn/releases)
-[![Tests](https://img.shields.io/badge/2,409_passing-10b981?style=for-the-badge&logo=vitest&logoColor=white&label=tests)](packages/agent/test/)
+[![Tests](https://img.shields.io/badge/2,429_passing-10b981?style=for-the-badge&logo=vitest&logoColor=white&label=tests)](packages/agent/test/)
 [![License](https://img.shields.io/badge/Apache_2.0-f97316?style=for-the-badge&label=license)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-6366f1?style=for-the-badge)](CONTRIBUTING.md)
 
@@ -29,7 +29,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js_20+-339933?style=flat-square&logo=node.js&logoColor=white)
 ![Redux](https://img.shields.io/badge/Redux_Toolkit-764ABC?style=flat-square&logo=redux&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite_5-646CFF?style=flat-square&logo=vite&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite_6-646CFF?style=flat-square&logo=vite&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)
@@ -48,7 +48,7 @@
 
 ## What is CodeIn?
 
-**CodeIn** (कोडइन) is a free, open-source AI coding IDE that combines **Cursor/Copilot-class workflows** with a multi-agent swarm system, 50+ LLM providers, local-first inference via llama.cpp, and multilingual intelligence for **19 Indian languages** — all under Apache 2.0.
+**CodeIn** is a free, open-source AI coding IDE that combines **Cursor/Copilot-class workflows** with a multi-agent swarm system, 50+ LLM providers, local-first inference via llama.cpp, and multilingual intelligence for **19 Indian languages** — all under Apache 2.0.
 
 <div align="center">
 
@@ -56,7 +56,7 @@
 
 </div>
 
-Not just autocomplete — CodeIn is a **full AI engineering system** with autonomous task planning, multi-agent orchestration, Docker sandboxing, Git workflow automation, and a real-time permission loop. Every AI action is auditable, cancellable, and runs locally by default.
+Not just autocomplete — CodeIn is a **full AI engineering system** with autonomous task planning, multi-agent orchestration, Docker sandboxing, Git workflow automation, code knowledge graph integration, and a real-time permission loop. Every AI action is auditable, cancellable, and runs locally by default.
 
 <br/>
 
@@ -70,12 +70,12 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 
 <table>
 <tr>
-<td align="center"><h3>🤖</h3><b>13</b><br/><sub>Agent Types</sub></td>
-<td align="center"><h3>🧪</h3><b>2,409</b><br/><sub>Tests Passing</sub></td>
-<td align="center"><h3>🔌</h3><b>50+</b><br/><sub>LLM Providers</sub></td>
-<td align="center"><h3>🌐</h3><b>19</b><br/><sub>Indian Languages</sub></td>
-<td align="center"><h3>🛡️</h3><b>27</b><br/><sub>Route Modules</sub></td>
-<td align="center"><h3>💰</h3><b>$0</b><br/><sub>Forever Free</sub></td>
+<td align="center"><h3>13</h3><b>Agent Types</b></td>
+<td align="center"><h3>2,429</h3><b>Tests Passing</b></td>
+<td align="center"><h3>50+</h3><b>LLM Providers</b></td>
+<td align="center"><h3>19</h3><b>Indian Languages</b></td>
+<td align="center"><h3>28</h3><b>Route Modules</b></td>
+<td align="center"><h3>$0</h3><b>Forever Free</b></td>
 </tr>
 </table>
 
@@ -96,15 +96,13 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 | AI Code Completion                    |    **Yes**     |       Yes       |       Yes        |        Yes        |
 | AI Chat & Agent Mode                  |    **Yes**     |       Yes       |       Yes        |        Yes        |
 | **Multi-Agent Swarm (13 agents)**     |    **Yes**     |       No        |        No        |        No         |
+| **Code Knowledge Graph (GitNexus)**   |    **Yes**     |       No        |        No        |        No         |
 | **100% Free & Open Source**           |    **Yes**     |       No        |        No        |        No         |
 | **Local AI via llama.cpp**            |    **Yes**     |       No        |        No        |        No         |
 | **50+ LLM Providers (BYO key)**       |    **Yes**     |        ~        |        No        |         ~         |
 | **19 Indian Language Detection**      |    **Yes**     |       No        |        No        |        No         |
 | **Docker Sandbox Execution**          |    **Yes**     |       No        |        No        |        No         |
 | **Autonomous Plan-Execute-Test Loop** |    **Yes**     |       No        |        No        |        No         |
-| **Dark + Light + System Theme**       |    **Yes**     |       Yes       |       Yes        |        Yes        |
-| **Auto-Update**                       |    **Yes**     |       Yes       |       Yes        |        Yes        |
-| **Chat History Persistence**          |    **Yes**     |       Yes       |       Yes        |        Yes        |
 | MCP Tool Protocol                     |      Yes       |       Yes       |        ~         |        Yes        |
 | Zero Telemetry                        |    **Yes**     |       No        |        No        |        No         |
 | **Price**                             | **$0 forever** |     $20/mo      |      $10/mo      |      $15/mo       |
@@ -131,8 +129,9 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 | **Multi-Agent Swarm**      | 13 specialized agent types working in concert. 4 topologies (pipeline, fan-out, round-robin, hierarchical). Circuit breakers, 3-tier blackboard memory, audit logging.            |
 | **AI Hub (50+ providers)** | OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, Together, Fireworks, OpenRouter, and more. Real-time health monitoring, model browser, cost tracking. |
 | **Local AI (llama.cpp)**   | Fully offline inference with automatic model download. Qwen2.5 Coder 1.5B included as default. No cloud dependency required.                                                      |
-| **Vibe Coding Mode**       | Describe intent in natural language → CodeIn plans, generates, refactors, validates, and iterates across files autonomously.                                                      |
-| **Autonomous Planner**     | Plan → Execute → Test → Diagnose → Revise → Retry loop with configurable retry limits and cost caps.                                                                              |
+| **Code Knowledge Graph**   | GitNexus integration for Cypher-queryable code graphs — impact analysis, execution flow tracing, community clustering, and hybrid BM25+semantic search.                           |
+| **Vibe Coding Mode**       | Describe intent in natural language — CodeIn plans, generates, refactors, validates, and iterates across files autonomously.                                                      |
+| **Autonomous Planner**     | Plan — Execute — Test — Diagnose — Revise — Retry loop with configurable retry limits and cost caps.                                                                              |
 
 ### Development Tools
 
@@ -141,7 +140,8 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 | **Docker Sandbox**          | Secure code execution with dropped capabilities, read-only root filesystem, resource limits (CPU, memory, disk), network isolation.           |
 | **Git Workflow Automation** | Branching, commits, diffs, staging, and PR creation — all orchestrated by the swarm agent with human approval gates.                          |
 | **Terminal Manager**        | Agent-controlled terminal sessions with timeout protection, history recording, and cross-platform shell support (bash, zsh, PowerShell, cmd). |
-| **MCP Tools**               | Connect to GitHub, Slack, Jira, Docker, Kubernetes, RunPod GPU — 10 built-in MCP tool integrations.                                           |
+| **MCP Tools**               | Connect to GitHub, Slack, Jira, Docker, Kubernetes, RunPod GPU — built-in MCP tool integrations plus any external MCP server.                 |
+| **Repo Intelligence**       | AST-backed symbol finding, call graph analysis, change impact analysis, semantic search, and safe multi-file refactoring.                     |
 | **Pipeline Panel**          | Visual CI/CD-style pipeline view for multi-step agent workflows.                                                                              |
 
 ### Intelligence & Localization
@@ -169,7 +169,7 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 
 | Feature                     | Description                                                                                                |
 | :-------------------------- | :--------------------------------------------------------------------------------------------------------- |
-| **Compute Routing**         | Local → Swarm → GPU (RunPod) automatic escalation with budget guardrails and session TTL.                  |
+| **Compute Routing**         | Local — Swarm — GPU (RunPod) automatic escalation with budget guardrails and session TTL.                  |
 | **GPU on Demand (RunPod)**  | Browse GPUs, spin up pods, submit serverless jobs. Budget cap ($100 default), auto-stop after 30 min idle. |
 | **SSE Real-Time Streaming** | Server-Sent Events for all agent actions, permission requests, task progress, and compute status.          |
 | **SQLite Persistence**      | Task queue, memory store, analytics — with graceful fallback to in-memory when SQLite unavailable.         |
@@ -194,7 +194,7 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 | **Plugin System**     | Hook-based plugin architecture with timeout protection, priority ordering, and lifecycle management. |
 | **Remote Plugins**    | Remote plugin protocol with heartbeat monitoring and automatic reconnection.                         |
 | **VS Code Extension** | Full integration with VS Code and JetBrains IDEs via the extension adapter.                          |
-| **Repo Intelligence** | Automatic codebase analysis — language detection, dependency graphing, architecture mapping.         |
+| **MCP Integration**   | Connect any MCP-compatible server — register, connect, discover tools, call with audit logging.      |
 
 </details>
 
@@ -208,34 +208,40 @@ Not just autocomplete — CodeIn is a **full AI engineering system** with autono
 
 ```mermaid
 graph TB
-    subgraph Clients["🖥️ Client Layer"]
+    subgraph Clients["Client Layer"]
         direction LR
-        EL["Electron Desktop"]
+        EL["Electron Desktop App"]
         EXT["IDE Extension<br/>(VS Code / JetBrains)"]
-        GUI["React GUI<br/>(221 components)"]
+        GUI["React GUI<br/>(466 source files)"]
     end
 
-    subgraph Agent["⚡ Agent Runtime — localhost:43120"]
+    subgraph Agent["Agent Runtime — localhost:43120"]
         direction LR
-        ROUTES["27 Route Modules<br/>auth · models · runtime<br/>i18n · research · mcp<br/>swarm · vibe · compute<br/>sessions · pipeline · health"]
+        ROUTES["28 Route Modules<br/>auth · models · runtime<br/>i18n · research · mcp · git<br/>swarm · vibe · compute<br/>gitnexus · repo-intelligence<br/>sessions · pipeline · status"]
         SEC["Security Layer<br/>JWT · Rate Limit<br/>Input Validation<br/>Injection Guard"]
     end
 
-    subgraph MAS["🤖 Multi-Agent Swarm Engine"]
+    subgraph MAS["Multi-Agent Swarm Engine"]
         direction LR
         AGENTS["13 Agent Types<br/>Planner · Coder · Debugger<br/>Tester · Architect · Security<br/>Reviewer · DevOps · Docs<br/>Refactorer · I18N · Vibe<br/>Browser"]
         TOPO["4 Topologies<br/>Pipeline · Fan-out<br/>Round-robin<br/>Hierarchical"]
         MEM["3-Tier Memory<br/>Working · Blackboard<br/>Persistent (SQLite)"]
     end
 
-    subgraph Infra["☁️ AI & Compute"]
+    subgraph Intelligence["Code Intelligence"]
         direction LR
-        LOCAL["🏠 Local AI<br/>llama.cpp<br/>Qwen2.5 Coder"]
-        CLOUD["☁️ Cloud AI<br/>50+ Providers<br/>OpenAI · Anthropic<br/>Gemini · Groq"]
-        GPU["🎮 GPU Cloud<br/>RunPod<br/>On-demand A100/H100"]
+        REPO["Repo Intelligence<br/>AST · Call Graph<br/>Impact Analysis"]
+        GRAPH["Code Knowledge Graph<br/>GitNexus (MCP)<br/>Cypher · Community<br/>Execution Flows"]
     end
 
-    subgraph Store["💾 Persistence"]
+    subgraph Infra["AI & Compute"]
+        direction LR
+        LOCAL["Local AI<br/>llama.cpp<br/>Qwen2.5 Coder"]
+        CLOUD["Cloud AI<br/>50+ Providers<br/>OpenAI · Anthropic<br/>Gemini · Groq"]
+        GPU["GPU Cloud<br/>RunPod<br/>On-demand A100/H100"]
+    end
+
+    subgraph Store["Persistence"]
         direction LR
         SQLITE["SQLite<br/>Tasks · Memory<br/>Analytics · Audit"]
         REDUX["Redux + Persist<br/>Chat History<br/>Settings · Tabs"]
@@ -243,6 +249,7 @@ graph TB
 
     Clients -->|"HTTP + SSE"| Agent
     Agent --> MAS
+    Agent --> Intelligence
     MAS --> Infra
     MAS --> Store
     Agent --> Store
@@ -250,6 +257,7 @@ graph TB
     style Clients fill:#1e1b4b,stroke:#6366f1,color:#e0def4
     style Agent fill:#1a1a2e,stroke:#f59e0b,color:#e0def4
     style MAS fill:#0f172a,stroke:#10b981,color:#e0def4
+    style Intelligence fill:#1a1a2e,stroke:#8b5cf6,color:#e0def4
     style Infra fill:#1e1b4b,stroke:#8b5cf6,color:#e0def4
     style Store fill:#1a1a2e,stroke:#6366f1,color:#e0def4
 ```
@@ -258,28 +266,28 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-    participant U as 👤 User
-    participant G as 🖥️ GUI (React)
-    participant A as ⚡ Agent Runtime
-    participant S as 🤖 Swarm Engine
-    participant P as 🔐 Permission Gate
-    participant AI as 🧠 LLM Provider
+    participant U as User
+    participant G as GUI (React)
+    participant A as Agent Runtime
+    participant S as Swarm Engine
+    participant P as Permission Gate
+    participant AI as LLM Provider
 
     U->>G: "Add JWT auth with tests"
-    G->>A: POST /api/swarm/task
+    G->>A: POST /api/v1/swarm/task
     A->>S: Create task graph
-    S->>S: Planner → decompose into subtasks
+    S->>S: Planner decomposes into subtasks
     S->>AI: Generate execution plan
-    AI-->>S: Plan: middleware → routes → tests
+    AI-->>S: Plan: middleware, routes, tests
     S->>P: Request: write auth.js
     P->>G: SSE: permission_request
     G->>U: "Allow write to auth.js?"
-    U->>G: ✅ Approve
-    G->>A: POST /api/permissions/respond
+    U->>G: Approve
+    G->>A: POST /api/v1/permissions/respond
     A->>S: Permission granted
     S->>AI: Generate code
     AI-->>S: Code for auth middleware
-    S->>S: Coder → Tester → Reviewer pipeline
+    S->>S: Coder, Tester, Reviewer pipeline
     S->>G: SSE: task_complete
     G->>U: Show results + diff
 ```
@@ -288,24 +296,24 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    subgraph App["📦 App Shell"]
+    subgraph App["App Shell"]
         Router["React Router<br/>7 routes"]
         Theme["Theme Provider<br/>Dark · Light · System"]
-        Redux["Redux Store<br/>11 slices · persist"]
+        Redux["Redux Store<br/>9 slices · persist"]
     end
 
-    subgraph Panels["🎨 Feature Panels"]
-        Chat["💬 Chat<br/>History · Streaming<br/>Tool calls · Markdown"]
-        Swarm["🤖 Swarm Dashboard<br/>Agent status · Topology<br/>Task graph · Metrics"]
-        Compute["⚡ Compute Panel<br/>SSE · Actions<br/>Submit · Monitor"]
-        Git["📁 Git Panel<br/>Status · Diff<br/>Branch · Commit"]
-        AI["🔌 AI Hub<br/>Providers · Models<br/>Health · Config"]
-        Models["📦 Model Manager<br/>Download · Status<br/>Local inference"]
-        MCP["🔧 MCP Tools<br/>GitHub · Slack<br/>Docker · RunPod"]
-        Voice["🎤 Voice Panel<br/>STT · TTS<br/>19 languages"]
+    subgraph Panels["Feature Panels"]
+        Chat["Chat<br/>History · Streaming<br/>Tool calls · Markdown"]
+        Swarm["Swarm Dashboard<br/>Agent status · Topology<br/>Task graph · Metrics"]
+        Compute["Compute Panel<br/>SSE · Actions<br/>Submit · Monitor"]
+        Git["Git Panel<br/>Status · Diff<br/>Branch · Commit"]
+        AI["AI Hub<br/>Providers · Models<br/>Health · Config"]
+        Graph["Code Graph<br/>GitNexus status<br/>Index · Query"]
+        MCP["MCP Tools<br/>Servers · Tools<br/>Audit log"]
+        Voice["Voice Panel<br/>STT · TTS<br/>19 languages"]
     end
 
-    subgraph Editor["✏️ Editor"]
+    subgraph Editor["Editor"]
         Monaco["Monaco Editor<br/>Syntax · IntelliSense"]
         Terminal["xterm.js Terminal<br/>Multi-session"]
         TipTap["TipTap Input<br/>@mentions · /commands"]
@@ -334,12 +342,12 @@ CodeIn's MAS (Multi-Agent Swarm) is the core orchestration engine. It coordinate
 ```
 User: "Add JWT auth to this Express API with tests"
 
-  🧠 Planner Agent    → Breaks into subtasks: middleware, routes, tests
-  📐 Architect Agent   → Designs auth flow, picks dependencies
-  💻 Coder Agent       → Implements middleware + route guards
-  🧪 Tester Agent      → Writes and runs test suite
-  👁️ Reviewer Agent    → Reviews code quality, flags issues
-  🛡️ Security Agent    → Audits for OWASP vulnerabilities
+  Planner Agent     -> Breaks into subtasks: middleware, routes, tests
+  Architect Agent   -> Designs auth flow, picks dependencies
+  Coder Agent       -> Implements middleware + route guards
+  Tester Agent      -> Writes and runs test suite
+  Reviewer Agent    -> Reviews code quality, flags issues
+  Security Agent    -> Audits for OWASP vulnerabilities
 
   All coordinated through pipeline topology with shared blackboard memory.
 ```
@@ -359,18 +367,18 @@ User: "Add JWT auth to this Express API with tests"
 | `DOCS`         | Documentation        | Generates API docs, READMEs, inline comments         |
 | `REVIEWER`     | Code review          | Quality gates, style enforcement, best practices     |
 | `I18N`         | Internationalization | Translation, locale support, RTL handling            |
-| `VIBE_BUILDER` | Full-feature builder | Natural language → complete feature implementation   |
+| `VIBE_BUILDER` | Full-feature builder | Natural language to complete feature implementation  |
 | `BROWSER`      | Web research         | LLM-simulated web interaction and research           |
 
 ### 4 Orchestration Topologies
 
 ```mermaid
 graph LR
-    subgraph Pipeline["🔗 Pipeline"]
+    subgraph Pipeline["Pipeline"]
         P1[Plan] --> P2[Code] --> P3[Test] --> P4[Review]
     end
 
-    subgraph Fanout["⚡ Fan-Out"]
+    subgraph Fanout["Fan-Out"]
         F0[Task] --> F1[Coder A]
         F0 --> F2[Coder B]
         F0 --> F3[Coder C]
@@ -383,17 +391,49 @@ graph LR
 
 | Topology         | Use Case             | How It Works                                                             |
 | :--------------- | :------------------- | :----------------------------------------------------------------------- |
-| **Pipeline**     | Sequential workflows | Agent chain: plan → code → test → review. Each stage feeds the next.     |
+| **Pipeline**     | Sequential workflows | Agent chain: plan, code, test, review. Each stage feeds the next.        |
 | **Fan-out**      | Parallel execution   | Multiple agents work simultaneously on independent subtasks, then merge. |
 | **Round-robin**  | Load balancing       | Tasks distributed evenly across available agents of the same type.       |
 | **Hierarchical** | Complex projects     | Manager agent delegates to specialist sub-agents, aggregates results.    |
 
 ### Safety & Control
 
-- **Circuit Breakers** — Agents that fail repeatedly are automatically suspended
+- **Circuit Breakers** — Agents that fail repeatedly are automatically suspended (LLM timeout + 5s buffer)
 - **Permission Gate** — Every destructive action requires explicit user approval via SSE
 - **Budget Caps** — Per-task and per-session cost limits prevent runaway spending
 - **Audit Trail** — Every agent action logged with timestamp, decision rationale, and cost
+- **Permission Isolation** — `approve_always` grants are scoped to a single task, cleared on task completion
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,14,20&height=2&section=header" width="100%"/>
+
+<br/>
+
+## Code Knowledge Graph
+
+CodeIn integrates with [GitNexus](https://github.com/abhigyanpatwari/GitNexus) as an optional external MCP server for deep code intelligence:
+
+| Capability         | Description                                                             |
+| :----------------- | :---------------------------------------------------------------------- |
+| **query**          | Hybrid BM25+semantic search, returns ranked execution flows             |
+| **context**        | 360-degree view of any symbol — callers, callees, process participation |
+| **impact**         | Blast radius analysis with depth grouping (d=1 WILL BREAK, d=2 LIKELY)  |
+| **detect_changes** | Git diff mapped to affected symbols and execution flows                 |
+| **rename**         | Graph-guided multi-file coordinated rename with confidence tagging      |
+| **cypher**         | Raw Cypher queries against the code knowledge graph                     |
+
+Setup via **Settings > Code Graph** or the agent API:
+
+```bash
+# Check status
+curl http://127.0.0.1:43120/api/v1/gitnexus/status
+
+# Full setup: install check, index, register MCP server
+curl -X POST http://127.0.0.1:43120/api/v1/gitnexus/setup
+```
+
+GitNexus runs as a separate process (PolyForm Noncommercial license) — CodeIn communicates via the MCP protocol. All existing features work unchanged without it.
 
 <br/>
 
@@ -489,43 +529,24 @@ Azure OpenAI · AWS Bedrock<br/>Google VertexAI · Nvidia NIM
 
 <br/>
 
-## GPU on Demand — RunPod Integration
-
-| MCP Tool               | What it does                                        |
-| :--------------------- | :-------------------------------------------------- |
-| `runpod_connect`       | Store your RunPod API key securely                  |
-| `runpod_list_gpus`     | Browse available GPUs with live pricing             |
-| `runpod_create_pod`    | Spin up an on-demand GPU pod (A100, H100, RTX 4090) |
-| `runpod_stop_pod`      | Stop pod (preserves volume for later)               |
-| `runpod_terminate_pod` | Destroy pod + volume permanently                    |
-| `runpod_run_job`       | Submit serverless inference jobs                    |
-
-**Safety:** Budget cap ($100/session default), TTL timer (auto-stop 30 min), idle shutdown (10 min), per-minute cost tracking with SSE alerts.
-
-<br/>
-
-<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=12,14,20&height=2&section=header" width="100%"/>
-
-<br/>
-
 ## Security Model
 
 ```mermaid
 graph TB
-    subgraph Perimeter["🔐 Request Perimeter"]
+    subgraph Perimeter["Request Perimeter"]
         JWT["JWT Auth"]
         RATE["Rate Limiter<br/>Sliding window"]
         VALID["Input Validation<br/>Path traversal · Shell injection"]
         INJECT["Injection Guard<br/>Prompt injection detection"]
     end
 
-    subgraph Execution["⚙️ Execution Sandbox"]
+    subgraph Execution["Execution Sandbox"]
         PERM["Permission Gate<br/>Fail-closed · User approval"]
         DOCKER["Docker Sandbox<br/>Dropped caps · Read-only root<br/>Resource limits · No network"]
         AUDIT["Audit Logger<br/>Every action · Timestamped<br/>Agent ID · Rationale"]
     end
 
-    subgraph Data["🔒 Data Protection"]
+    subgraph Data["Data Protection"]
         REDACT["Secret Redaction<br/>API keys masked in logs"]
         ZERO["Zero Telemetry<br/>No tracking · No phone-home"]
         LOCAL["Local-First<br/>All data stays on your machine"]
@@ -585,8 +606,8 @@ npm run dev
 ### 5. Verify
 
 ```bash
-curl http://127.0.0.1:43120/api/health
-# → { "status": "ok", "uptime": 42, ... }
+curl http://127.0.0.1:43120/api/v1/health
+# { "status": "ok", "uptime": 42, ... }
 ```
 
 ### Choose Your Interface
@@ -616,10 +637,13 @@ CodeIn/
 │
 ├── packages/agent/                 # Core agent runtime (Node.js)
 │   ├── src/
-│   │   ├── index.js                #   HTTP server entry (27 route modules)
+│   │   ├── index.js                #   HTTP server (28 route modules, API v1)
+│   │   ├── subsystem-loader.js     #   Optional subsystem loading (fail-safe)
 │   │   ├── mas/                    #   Multi-Agent Swarm engine
 │   │   │   ├── swarm-manager.js    #     Orchestrator (4 topologies, lifecycle)
+│   │   │   ├── swarm-execution.js  #     Task execution with retry + permission
 │   │   │   ├── agents/             #     13 agent implementations
+│   │   │   │   └── base-agent.js   #       Base class (circuit breaker, memory)
 │   │   │   ├── memory.js           #     3-tier blackboard memory
 │   │   │   ├── permissions.js      #     Fail-closed permission gate
 │   │   │   ├── autonomous-planner.js    # Plan-execute-test loop
@@ -629,58 +653,70 @@ CodeIn/
 │   │   │   ├── sqlite-store.js          # Persistent storage
 │   │   │   ├── plugin-system.js         # Hook-based plugins
 │   │   │   └── audit-trail.js           # Action audit logging
-│   │   ├── routes/                 #   27 HTTP route modules
+│   │   ├── routes/                 #   28 HTTP route modules
+│   │   │   ├── registry.js         #     Dependency-injected route registration
 │   │   │   ├── auth.js             #     JWT authentication
-│   │   │   ├── models.js           #     Model management
 │   │   │   ├── swarm.js            #     Swarm task submission
 │   │   │   ├── compute.js          #     Compute routing
-│   │   │   ├── mcp-tools.js        #     MCP integrations
-│   │   │   ├── i18n.js             #     Language detection
-│   │   │   ├── vibe.js             #     Vibe coding mode
-│   │   │   └── ...                 #     20 more route modules
+│   │   │   ├── mcp.js              #     MCP server management
+│   │   │   ├── gitnexus.js         #     Code graph integration
+│   │   │   ├── repo-intelligence.js#     AST-backed code analysis
+│   │   │   └── ...                 #     21 more route modules
+│   │   ├── gitnexus/               #   GitNexus MCP integration service
+│   │   │   └── service.js          #     Install, index, staleness, MCP registration
+│   │   ├── mcp/                    #   MCP client manager
+│   │   │   └── client-manager.js   #     Server lifecycle, tool registry, audit
 │   │   ├── ai-hub/                 #   Multi-provider AI management
-│   │   │   ├── hub-manager.js      #     Provider orchestration
-│   │   │   ├── provider-registry.js     # Key + health tracking
-│   │   │   └── adapters/           #     OpenAI-compat, Gemini adapters
+│   │   ├── repo-intelligence/      #   Code analysis engine
+│   │   ├── intelligence/           #   Hybrid intelligence orchestrator
 │   │   └── security/               #   Sandbox, validators, rate limiter
-│   └── test/                       #   107 test suites, 1,770 tests
+│   └── test/                       #   193 test suites, 1,788 tests
 │
-├── gui/                            # React 18 + Redux Toolkit + Vite
+├── gui/                            # React 18 + Redux Toolkit + Vite 6
 │   ├── src/
-│   │   ├── components/             #   221 React components
+│   │   ├── components/             #   466 source files
 │   │   │   ├── SwarmPanel/         #     Swarm dashboard
 │   │   │   ├── AIHubPanel/         #     AI provider management
-│   │   │   ├── ComputePanel/       #     GPU & compute (4 hooks)
+│   │   │   ├── ComputePanel/       #     GPU & compute (4 sub-components)
 │   │   │   ├── GpuPanel/           #     RunPod GPU management
 │   │   │   ├── MediaPanel/         #     Voice/TTS/media
-│   │   │   ├── UpdateNotification  #     Auto-update banner
 │   │   │   └── ui/                 #     Reusable: EmptyState, Toast, etc.
 │   │   ├── hooks/                  #   Custom hooks (useTheme, etc.)
-│   │   ├── redux/                  #   11 slices + thunks + persist
-│   │   ├── styles/                 #   CSS themes (dark + light)
-│   │   └── pages/                  #   7 route pages
-│   └── src/**/*.test.tsx           #   54 test files, 556 tests
+│   │   ├── redux/                  #   9 slices + persist
+│   │   ├── pages/
+│   │   │   ├── gui/                #   Chat (decomposed: Header, MessageList,
+│   │   │   │                       #     Footer, useSendInput)
+│   │   │   └── config/             #   Settings: Models, Rules, Tools, MCP,
+│   │   │                           #     Code Graph, Git, Deploy, Indexing
+│   │   └── styles/                 #   CSS themes (dark + light)
+│   └── src/**/*.test.tsx           #   68 test files, 641 tests
 │
-├── electron-app/                   # Electron desktop shell
+├── electron-app/                   # Electron 28 desktop shell
 │   ├── src/main/
 │   │   ├── main.ts                 #   App lifecycle + service init
 │   │   ├── WindowManager.ts        #   Window creation + management
-│   │   ├── AppMenu.ts              #   Native menu bar
-│   │   └── services/               #   9 backend services
-│   │       ├── AgentService.ts     #     Agent runtime bridge
+│   │   └── services/               #   10 backend services
+│   │       ├── AgentService.ts     #     Agent runtime bridge (port 43120)
 │   │       ├── AutoUpdateService.ts     # electron-updater integration
 │   │       ├── FileSystemService.ts     # File operations
 │   │       ├── GitService.ts            # Git operations
 │   │       ├── TerminalService.ts       # PTY terminals
 │   │       ├── ModelManagerService.ts   # Local model management
 │   │       ├── MediaService.ts          # STT/TTS
-│   │       └── ...
+│   │       └── ...                      # 3 more services
 │   └── src/preload/                #   Secure IPC bridge
 │
-├── core/                           # Shared engine/runtime modules
+├── core/                           # Shared TypeScript types & utilities
+│   ├── tools/                      #   Tool system (definitions, policies)
+│   ├── indexing/                   #   CodebaseIndexer, LanceDB, FTS
+│   ├── autocomplete/               #   Autocomplete engine
+│   ├── context/                    #   Context assembly
+│   └── protocol/                   #   IPC protocol definitions
+│
 ├── packages/extension/             # VS Code / JetBrains adapter
 ├── landing/                        # Public website
 │
+├── ARCHITECTURE.md                 # Detailed technical architecture
 ├── CONTRIBUTING.md
 ├── SECURITY.md
 ├── LICENSE                         # Apache 2.0
@@ -699,19 +735,19 @@ CodeIn/
 
 ### Test Suite Summary
 
-| Package          | Runner                   |  Suites |     Tests | Status                 |
-| :--------------- | :----------------------- | ------: | --------: | :--------------------- |
-| `packages/agent` | Node.js test runner      |     184 |     1,770 | All passing            |
-| `gui`            | Vitest + Testing Library |      68 |       639 | 637 passing, 2 timeout |
-| **Total**        |                          | **252** | **2,409** | **2,407 passing**      |
+| Package          | Runner                   |  Suites |     Tests | Status          |
+| :--------------- | :----------------------- | ------: | --------: | :-------------- |
+| `packages/agent` | Node.js test runner      |     193 |     1,788 | All passing     |
+| `gui`            | Vitest + Testing Library |      68 |       641 | All passing     |
+| **Total**        |                          | **261** | **2,429** | **All passing** |
 
 ### Run Tests
 
 ```bash
-# Agent runtime tests
+# Agent runtime tests (193 suites, 1,788 tests)
 cd packages/agent && npm test
 
-# GUI component + integration tests
+# GUI component + integration tests (68 files, 641 tests)
 cd gui && npx vitest run
 
 # TypeScript type check (zero errors)
@@ -721,7 +757,7 @@ cd gui && npx tsc --noEmit
 cd gui && npm run build
 ```
 
-**Coverage areas:** Swarm orchestration, agent lifecycle, HTTP routes, security validators, SQLite persistence, AI Hub adapters, plugin system, terminal management, Redux state, React components, streaming, tool calls, error boundaries, empty/loading states.
+**Coverage areas:** Swarm orchestration, agent lifecycle, circuit breakers, permission isolation, HTTP routes, security validators, SQLite persistence, AI Hub adapters, plugin system, terminal management, GitNexus integration, Redux state, React components, streaming, tool calls, error boundaries, empty/loading states.
 
 <br/>
 
@@ -804,7 +840,7 @@ _Making AI coding accessible to everyone, in every language_
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)
 
-<sub>If CodeIn helps you, give it a star — it means the world to us!</sub>
+<sub>If CodeIn helps you, give it a star!</sub>
 
 </div>
 

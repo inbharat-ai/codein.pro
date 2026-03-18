@@ -26,6 +26,7 @@ function loadSubsystems(opts = {}) {
   let permissionManager = null;
   let externalProviders = null;
   let intelligence = null;
+  let gitNexusService = null;
 
   try {
     ({ modelRuntime } = require("./model-runtime/index.js"));
@@ -102,6 +103,18 @@ function loadSubsystems(opts = {}) {
     );
   }
 
+  // GitNexus code-intelligence graph (external MCP service wrapper)
+  try {
+    const { createGitNexusService } = require("./gitnexus/service.js");
+    gitNexusService = createGitNexusService({
+      logger,
+      mcpClientManager,
+    });
+    logger.info("GitNexus service initialized");
+  } catch (err) {
+    logger.warn({ error: err.message }, "GitNexus service failed to load");
+  }
+
   return {
     modelRuntime,
     modelRouter,
@@ -113,6 +126,7 @@ function loadSubsystems(opts = {}) {
     permissionManager,
     externalProviders,
     intelligence,
+    gitNexusService,
   };
 }
 

@@ -74,7 +74,7 @@ function DropdownIcon(props: { className?: string; item: ComboBoxItem }) {
 
 interface AtMentionDropdownProps {
   items: ComboBoxItem[];
-  command: (item: any) => void;
+  command: (item: ComboBoxItem & { itemType: ComboBoxItemType }) => void;
 
   editor: Editor;
   enterSubmenu?: (editor: Editor, providerId: string) => void;

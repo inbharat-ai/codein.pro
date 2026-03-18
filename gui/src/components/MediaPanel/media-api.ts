@@ -2,6 +2,8 @@
 
 const ipc = window.electron?.ipcRenderer;
 
+const MEDIA_BASE = "http://127.0.0.1:43130";
+
 export async function mediaInvoke(
   channel: string,
   ...args: any[]
@@ -10,7 +12,6 @@ export async function mediaInvoke(
     return ipc.invoke(channel, ...args);
   }
   // Fallback for web dev mode: direct HTTP to media service
-  const MEDIA_BASE = "http://127.0.0.1:43130";
   const endpointMap: Record<string, string> = {
     "media:health": "/health",
     "media:modelsStatus": "/models/status",

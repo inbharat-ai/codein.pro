@@ -1,9 +1,10 @@
 /** Submit job and run workflow logic for compute jobs. */
 import { agentFetch } from "./compute-api";
+import type { ComputeBridge } from "./useComputeActions";
 import type { Job } from "./compute-types";
 
 interface UseComputeSubmitOptions {
-  computeBridge: any;
+  computeBridge: ComputeBridge | null | undefined;
   useIpcCompute: boolean;
   allowNetwork: boolean;
   allowEscalation: boolean;
@@ -31,7 +32,7 @@ export function useComputeSubmit({
     setError(null);
 
     try {
-      let result: any;
+      let result: { job?: Job } | Job;
       if (useIpcCompute && computeBridge) {
         result = await computeBridge.submitJob({
           goal: goal.trim(),
@@ -47,7 +48,7 @@ export function useComputeSubmit({
         });
       }
 
-      const job = result.job || result;
+      const job = "job" in result ? (result.job ?? result) : result;
       setActiveJob(job as Job);
       subscribeToJob((job as Job).id);
       return job as Job;
@@ -63,7 +64,7 @@ export function useComputeSubmit({
     setIsSubmitting(true);
     setError(null);
     try {
-      let result: any;
+      let result: { job?: Job } | Job;
       if (useIpcCompute && computeBridge) {
         result = await computeBridge.runWorkflow(name, {});
       } else {
@@ -73,7 +74,7 @@ export function useComputeSubmit({
         });
       }
 
-      const job = result.job || result;
+      const job = "job" in result ? (result.job ?? result) : result;
       setActiveJob(job as Job);
       subscribeToJob((job as Job).id);
       return job as Job;

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { AGENT_BASE, agentFetch } from "./compute-api";
 import type { Job } from "./compute-types";
+import type { ComputeBridge } from "./useComputeActions";
 
 const SSE_EVENTS = [
   "job.progress",
@@ -15,7 +16,7 @@ const SSE_EVENTS = [
 ] as const;
 
 interface UseComputeSSEOptions {
-  computeBridge: any;
+  computeBridge: ComputeBridge | null | undefined;
   useIpcCompute: boolean;
   setActiveJob: React.Dispatch<React.SetStateAction<Job | null>>;
   loadJobs: () => Promise<void>;
@@ -35,7 +36,7 @@ export function useComputeSSE({
         eventSubscriptionRef.current.close();
       }
 
-      const parsePayload = (raw: any) => {
+      const parsePayload = (raw: unknown) => {
         if (!raw) return null;
         if (typeof raw === "string") {
           try {
@@ -47,7 +48,7 @@ export function useComputeSSE({
         return raw;
       };
 
-      const handleEvent = (eventName: string, rawPayload: any) => {
+      const handleEvent = (eventName: string, rawPayload: unknown) => {
         const payload = parsePayload(rawPayload);
         if (!payload) return;
 
@@ -83,8 +84,9 @@ export function useComputeSSE({
             useIpcCompute && computeBridge
               ? computeBridge.getJob(jobId)
               : agentFetch<{ job: Job }>(`/compute/jobs/${jobId}`);
-          Promise.resolve(fetchJob).then((result: any) => {
-            const job = result.job || result;
+          Promise.resolve(fetchJob).then((result: { job?: Job } | Job) => {
+            const job =
+              ("job" in result ? result.job : undefined) ?? (result as Job);
             setActiveJob(job);
           });
           return;
@@ -104,8 +106,9 @@ export function useComputeSSE({
             useIpcCompute && computeBridge
               ? computeBridge.getJob(jobId)
               : agentFetch<{ job: Job }>(`/compute/jobs/${jobId}`);
-          Promise.resolve(fetchJob).then((result: any) => {
-            const job = result.job || result;
+          Promise.resolve(fetchJob).then((result: { job?: Job } | Job) => {
+            const job =
+              ("job" in result ? result.job : undefined) ?? (result as Job);
             setActiveJob(job);
             loadJobs();
           });
@@ -129,8 +132,9 @@ export function useComputeSSE({
             useIpcCompute && computeBridge
               ? computeBridge.getJob(jobId)
               : agentFetch<{ job: Job }>(`/compute/jobs/${jobId}`);
-          Promise.resolve(fetchJob).then((result: any) => {
-            const job = result.job || result;
+          Promise.resolve(fetchJob).then((result: { job?: Job } | Job) => {
+            const job =
+              ("job" in result ? result.job : undefined) ?? (result as Job);
             setActiveJob(job);
             loadJobs();
           });

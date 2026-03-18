@@ -209,7 +209,7 @@ export class AgentService {
     fromLang: string,
     toLang: string,
   ): Promise<string> {
-    const result = await this.callAgent("/api/translate", {
+    const result = await this.callAgent("/api/v1/translate", {
       text,
       source_language: fromLang,
       target_language: toLang,
@@ -221,7 +221,7 @@ export class AgentService {
    * Detect language
    */
   public async detectLanguage(text: string): Promise<string> {
-    const result = await this.callAgent("/api/detect-language", { text });
+    const result = await this.callAgent("/api/v1/detect-language", { text });
     return result.language;
   }
 
@@ -229,7 +229,7 @@ export class AgentService {
    * Get supported languages
    */
   public async getSupportedLanguages(): Promise<any[]> {
-    const result = await this.callAgent("/api/languages");
+    const result = await this.callAgent("/api/v1/languages");
     return result.languages;
   }
 
@@ -264,7 +264,7 @@ export class AgentService {
     prompt: string,
     options?: any,
   ): Promise<string> {
-    const result = await this.callAgent("/api/completion", {
+    const result = await this.callAgent("/api/v1/completion", {
       prompt,
       ...options,
     });
@@ -293,7 +293,7 @@ export class AgentService {
         {
           hostname: "localhost",
           port: this.agentPort,
-          path: "/api/completion/stream",
+          path: "/api/v1/completion/stream",
           method: "POST",
           headers: {
             "Content-Type": "application/json",

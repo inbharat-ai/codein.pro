@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setSession(session);
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Login request failed, propagate error
       // Let the error propagate so the caller can handle it
       throw error;
