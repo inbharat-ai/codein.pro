@@ -422,11 +422,11 @@ curl http://127.0.0.1:43120/api/v1/health
 
 ### Download pre-built binaries
 
-| Platform    | Format                    | Link                                                                  |
-| :---------- | :------------------------ | :-------------------------------------------------------------------- |
-| **Windows** | NSIS installer + portable | [Releases](https://github.com/inbharat-ai/codein.pro/releases/latest) |
-| **macOS**   | DMG + ZIP + PKG           | [Releases](https://github.com/inbharat-ai/codein.pro/releases/latest) |
-| **Linux**   | AppImage + DEB + RPM      | [Releases](https://github.com/inbharat-ai/codein.pro/releases/latest) |
+| Platform    | Format                      | Link                                                                  |
+| :---------- | :-------------------------- | :-------------------------------------------------------------------- |
+| **Windows** | NSIS installer + portable   | [Releases](https://github.com/inbharat-ai/codein.pro/releases/latest) |
+| **macOS**   | DMG (Intel + Apple Silicon) | [Releases](https://github.com/inbharat-ai/codein.pro/releases/latest) |
+| **Linux**   | AppImage + DEB              | [Releases](https://github.com/inbharat-ai/codein.pro/releases/latest) |
 
 ### VS Code Extension
 
