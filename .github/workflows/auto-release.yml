@@ -12,11 +12,12 @@ on:
 jobs:
   create-vscode-release:
     runs-on: ubuntu-latest
+    if: github.repository == 'inbharat-ai/codein.pro'
     permissions:
       contents: write # Needed for creating releases
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Get version from package.json
         id: get_version
@@ -41,11 +42,12 @@ jobs:
 
   create-jetbrains-release:
     runs-on: ubuntu-latest
+    if: github.repository == 'inbharat-ai/codein.pro'
     permissions:
       contents: write # Needed for creating releases
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

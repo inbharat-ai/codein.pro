@@ -476,7 +476,7 @@ jobs:
   release:
     needs: [build-win-x64, build-mac, build-linux-x64]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: github.repository == 'inbharat-ai/codein.pro' && (startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch')
     steps:
       - uses: actions/checkout@v4
 

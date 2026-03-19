@@ -6,14 +6,14 @@ on:
 
 jobs:
   label-pr:
-    if: github.event.pull_request.merged == true
+    if: github.repository == 'inbharat-ai/codein.pro' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
       
       - name: Check if author is in tier list
         id: check-author

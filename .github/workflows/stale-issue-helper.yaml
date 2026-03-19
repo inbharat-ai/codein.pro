@@ -9,6 +9,7 @@ jobs:
       issues: write
       pull-requests: write
     runs-on: ubuntu-latest
+    if: github.repository == 'inbharat-ai/codein.pro'
     steps:
       - uses: actions/stale@v10
         with:
