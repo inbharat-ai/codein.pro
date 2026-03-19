@@ -1,4 +1,4 @@
 !macro customInstall
   DetailPrint "Running CodIn local modules bootstrap..."
-  ExecWait '"$INSTDIR\\CodIn.exe" --bootstrap-only'
+  ExecWait '"$INSTDIR\\CodeIn.exe" --bootstrap-only'
 !macroend

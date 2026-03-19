@@ -3,7 +3,7 @@
  * Entry point for the standalone Electron application
  */
 
-import { app, BrowserWindow, ipcMain, session } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, session } from "electron";
 import { buildAppMenu } from "./AppMenu";
 import { WindowManager } from "./WindowManager";
 import { IpcHandler } from "./ipc/IpcHandler";
@@ -111,6 +111,10 @@ class CodeInApp {
       this.autoUpdateService.checkForUpdates();
     } catch (error) {
       console.error("CodeIn: Failed to create window:", error);
+      dialog.showErrorBox(
+        "CodeIn failed to start",
+        `${error instanceof Error ? error.message : String(error)}\n\nTry reinstalling the latest release.`,
+      );
       app.quit();
     }
   }

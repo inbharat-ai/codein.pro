@@ -4,6 +4,7 @@
  */
 
 import { BrowserWindow, screen, session } from "electron";
+import * as fs from "fs";
 import Store from "electron-store";
 import * as path from "path";
 
@@ -111,6 +112,11 @@ export class WindowManager {
     } else {
       // In production, load from extra resources
       const guiPath = path.join(process.resourcesPath, "gui", "index.html");
+      if (!fs.existsSync(guiPath)) {
+        throw new Error(
+          `Packaged GUI not found at ${guiPath}. The installer may be incomplete. Please reinstall from the latest release.`,
+        );
+      }
       await this.mainWindow.loadFile(guiPath);
     }
   }
