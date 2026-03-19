@@ -240,6 +240,24 @@ class CodeInApp {
     this.ipcHandler.register();
   }
 
+  private registerAutoUpdateIpc(): void {
+    ipcMain.on("download-update", async () => {
+      if (this.autoUpdateService) {
+        try {
+          await this.autoUpdateService.downloadUpdate();
+        } catch (err) {
+          console.warn("[AutoUpdate] Download failed:", err);
+        }
+      }
+    });
+
+    ipcMain.on("quit-and-install", () => {
+      if (this.autoUpdateService) {
+        this.autoUpdateService.quitAndInstall();
+      }
+    });
+  }
+
   private onWindowAllClosed(): void {
     // On macOS, keep app running even when all windows closed
     if (process.platform !== "darwin") {

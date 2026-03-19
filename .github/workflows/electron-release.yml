@@ -204,6 +204,9 @@ jobs:
       - name: Build GUI
         working-directory: gui
         run: |
+          # Remove lockfile so npm regenerates platform-specific optional deps
+          # (fixes npm#4828: @rollup/rollup-darwin-arm64 not installed from Windows lockfile)
+          rm -f package-lock.json
           npm install
           npm run build
 
@@ -285,6 +288,9 @@ jobs:
       - name: Build GUI
         working-directory: gui
         run: |
+          # Remove lockfile so npm regenerates platform-specific optional deps
+          # (fixes npm#4828: @rollup/rollup-linux-x64-gnu not installed from Windows lockfile)
+          rm -f package-lock.json
           npm install
           npm run build
 
