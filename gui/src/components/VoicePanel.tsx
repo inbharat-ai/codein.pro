@@ -80,6 +80,18 @@ export function VoicePanel() {
       .catch(() => setBackendAvailable(false));
   }, []);
 
+  // Close panel on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
   // Fallback: browser-based TTS (used when backend TTS is unavailable)
   const fallbackBrowserTTS = useCallback(
     (text: string) => {

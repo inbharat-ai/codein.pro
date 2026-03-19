@@ -45,7 +45,7 @@ export function OnboardingModelsAddOnTab() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center text-center">
+    <div className="flex h-full w-full flex-col items-center justify-start overflow-y-auto text-center">
       <div className="mb-4 flex flex-col items-center text-center">
         <h2 className="text-foreground mb-1 text-2xl font-semibold">
           Models Add-on

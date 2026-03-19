@@ -59,7 +59,7 @@ export function OnboardingProvidersTab({
   });
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
+    <div className="flex h-full w-full items-start justify-center overflow-y-auto">
       <div className="w-full max-w-md">
         <FormProvider {...formMethods}>
           <div className="mt-5 space-y-6">

@@ -52,7 +52,7 @@ export function ComputerPanel() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 space-y-3 overflow-y-auto p-3">
+      <div className="flex-1 space-y-3 overflow-y-auto overflow-x-hidden p-3">
         {activeTab === "run" && <ComputerRun />}
         {activeTab === "skills" && <ComputerSkills />}
         {activeTab === "workflows" && <ComputerWorkflows />}

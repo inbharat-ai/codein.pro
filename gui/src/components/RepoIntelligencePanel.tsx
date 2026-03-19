@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { agentFetch as baseAgentFetch } from "../util/agentConfig";
+import { Button, vscButtonBackground, vscButtonForeground } from "./index";
 import { EmptyState } from "./ui/EmptyState";
 import "./panels.css";
 
@@ -81,9 +82,18 @@ export default function RepoIntelligencePanel() {
 
       <section className="panel-section">
         <h3>Repository Scan</h3>
-        <button onClick={handleScanRepo} disabled={scanning}>
+        <Button
+          onClick={handleScanRepo}
+          disabled={scanning}
+          className="w-full"
+          style={{
+            backgroundColor: vscButtonBackground,
+            color: vscButtonForeground,
+            margin: 0,
+          }}
+        >
           {scanning ? "Scanning..." : "Scan Workspace"}
-        </button>
+        </Button>
         {scanResult && (
           <div className="result-card">
             <p>Files indexed: {scanResult.fileCount}</p>
@@ -104,9 +114,17 @@ export default function RepoIntelligencePanel() {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
-          <button onClick={handleSearch} disabled={searching}>
+          <Button
+            onClick={handleSearch}
+            disabled={searching}
+            style={{
+              backgroundColor: vscButtonBackground,
+              color: vscButtonForeground,
+              margin: 0,
+            }}
+          >
             {searching ? "Searching..." : "Search"}
-          </button>
+          </Button>
         </div>
         {searchResults.length > 0 ? (
           <div className="results-list">

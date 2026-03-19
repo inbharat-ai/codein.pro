@@ -26,7 +26,7 @@ export function SelectedAssistantButton({
   return (
     <ListboxButton
       data-testid="assistant-select-button"
-      className={`text-description overflow-hidden border-none bg-transparent hover:brightness-110 ${isSidebar ? "w-full justify-start" : "gap-1.5"} ${buttonPadding}`}
+      className={`text-description border-none bg-transparent hover:brightness-110 ${isSidebar ? "w-full justify-start" : "gap-1.5"} ${buttonPadding}`}
       style={buttonStyle}
     >
       <div
@@ -34,7 +34,7 @@ export function SelectedAssistantButton({
       >
         <div className="flex min-w-0 flex-1 flex-row items-center gap-2">
           {selectedProfile === null ? (
-            "Set up config file"
+            <span className="whitespace-nowrap">Set up config file</span>
           ) : configLoading ? (
             <span className="text-description flex flex-row items-center">
               <ArrowPathIcon

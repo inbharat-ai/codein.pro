@@ -10,7 +10,8 @@
 }
 
 .panel-header {
-  border-bottom: 1px solid var(--vscode-editorGroup-border);
+  border-bottom: 1px solid
+    var(--vscode-editorGroup-border, rgba(255, 255, 255, 0.1));
   padding-bottom: 12px;
   margin-bottom: 8px;
 }
@@ -26,9 +27,9 @@
   flex-direction: column;
   gap: 12px;
   padding: 12px;
-  border: 1px solid var(--vscode-editorGroup-border);
+  border: 1px solid var(--vscode-editorGroup-border, rgba(255, 255, 255, 0.08));
   border-radius: 4px;
-  background: var(--vscode-editor-background);
+  background: var(--vscode-editor-background, rgba(255, 255, 255, 0.03));
 }
 
 .panel-section h3 {
@@ -53,22 +54,22 @@
 .search-box input {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid var(--vscode-editorGroup-border);
+  border: 1px solid var(--vscode-editorGroup-border, rgba(255, 255, 255, 0.15));
   border-radius: 4px;
-  background: var(--vscode-input-background);
-  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background, rgba(255, 255, 255, 0.07));
+  color: var(--vscode-input-foreground, #e8e6f0);
   font-size: 0.9rem;
-  transition: border-color var(--codin-transition-fast);
+  transition: border-color 0.15s ease;
 }
 
 .search-box input:focus-visible {
-  outline: 2px solid var(--codin-border-focus);
+  outline: 2px solid var(--codin-border-focus, rgba(99, 102, 241, 0.6));
   outline-offset: 2px;
-  border-radius: var(--codin-radius-sm);
+  border-radius: var(--codin-radius-sm, 4px);
 }
 
 .search-box input::placeholder {
-  color: var(--vscode-input-placeholderForeground);
+  color: var(--vscode-input-placeholderForeground, rgba(255, 255, 255, 0.35));
 }
 
 .search-box button {

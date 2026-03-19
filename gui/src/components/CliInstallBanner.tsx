@@ -111,7 +111,7 @@ export function CliInstallBanner({
           <div>
             <div className="text-foreground flex items-center gap-2 font-medium">
               <CommandLineIcon className="h-5 w-5 flex-shrink-0 text-gray-400" />
-              Try out the Continue CLI
+              Try out the CodeIn CLI
             </div>
             <div className="text-description mt-1 text-sm">
               Use <code className="bg-codin-bg rounded px-1.5 py-0.5">cn</code>{" "}

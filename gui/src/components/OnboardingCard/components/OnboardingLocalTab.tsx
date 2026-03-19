@@ -135,7 +135,7 @@ export function OnboardingLocalTab({ isDialog }: OnboardingLocalTabProps) {
   };
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
+    <div className="flex h-full w-full items-start justify-center overflow-y-auto">
       <div className="w-full max-w-md">
         <div className="mt-3 flex flex-col gap-1 px-2">
           <div className="flex flex-col">

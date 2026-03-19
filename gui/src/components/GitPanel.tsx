@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { agentFetch as baseAgentFetch } from "../util/agentConfig";
+import { Button, vscButtonBackground, vscButtonForeground } from "./index";
 import { EmptyState } from "./ui/EmptyState";
 import { LoadingPanel } from "./ui/LoadingState";
 import "./panels.css";
@@ -156,10 +157,24 @@ export default function GitPanel() {
             placeholder="Repository path"
             value={repoPath}
             onChange={(e) => setRepoPath(e.target.value)}
+            className="flex-1 rounded px-3 py-1.5 text-sm focus:outline-none"
+            style={{
+              border: "1px solid rgba(255,255,255,0.15)",
+              background: "rgba(255,255,255,0.07)",
+              color: "var(--vscode-input-foreground, #e8e6f0)",
+            }}
           />
-          <button onClick={handleGetStatus} disabled={loading}>
+          <Button
+            onClick={handleGetStatus}
+            disabled={loading}
+            style={{
+              backgroundColor: vscButtonBackground,
+              color: vscButtonForeground,
+              margin: 0,
+            }}
+          >
             {loading ? "Loading..." : "Check Status"}
-          </button>
+          </Button>
         </div>
       </section>
 

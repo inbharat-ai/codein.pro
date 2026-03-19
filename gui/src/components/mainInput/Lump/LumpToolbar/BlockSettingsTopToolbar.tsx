@@ -136,7 +136,7 @@ export function BlockSettingsTopToolbar() {
       </div>
 
       <ToolTip place="top" content="Select Config">
-        <div>
+        <div className="pr-2">
           <AssistantAndOrgListbox variant="lump" />
         </div>
       </ToolTip>

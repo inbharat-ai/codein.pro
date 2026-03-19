@@ -34,8 +34,8 @@ function ConfigPage() {
   return (
     <div className="flex h-full flex-row overflow-hidden">
       {/* Vertical Sidebar - full height */}
-      <div className="bg-codin-bg flex w-12 flex-shrink-0 flex-col border-0 md:w-40">
-        <div className="border-r-border flex flex-1 flex-col overflow-y-auto border-b-0 border-l-0 border-r-2 border-t-0 border-solid p-2 text-xs">
+      <div className="bg-codin-bg flex min-h-0 w-12 flex-shrink-0 flex-col border-0 md:w-40">
+        <div className="border-r-border flex min-h-0 flex-1 flex-col overflow-y-auto border-b-0 border-l-0 border-r-2 border-t-0 border-solid p-2 text-xs">
           {topTabSections.map((section, index) => (
             <React.Fragment key={section.id}>
               <TabGroup

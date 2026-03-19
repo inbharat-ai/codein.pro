@@ -151,9 +151,8 @@ export default function StarterCreditsPopover({
 
             <div className="mb-4">
               <span className="text-description">
-                You are currently using starter credits for Continue, which
-                allows you to use a variety of frontier models at cost. Read
-                more{" "}
+                You are currently using starter credits for CodeIn, which allows
+                you to use a variety of frontier models at cost. Read more{" "}
                 <span
                   onClick={async () => {
                     await ideMessenger.request("controlPlane/openUrl", {

@@ -131,11 +131,17 @@
   letter-spacing: 0.2px;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 999;
+  /* Keep tooltip inside the activity bar stacking context, below main content */
+  z-index: 9;
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(99, 102, 241, 0.08);
   animation: tooltipFade 0.12s ease-out;
+}
+
+/* Hide tooltip when parent button is active so it never overlays the open panel */
+.ide-activity-btn.active .ide-activity-tooltip {
+  display: none;
 }
 
 @keyframes tooltipFade {

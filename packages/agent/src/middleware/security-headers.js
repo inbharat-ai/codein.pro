@@ -42,6 +42,12 @@ function createSecurityHeadersMiddleware(options = {}) {
       }
 
       res.setHeader("Access-Control-Max-Age", "3600");
+
+      // Chrome Private Network Access (formerly CORS-RFC1918): required when a
+      // page on localhost:N calls a server on 127.0.0.1:M or vice-versa.
+      if (req.headers["access-control-request-private-network"] === "true") {
+        res.setHeader("Access-Control-Allow-Private-Network", "true");
+      }
     }
 
     // Handle preflight requests

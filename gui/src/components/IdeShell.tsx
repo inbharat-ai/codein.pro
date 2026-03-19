@@ -150,7 +150,7 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
                 aria-label={t(item.i18nKey)}
               >
                 <item.icon className="ide-activity-icon" />
-                {hoveredItem === item.id && (
+                {hoveredItem === item.id && activeId !== item.id && (
                   <span className="ide-activity-tooltip">
                     {t(item.i18nKey)}
                   </span>
@@ -170,7 +170,7 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
                 aria-label={t(item.i18nKey)}
               >
                 <item.icon className="ide-activity-icon" />
-                {hoveredItem === item.id && (
+                {hoveredItem === item.id && activeId !== item.id && (
                   <span className="ide-activity-tooltip">
                     {t(item.i18nKey)}
                   </span>
