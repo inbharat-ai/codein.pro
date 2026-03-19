@@ -146,7 +146,7 @@ const I18N = {
     // --- Stats section ---
     "stats.languages": "Indian Languages",
     "stats.models": "LLM Providers",
-    "stats.tools": "Built-in Tools",
+    "stats.tools": "Built-in + MCP Tools",
     "stats.platforms": "Platforms",
 
     // --- Downloads section ---
@@ -340,7 +340,7 @@ const I18N = {
 
     "stats.languages": "भारतीय भाषाएँ",
     "stats.models": "लोकल AI मॉडल",
-    "stats.tools": "बिल्ट-इन टूल्स",
+    "stats.tools": "बिल्ट-इन + MCP टूल्स",
     "stats.platforms": "प्लेटफ़ॉर्म",
 
     "downloads.label": "डाउनलोड",
@@ -501,7 +501,7 @@ const I18N = {
 
     "stats.languages": "இந்திய மொழிகள்",
     "stats.models": "உள்ளூர் AI மாதிரிகள்",
-    "stats.tools": "உள்ளமைந்த கருவிகள்",
+    "stats.tools": "உள்ளமைந்த + MCP கருவிகள்",
     "stats.platforms": "தளங்கள்",
 
     "downloads.label": "பதிவிறக்கம்",

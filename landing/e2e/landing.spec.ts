@@ -35,10 +35,10 @@ test.describe("Landing Page — Structure & Content", () => {
   });
 
   test("stats section displays correct numbers", async ({ page }) => {
-    await expect(page.getByText("19").first()).toBeVisible();
+    await expect(page.getByText("22").first()).toBeVisible();
     await expect(page.getByText("Indian Languages").first()).toBeVisible();
-    await expect(page.getByText("6+").first()).toBeVisible();
-    await expect(page.getByText("35+").first()).toBeVisible();
+    await expect(page.getByText("60").first()).toBeVisible();
+    await expect(page.getByText("46").first()).toBeVisible();
   });
 
   test("feature cards are rendered", async ({ page }) => {
