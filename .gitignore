@@ -210,3 +210,5 @@ MASTER_AUDIT_*.md
 # OS junk
 Thumbs.db
 desktop.ini
+.vercel
+.env*.local

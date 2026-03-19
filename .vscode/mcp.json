@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "vercel": {
+      "command": "npx",
+      "args": ["-y", "vercel-mcp@latest"],
+      "env": {
+        "VERCEL_API_TOKEN": "${input:vercel_token}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "vercel_token",
+      "type": "promptString",
+      "description": "Your Vercel API token (https://vercel.com/account/tokens)",
+      "password": true
+    }
+  ]
+}
