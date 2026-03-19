@@ -109,6 +109,15 @@ jobs:
           cd ../llm-info && npm install --ignore-scripts
           cd ../openai-adapters && npm install --ignore-scripts
 
+      - name: Build dependency packages
+        run: |
+          cd packages/config-types && npm run build
+          cd ../config-yaml && npm run build
+          cd ../terminal-security && npm run build
+          cd ../fetch && npm run build
+          cd ../llm-info && npm run build
+          cd ../openai-adapters && npm run build
+
       - name: Install core dependencies
         working-directory: core
         run: npm install --ignore-scripts
@@ -178,6 +187,15 @@ jobs:
           cd ../fetch && npm install --ignore-scripts
           cd ../llm-info && npm install --ignore-scripts
           cd ../openai-adapters && npm install --ignore-scripts
+
+      - name: Build dependency packages
+        run: |
+          cd packages/config-types && npm run build
+          cd ../config-yaml && npm run build
+          cd ../terminal-security && npm run build
+          cd ../fetch && npm run build
+          cd ../llm-info && npm run build
+          cd ../openai-adapters && npm run build
 
       - name: Install core dependencies
         working-directory: core
@@ -250,6 +268,15 @@ jobs:
           cd ../fetch && npm install --ignore-scripts
           cd ../llm-info && npm install --ignore-scripts
           cd ../openai-adapters && npm install --ignore-scripts
+
+      - name: Build dependency packages
+        run: |
+          cd packages/config-types && npm run build
+          cd ../config-yaml && npm run build
+          cd ../terminal-security && npm run build
+          cd ../fetch && npm run build
+          cd ../llm-info && npm run build
+          cd ../openai-adapters && npm run build
 
       - name: Install core dependencies
         working-directory: core
