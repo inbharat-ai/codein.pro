@@ -1,0 +1,10 @@
+#!/bin/sh
+# Best-effort local modules bootstrap for macOS pkg installs
+set +e
+
+APP_PATH="/Applications/CodIn.app/Contents/MacOS/CodIn"
+if [ -x "$APP_PATH" ]; then
+  "$APP_PATH" --bootstrap-only || true
+fi
+
+exit 0
