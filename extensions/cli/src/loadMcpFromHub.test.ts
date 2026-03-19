@@ -44,16 +44,16 @@ describe("loadMcpFromHub", () => {
       statusText: "Not Found",
     });
 
-    await expect(loadMcpFromHub("continuedev/nonexistent-mcp")).rejects.toThrow(
-      'Failed to load mcp from hub "continuedev/nonexistent-mcp": HTTP 404: Not Found',
+    await expect(loadMcpFromHub("codein/nonexistent-mcp")).rejects.toThrow(
+      'Failed to load mcp from hub "codein/nonexistent-mcp": HTTP 404: Not Found',
     );
   });
 
   it("should handle network errors", async () => {
     mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-    await expect(loadMcpFromHub("continuedev/test-mcp")).rejects.toThrow(
-      'Failed to load mcp from hub "continuedev/test-mcp": Network error',
+    await expect(loadMcpFromHub("codein/test-mcp")).rejects.toThrow(
+      'Failed to load mcp from hub "codein/test-mcp": Network error',
     );
   });
 
@@ -69,7 +69,7 @@ describe("loadMcpFromHub", () => {
       json: vi.fn().mockResolvedValue(mockConfig),
     });
 
-    const result = await loadMcpFromHub("continuedev/test-mcp");
+    const result = await loadMcpFromHub("codein/test-mcp");
     // Should now parse the YAML content and return the parsed object
     expect(result).toEqual({
       name: "test-mcp",
@@ -86,7 +86,7 @@ describe("loadMcpFromHub", () => {
       json: vi.fn().mockResolvedValue({}),
     });
 
-    const result = await loadMcpFromHub("continuedev/no-config");
+    const result = await loadMcpFromHub("codein/no-config");
     // The registry endpoint might return an empty object if no config exists
     expect(result).toEqual({});
   });
@@ -99,8 +99,8 @@ describe("loadMcpFromHub", () => {
       json: vi.fn().mockRejectedValue(new Error("Invalid JSON")),
     });
 
-    await expect(loadMcpFromHub("continuedev/invalid-json")).rejects.toThrow(
-      'Failed to load mcp from hub "continuedev/invalid-json": Invalid JSON',
+    await expect(loadMcpFromHub("codein/invalid-json")).rejects.toThrow(
+      'Failed to load mcp from hub "codein/invalid-json": Invalid JSON',
     );
   });
 });

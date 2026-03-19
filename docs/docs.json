@@ -280,17 +280,17 @@
       "anchors": [
         {
           "anchor": "About Us",
-          "href": "https://continue.dev/about-us",
+          "href": "https://codein.pro/about",
           "icon": "book-open"
         },
         {
           "anchor": "Blog",
-          "href": "https://continue.dev/blog",
+          "href": "https://codein.pro/blog",
           "icon": "newspaper"
         },
         {
           "anchor": "Changelog",
-          "href": "https://changelog.continue.dev/",
+          "href": "https://codein.pro/changelog",
           "icon": "bullhorn"
         }
       ]
@@ -299,7 +299,7 @@
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg",
-    "href": "https://continue.dev"
+    "href": "https://codein.pro"
   },
   "background": {
     "color": {
@@ -310,20 +310,20 @@
     "links": [
       {
         "label": "🚀 Get Started",
-        "href": "https://continue.dev/"
+        "href": "https://codein.pro/"
       }
     ],
     "primary": {
       "type": "github",
-      "href": "https://github.com/continuedev/continue"
+      "href": "https://github.com/inbharat-ai/codein.pro"
     }
   },
   "footer": {
     "socials": {
-      "x": "https://twitter.com/continuedev",
-      "github": "https://github.com/continuedev/continue",
-      "linkedin": "https://linkedin.com/company/continuedev",
-      "youtube": "https://www.youtube.com/@continuedev"
+      "x": "https://twitter.com/inbharat_ai",
+      "github": "https://github.com/inbharat-ai/codein.pro",
+      "linkedin": "https://linkedin.com/company/inbharat-ai",
+      "youtube": "https://www.youtube.com/@inbharataicod"
     }
   },
   "contextual": {
@@ -357,7 +357,7 @@
     },
     {
       "source": "/changelog",
-      "destination": "https://changelog.continue.dev"
+      "destination": "https://codein.pro/changelog"
     },
     {
       "source": "/hub",
@@ -1053,7 +1053,7 @@
     },
     {
       "source": "/about",
-      "destination": "https://continue.dev/about-us"
+      "destination": "https://codein.pro/about"
     },
     {
       "source": "/autocomplete/model-setup",

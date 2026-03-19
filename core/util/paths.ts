@@ -26,7 +26,8 @@ export function setConfigFilePermissions(filePath: string): void {
 
 const CODEIN_GLOBAL_DIR = (() => {
   // Honor env vars: new name first, then legacy
-  const configPath = process.env.CODEIN_GLOBAL_DIR || process.env.CONTINUE_GLOBAL_DIR;
+  const configPath =
+    process.env.CODEIN_GLOBAL_DIR || process.env.CONTINUE_GLOBAL_DIR;
   if (configPath) {
     // Convert relative path to absolute paths based on current working directory
     return path.isAbsolute(configPath)
@@ -140,7 +141,7 @@ export function getConfigYamlPath(ideType?: IdeType): string {
   const p = path.join(getCodeinGlobalPath(), "config.yaml");
   if (!fs.existsSync(p) && !fs.existsSync(getConfigJsonPath())) {
     if (ideType === "jetbrains") {
-      // https://github.com/continuedev/continue/pull/7224
+      // https://github.com/inbharat-ai/codein.pro/pull/7224
       // This was here because we had different context provider support between jetbrains and vs code
       // Leaving so we could differentiate later but for now configs are the same between IDEs
       fs.writeFileSync(p, YAML.stringify(defaultConfig));
@@ -236,7 +237,11 @@ export function getCodeinRcPath(): string {
   const newRcPath = path.join(globalDir, ".codeinrc.json");
   const legacyRcPath = path.join(globalDir, ".continuerc.json");
   // Prefer new name, fall back to legacy, default to new
-  const rcPath = fs.existsSync(newRcPath) ? newRcPath : (fs.existsSync(legacyRcPath) ? legacyRcPath : newRcPath);
+  const rcPath = fs.existsSync(newRcPath)
+    ? newRcPath
+    : fs.existsSync(legacyRcPath)
+      ? legacyRcPath
+      : newRcPath;
   if (!fs.existsSync(rcPath)) {
     fs.writeFileSync(
       rcPath,

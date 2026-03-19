@@ -362,7 +362,7 @@ async function loadLocalConfigYaml(
 }
 
 /**
- * Loads the default continuedev/default-config
+ * Loads the default codein/default-config
  */
 async function loadDefaultConfig(
   organizationId: string | null,

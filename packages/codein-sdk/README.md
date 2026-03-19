@@ -22,7 +22,7 @@ Each package includes:
 End users should install the published packages directly:
 
 - For TypeScript/JavaScript: `npm install @codein/sdk`
-- For Python: `pip install continuedev`
+- For Python: `pip install codein`
 - For other languages: Check back for new language support
 
 Each published package includes its own documentation.

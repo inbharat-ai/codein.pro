@@ -891,7 +891,7 @@ After it's up and running, you can start using Continue.`,
 
 - [text-gen-webui](https://github.com/oobabooga/text-generation-webui/tree/main/extensions/openai#setup--installation)
 - [LocalAI](https://localai.io/basics/getting_started/)
-- [llama-cpp-python](https://github.com/continuedev/ggml-server-example)
+- [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)
 - [FastChat](https://github.com/lm-sys/FastChat/blob/main/docs/openai_api.md)`,
     params: {
       apiBase: "",

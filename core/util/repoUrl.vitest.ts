@@ -105,7 +105,7 @@ describe("normalizeRepoUrl", () => {
 
     it("should handle mixed case in shorthand format", () => {
       expect(normalizeRepoUrl("ContinueDev/Continue")).toBe(
-        "https://github.com/continuedev/continue",
+        "https://github.com/inbharat-ai/codein.pro",
       );
     });
   });
@@ -181,34 +181,34 @@ describe("normalizeRepoUrl", () => {
 
   describe("real-world examples", () => {
     it("should normalize Continue's repository from SSH", () => {
-      expect(normalizeRepoUrl("git@github.com:continuedev/continue.git")).toBe(
-        "https://github.com/continuedev/continue",
-      );
+      expect(
+        normalizeRepoUrl("git@github.com:inbharat-ai/codein.pro.git"),
+      ).toBe("https://github.com/inbharat-ai/codein.pro");
     });
 
     it("should normalize Continue's repository from shorthand", () => {
-      expect(normalizeRepoUrl("continuedev/continue")).toBe(
-        "https://github.com/continuedev/continue",
+      expect(normalizeRepoUrl("inbharat-ai/codein.pro")).toBe(
+        "https://github.com/inbharat-ai/codein.pro",
       );
     });
 
     it("should normalize Continue's repository from HTTPS", () => {
       expect(
-        normalizeRepoUrl("https://github.com/continuedev/continue.git"),
-      ).toBe("https://github.com/continuedev/continue");
+        normalizeRepoUrl("https://github.com/inbharat-ai/codein.pro.git"),
+      ).toBe("https://github.com/inbharat-ai/codein.pro");
     });
 
     it("should match repositories regardless of input format", () => {
       const formats = [
-        "git@github.com:continuedev/continue.git",
-        "continuedev/continue",
-        "https://github.com/continuedev/continue",
-        "https://github.com/continuedev/continue.git",
-        "ssh://git@github.com/continuedev/continue.git",
+        "git@github.com:inbharat-ai/codein.pro.git",
+        "inbharat-ai/codein.pro",
+        "https://github.com/inbharat-ai/codein.pro",
+        "https://github.com/inbharat-ai/codein.pro.git",
+        "ssh://git@github.com/inbharat-ai/codein.pro.git",
         "ContinueDev/Continue",
       ];
 
-      const expected = "https://github.com/continuedev/continue";
+      const expected = "https://github.com/inbharat-ai/codein.pro";
       formats.forEach((format) => {
         expect(normalizeRepoUrl(format)).toBe(expected);
       });

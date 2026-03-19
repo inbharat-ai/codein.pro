@@ -45,12 +45,12 @@ describe("processPromptOrRule (loadRuleFromHub integration)", () => {
         arrayBuffer: () => Promise.resolve(zipBuffer),
       } as Response);
 
-      const result = await processPromptOrRule("continuedev/sentry-nextjs");
+      const result = await processPromptOrRule("codein/sentry-nextjs");
 
       expect(result).toBe(ruleContent);
       expect(mockFetch).toHaveBeenCalledWith(
         new URL(
-          "v0/continuedev/sentry-nextjs/latest/download",
+          "v0/codein/sentry-nextjs/latest/download",
           "https://api.continue.dev/",
         ),
         { headers: {} },
@@ -65,19 +65,17 @@ describe("processPromptOrRule (loadRuleFromHub integration)", () => {
       } as Response);
 
       await expect(
-        processPromptOrRule("continuedev/nonexistent-rule"),
+        processPromptOrRule("codein/nonexistent-rule"),
       ).rejects.toThrow(
-        'Failed to load rule from hub "continuedev/nonexistent-rule": HTTP 404: Not Found',
+        'Failed to load rule from hub "codein/nonexistent-rule": HTTP 404: Not Found',
       );
     });
 
     it("should handle network errors when loading from hub", async () => {
       mockFetch.mockRejectedValue(new Error("Network error"));
 
-      await expect(
-        processPromptOrRule("continuedev/sentry-nextjs"),
-      ).rejects.toThrow(
-        'Failed to load rule from hub "continuedev/sentry-nextjs": Network error',
+      await expect(processPromptOrRule("codein/sentry-nextjs")).rejects.toThrow(
+        'Failed to load rule from hub "codein/sentry-nextjs": Network error',
       );
     });
 
@@ -101,10 +99,8 @@ describe("processPromptOrRule (loadRuleFromHub integration)", () => {
         arrayBuffer: () => Promise.resolve(zipBuffer),
       } as Response);
 
-      await expect(
-        processPromptOrRule("continuedev/empty-rule"),
-      ).rejects.toThrow(
-        'Failed to load rule from hub "continuedev/empty-rule": No rule content found in downloaded zip file',
+      await expect(processPromptOrRule("codein/empty-rule")).rejects.toThrow(
+        'Failed to load rule from hub "codein/empty-rule": No rule content found in downloaded zip file',
       );
     });
 
@@ -120,9 +116,9 @@ describe("processPromptOrRule (loadRuleFromHub integration)", () => {
       } as Response);
 
       await expect(
-        processPromptOrRule("continuedev/directory-only"),
+        processPromptOrRule("codein/directory-only"),
       ).rejects.toThrow(
-        'Failed to load rule from hub "continuedev/directory-only": No rule content found in downloaded zip file',
+        'Failed to load rule from hub "codein/directory-only": No rule content found in downloaded zip file',
       );
     });
 
@@ -143,7 +139,7 @@ describe("processPromptOrRule (loadRuleFromHub integration)", () => {
         arrayBuffer: () => Promise.resolve(zipBuffer),
       } as Response);
 
-      const result = await processPromptOrRule("continuedev/mixed-files");
+      const result = await processPromptOrRule("codein/mixed-files");
 
       expect(result).toBe(mdContent);
     });
@@ -164,7 +160,7 @@ describe("processPromptOrRule (loadRuleFromHub integration)", () => {
         arrayBuffer: () => Promise.resolve(zipBuffer),
       } as Response);
 
-      const result = await processPromptOrRule("continuedev/multiple-rules");
+      const result = await processPromptOrRule("codein/multiple-rules");
 
       // Should use the first markdown file found (alphabetically)
       expect(result).toBe(rule1Content);
@@ -178,10 +174,8 @@ describe("processPromptOrRule (loadRuleFromHub integration)", () => {
         arrayBuffer: () => Promise.resolve(invalidZipBuffer),
       } as Response);
 
-      await expect(
-        processPromptOrRule("continuedev/corrupted-zip"),
-      ).rejects.toThrow(
-        'Failed to load rule from hub "continuedev/corrupted-zip"',
+      await expect(processPromptOrRule("codein/corrupted-zip")).rejects.toThrow(
+        'Failed to load rule from hub "codein/corrupted-zip"',
       );
     });
   });

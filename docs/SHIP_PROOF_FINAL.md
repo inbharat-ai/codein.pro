@@ -267,7 +267,7 @@ binary for its platform/arch from llama.cpp releases before building. No manual 
 Attempted to trigger tag release from this environment:
 
 - `git push origin v1.0.0-everywhere-20260301`
-- Result: `403 Permission denied` to `inbharatai` on `continuedev/continue`
+- Result: `403 Permission denied` to `inbharatai` on `inbharat-ai/codein.pro`
 
 Until a maintainer with push access triggers the workflow, CI run IDs and release artifact checksums cannot be produced from this workspace.
 

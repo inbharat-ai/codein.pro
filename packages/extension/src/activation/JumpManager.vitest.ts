@@ -166,7 +166,7 @@ const createMockNextEditOutcome = (
     completionId: "comp_12345abcde",
     uniqueId: "ne_67890fghij",
     timestamp: Date.now(),
-    gitRepo: "continuedev/continue",
+    gitRepo: "inbharat-ai/codein.pro",
 
     // NextEdit specific properties
     fileUri: "file:///workspace/project/src/main.ts",
