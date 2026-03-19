@@ -73,11 +73,13 @@ describe("IdeShell", () => {
 
   it("shows tooltip on hover", () => {
     renderIdeShell();
-    const chatBtn = screen.getByLabelText("activityBar.chat");
-    fireEvent.mouseEnter(chatBtn);
+    // Hover a non-active button (history is not active on the home route "/")
+    // Tooltips are suppressed on the currently active item, so we use history
+    const historyBtn = screen.getByLabelText("activityBar.history");
+    fireEvent.mouseEnter(historyBtn);
     // Tooltip should appear with the i18n key
     expect(
-      screen.getAllByText("activityBar.chat").length,
+      screen.getAllByText("activityBar.history").length,
     ).toBeGreaterThanOrEqual(1);
   });
 });
