@@ -12,14 +12,21 @@ export default function createReleaseConfig(packageName) {
         "@semantic-release/commit-analyzer",
         {
           releaseRules: [
-            { scope: `packages/${packageName}`, release: "patch" },
+            // Only release when the commit is explicitly scoped to this package.
             { scope: `packages/${packageName}`, type: "fix", release: "patch" },
-            { scope: "packages/config-yaml", type: "feat", release: "minor" },
+            {
+              scope: `packages/${packageName}`,
+              type: "feat",
+              release: "minor",
+            },
             {
               scope: `packages/${packageName}`,
               breaking: true,
               release: "major",
             },
+            // Catch-all: suppress the default Angular preset rules so that
+            // unscoped commits (e.g. fix(ci): ...) never trigger a release.
+            { release: false },
           ],
         },
       ],
