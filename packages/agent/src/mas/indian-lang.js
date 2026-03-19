@@ -277,7 +277,9 @@ const ROMANIZED_LOOKUP = new Map();
 })();
 
 /* ------------------------------------------------------------------ */
-/*  INDIAN_LANGUAGES — Full config for all 19 scheduled languages      */
+/*  INDIAN_LANGUAGES — Full config for all 19 deeply-configured languages */
+/* (22 languages including Maithili, Nepali, Sanskrit, Kashmiri are      */
+/*  served by the /api/languages endpoint via i18n.js)                   */
 /* ------------------------------------------------------------------ */
 
 /**
