@@ -142,7 +142,7 @@ jobs:
 
       - name: Build Electron (Windows NSIS + Portable)
         working-directory: electron-app
-        run: npx electron-builder --win nsis portable --x64
+        run: npx electron-builder --win nsis portable --x64 --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
 
@@ -224,7 +224,7 @@ jobs:
 
       - name: Build Electron (macOS DMG + ZIP)
         working-directory: electron-app
-        run: npx electron-builder --mac dmg zip --x64 --arm64
+        run: npx electron-builder --mac dmg zip --x64 --arm64 --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           # Uncomment for notarization:
@@ -308,7 +308,7 @@ jobs:
 
       - name: Build Electron (Linux AppImage + deb + rpm)
         working-directory: electron-app
-        run: npx electron-builder --linux AppImage deb rpm --x64
+        run: npx electron-builder --linux AppImage deb rpm --x64 --publish never
 
       - name: List artifacts
         working-directory: electron-app/release
