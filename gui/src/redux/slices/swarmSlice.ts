@@ -169,7 +169,23 @@ const initialState: SwarmState = {
 // ─── Async Thunks ────────────────────────────────────────────
 
 import { getAgentBaseUrl } from "../../util/agentConfig";
-import { ensureAuth } from "../../util/authService";
+import { clearAuth, ensureAuth } from "../../util/authService";
+
+async function swarmFetchOnce(
+  base: string,
+  path: string,
+  opts?: RequestInit,
+  token?: string | null,
+) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(opts?.headers as Record<string, string>),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return fetch(`${base}/swarm${path}`, { ...opts, headers });
+}
 
 export async function swarmFetch(path: string, opts?: RequestInit) {
   const base = getAgentBaseUrl();
@@ -181,15 +197,20 @@ export async function swarmFetch(path: string, opts?: RequestInit) {
     // Proceed without token
   }
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(opts?.headers as Record<string, string>),
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  let res = await swarmFetchOnce(base, path, opts, token);
+
+  // If 401 (stale/invalid cached token — e.g. agent restarted), clear cache and retry once
+  if (res.status === 401) {
+    clearAuth();
+    token = null;
+    try {
+      token = await ensureAuth();
+    } catch {
+      // Still no token — will get 401 again below
+    }
+    res = await swarmFetchOnce(base, path, opts, token);
   }
 
-  const res = await fetch(`${base}/swarm${path}`, { ...opts, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(body.error || res.statusText);

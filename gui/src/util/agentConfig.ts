@@ -25,6 +25,16 @@ export async function agentFetch(
     ? input
     : `${base}${input.startsWith("/") ? "" : "/"}${input}`;
 
+  const doFetch = async (token: string | null) => {
+    const headers: Record<string, string> = {
+      ...(init?.headers as Record<string, string>),
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return fetch(url, { ...init, headers });
+  };
+
   // Auto-authenticate
   let token: string | null = null;
   try {
@@ -34,12 +44,20 @@ export async function agentFetch(
     // If auth fails, proceed without token — server will return 401
   }
 
-  const headers: Record<string, string> = {
-    ...(init?.headers as Record<string, string>),
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  let res = await doFetch(token);
+
+  // If 401 (stale token — e.g. agent restarted), clear cache and retry once
+  if (res.status === 401) {
+    const { clearAuth, ensureAuth } = await import("./authService");
+    clearAuth();
+    token = null;
+    try {
+      token = await ensureAuth();
+    } catch {
+      // Still no token
+    }
+    res = await doFetch(token);
   }
 
-  return fetch(url, { ...init, headers });
+  return res;
 }
