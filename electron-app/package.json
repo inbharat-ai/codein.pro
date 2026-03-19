@@ -4,7 +4,12 @@
   "version": "1.0.0",
   "description": "CodeIn - Multilingual AI-powered code editor for Indian languages",
   "main": "dist/main/main.js",
-  "author": "CodeIn Team",
+  "author": {
+    "name": "inBharat AI",
+    "email": "info@inbharat.ai",
+    "url": "https://codein.pro"
+  },
+  "homepage": "https://codein.pro",
   "license": "Apache-2.0",
   "private": true,
   "scripts": {
