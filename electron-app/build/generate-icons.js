@@ -9,9 +9,9 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// --- Minimal 48×48 PNG icon (raw bytes) ---
-// We create a tiny valid PNG with a solid saffron (#FF9933) center square
-// and white border to represent the CodIn brand.
+// --- 512×512 PNG icon ---
+// Creates a 512x512 PNG (required by electron-builder for AppImage/macOS).
+// Design: dark background (#1A1A2E), saffron border (#FF9933), white center.
 
 function createMinimalPNG() {
   // Helper: simple CRC32 for PNG chunks
@@ -31,26 +31,32 @@ function createMinimalPNG() {
     return (crc ^ 0xFFFFFFFF) >>> 0;
   }
 
-  const W = 48, H = 48;
+  const W = 512, H = 512;
 
   // Build raw image data (RGBA per pixel, plus filter byte per row)
   const rawRows = [];
   for (let y = 0; y < H; y++) {
     const row = [0]; // filter: None
     for (let x = 0; x < W; x++) {
-      const border = 4;
-      const inBorder = x < border || x >= W - border || y < border || y >= H - border;
-      const inCenter = x >= 14 && x < 34 && y >= 14 && y < 34;
+      const border = 40;
+      const cx = W / 2, cy = H / 2, r = W / 2 - border;
+      const dx = x - cx, dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const inRing = dist >= r && dist <= r + border;
+      const inCenter = dist < r * 0.55;
 
-      if (inBorder) {
-        // Saffron border #FF9933
+      if (inRing) {
+        // Saffron ring #FF9933
         row.push(0xFF, 0x99, 0x33, 0xFF);
       } else if (inCenter) {
-        // White "C" region (simplified)
+        // White core
         row.push(0xFF, 0xFF, 0xFF, 0xFF);
-      } else {
-        // Dark background #1A1A2E
+      } else if (dist < r) {
+        // Dark background fill #1A1A2E
         row.push(0x1A, 0x1A, 0x2E, 0xFF);
+      } else {
+        // Transparent outside circle
+        row.push(0x00, 0x00, 0x00, 0x00);
       }
     }
     rawRows.push(Buffer.from(row));
@@ -107,7 +113,7 @@ const pngData = createMinimalPNG();
 // Write icon.png
 const buildDir = __dirname;
 fs.writeFileSync(path.join(buildDir, 'icon.png'), pngData);
-console.log('Created icon.png (48x48)');
+console.log('Created icon.png (512x512)');
 
 // For ICO format — create a minimal .ico wrapping the same PNG
 // ICO header: 6 bytes, 1 entry (16 bytes), then PNG data
