@@ -30,10 +30,8 @@ on:
         description: "llama.cpp release tag (e.g. b3906)"
         required: true
         default: "b3906"
-  push:
-    tags:
-      - "v*-electron"
-      - "v*-beta"
+  # Tag-based triggers are handled exclusively by electron-release.yml to avoid
+  # duplicate release runs. Use workflow_dispatch to trigger this matrix manually.
 
 permissions:
   contents: write

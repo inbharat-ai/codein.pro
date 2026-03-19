@@ -1,7 +1,10 @@
 /**
- * Utility to check if a user is a Continue team member
+ * Utility to check if a user is a CodeIn / inBharat AI team member
  */
-export function isContinueTeamMember(email?: string): boolean {
+export function isCodeInTeamMember(email?: string): boolean {
   if (!email) return false;
-  return email.endsWith("@continue.dev");
+  return email.endsWith("@inbharat.ai");
 }
+
+/** @deprecated Use isCodeInTeamMember instead */
+export const isContinueTeamMember = isCodeInTeamMember;

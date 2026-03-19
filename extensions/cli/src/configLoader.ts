@@ -371,7 +371,7 @@ async function loadDefaultConfig(
   injectBlocks: PackageIdentifier[],
 ): Promise<AssistantUnrolled> {
   const resp = await apiClient.getAssistant({
-    ownerSlug: "continuedev",
+    ownerSlug: "inbharat-ai",
     packageSlug: "default-cli-config",
     organizationId: organizationId ?? undefined,
   });

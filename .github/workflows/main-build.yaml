@@ -1,7 +1,7 @@
-name: Main Branch Build (Continue upstream)
+name: CodeIn Main Branch Build
 
 # Download and republish VS Code extension artifacts when code is merged to main
-# Disabled for forks — only runs on the original continuedev/continue repo.
+# Only runs on the canonical inbharat-ai/codein.pro repo — forks are skipped.
 on:
   push:
     branches:
@@ -20,7 +20,7 @@ jobs:
       matrix:
         platform: [Linux, macOS]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 2 # Get the last 2 commits to find the merge commit
 
@@ -107,7 +107,7 @@ jobs:
 
       - name: Republish as main branch artifact
         if: steps.get-pr.outputs.pr_number
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: vscode-extension-build-${{ matrix.platform }}
           path: ./temp-download/*

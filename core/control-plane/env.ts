@@ -17,7 +17,7 @@ const PRODUCTION_HUB_ENV: ControlPlaneEnv = {
   CONTROL_PLANE_URL: "https://api.continue.dev/",
   AUTH_TYPE: AuthType.WorkOsProd,
   WORKOS_CLIENT_ID: WORKOS_CLIENT_ID_PRODUCTION,
-  APP_URL: "https://continue.dev/",
+  APP_URL: "https://codein.pro/",
 };
 
 const STAGING_ENV: ControlPlaneEnv = {
@@ -66,7 +66,7 @@ export function getControlPlaneEnvSync(
       AUTH_TYPE: AuthType.OnPrem,
       DEFAULT_CONTROL_PLANE_PROXY_URL: apiUrl,
       CONTROL_PLANE_URL: apiUrl,
-      APP_URL: "https://continue.dev/",
+      APP_URL: "https://codein.pro/",
     };
   }
 

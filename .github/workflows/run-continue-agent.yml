@@ -1,29 +1,31 @@
-name: Run Continue Agent
+name: Run CodeIn Agent
 
 on:
   workflow_call:
     inputs:
       prompt:
-        description: "Additional prompting to send to the Continue agent"
+        description: "Additional prompting to send to the CodeIn agent"
         required: false
         type: string
         default: ""
       agent:
-        description: "The agent to use (e.g., continuedev/github-pr-agent)"
+        description: "The agent to use"
         required: true
         type: string
-        default: "continuedev/github-pr-agent"
+        default: "inbharat-ai/codein-agent"
       branch_name:
         description: "The base branch name to work from"
         required: false
         type: string
         default: "main"
     secrets:
-      CONTINUE_API_KEY:
-        required: true
+      CODEIN_API_KEY:
+        required: false
 
 jobs:
   run-agent:
+    # Disabled until CodeIn's own agent API is available.
+    if: false
     runs-on: ubuntu-latest
 
     steps:
@@ -33,9 +35,8 @@ jobs:
           AGENT: ${{ inputs.agent }}
           BRANCH_NAME: ${{ inputs.branch_name }}
           REPO_URL: https://github.com/${{ github.repository }}
-          CONTINUE_API_KEY: ${{ secrets.CONTINUE_API_KEY }}
+          CODEIN_API_KEY: ${{ secrets.CODEIN_API_KEY }}
         run: |
-          # Use jq to properly construct JSON with safe escaping
           json_body=$(jq -n \
             --arg prompt "$PROMPT" \
             --arg agent "$AGENT" \
@@ -43,9 +44,9 @@ jobs:
             --arg repoUrl "$REPO_URL" \
             '{prompt: $prompt, agent: $agent, branchName: $branchName, repoUrl: $repoUrl}')
 
-          response=$(curl -f -X POST https://api.continue.dev/agents \
+          response=$(curl -f -X POST https://api.codein.pro/agents \
             -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $CONTINUE_API_KEY" \
+            -H "Authorization: Bearer $CODEIN_API_KEY" \
             -d "$json_body")
           id=$(echo $response | jq -r '.id')
-          echo "https://continue.dev/hub?type=agents/$id"
+          echo "https://codein.pro/hub?type=agents/$id"
