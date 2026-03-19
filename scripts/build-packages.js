@@ -86,8 +86,19 @@ async function main() {
     // Phase 2: Build packages that depend on config-types
     await buildPackagesInParallel(["fetch", "config-yaml", "llm-info"]);
 
-    // Phase 3: Build packages that depend on other local packages
-    await buildPackagesInParallel(["openai-adapters", "codein-sdk"]);
+    // Phase 3: Build packages that depend on other local packages.
+    // openai-adapters is a real dependency — must succeed.
+    // codein-sdk wraps @openapitools/openapi-generator-cli which runs a heavy
+    // postinstall (downloads a Java JAR); treat it as optional so a network
+    // hiccup cannot block the core build pipeline.
+    await buildPackage("openai-adapters");
+    try {
+      await buildPackage("codein-sdk");
+    } catch (err) {
+      console.warn(
+        `⚠️  codein-sdk build skipped (non-critical): ${err.message}`,
+      );
+    }
 
     console.log("🎉 All packages built successfully!");
   } catch (error) {

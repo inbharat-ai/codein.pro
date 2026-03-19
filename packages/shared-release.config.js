@@ -1,4 +1,9 @@
 export default function createReleaseConfig(packageName) {
+  // Publish to npm only when a real token is present.
+  // Without this guard @semantic-release/npm throws an auth error for
+  // repos that have not yet configured an npm org token.
+  const npmPublish = Boolean(process.env.NPM_TOKEN);
+
   return {
     branches: ["main"],
     tagFormat: `@codein/${packageName}@\${version}`,
@@ -20,7 +25,9 @@ export default function createReleaseConfig(packageName) {
       ],
       "@semantic-release/release-notes-generator",
       "@semantic-release/changelog",
-      "@semantic-release/npm",
+      // npmPublish is false when NPM_TOKEN is absent — still bumps version
+      // and updates CHANGELOG but skips the actual registry publish.
+      ["@semantic-release/npm", { npmPublish }],
       // Removed @semantic-release/git plugin to avoid pushing to main
       "@semantic-release/github",
     ],

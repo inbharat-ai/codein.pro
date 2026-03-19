@@ -86,7 +86,9 @@ jobs:
 
       - name: Release
         env:
-          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_GITHUB_TOKEN }}
+          # Fall back to the automatic github.token so an unconfigured secret
+          # never zeroes out GITHUB_TOKEN and breaks authentication.
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_GITHUB_TOKEN || github.token }}
           NPM_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_NPM_TOKEN }}
         run: npx semantic-release
