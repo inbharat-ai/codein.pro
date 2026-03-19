@@ -121,7 +121,7 @@ export function CliInstallBanner({
                 onClick={() =>
                   ideMessenger.post(
                     "openUrl",
-                    "https://docs.continue.dev/guides/cli",
+                    "https://codein.pro/docs/guides/cli",
                   )
                 }
                 className="cursor-pointer underline hover:brightness-125"
