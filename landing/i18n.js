@@ -84,7 +84,7 @@ const I18N = {
       "Air-gapped, zero-telemetry computing. Every feature works without internet. Built for defense, government, and sensitive environments. AES-256 encrypted config.",
     "skill.voice.title": "Voice Coding",
     "skill.voice.desc":
-      "Speak in Hindi, Tamil, Bengali, or 11 other Indian languages and watch code appear. Real-time speech-to-text voice input, and AI reads answers back to you.",
+      "Speak in Hindi, Tamil, Bengali, or 19 other Indian languages and watch code appear. Real-time speech-to-text voice input, and AI reads answers back to you.",
     "skill.compute.title": "CodeIn Computer",
     "skill.compute.desc":
       "Full local compute engine with auto-setup on first launch. Give it a goal in any language, it plans, codes, tests, and delivers. Process isolation with pause, resume, cancel. LLM auto-installs or reuses existing model.",
@@ -275,7 +275,7 @@ const I18N = {
       "एयर-गैप्ड, शून्य-टेलीमेट्री। हर फ़ीचर बिना इंटरनेट चलता है। रक्षा, सरकार और संवेदनशील कार्यों के लिए। AES-256 एन्क्रिप्शन।",
     "skill.voice.title": "वॉइस कोडिंग",
     "skill.voice.desc":
-      "हिंदी, तमिल, बंगाली या 11 अन्य भारतीय भाषाओं में बोलें और कोड बनते देखें। रियल-टाइम ट्रांस्क्रिप्शन, वॉइस कमांड और AI जवाब सुनाता है।",
+      "हिंदी, तमिल, बंगाली या 19 अन्य भारतीय भाषाओं में बोलें और कोड बनते देखें। रियल-टाइम ट्रांस्क्रिप्शन, वॉइस कमांड और AI जवाब सुनाता है।",
     "skill.compute.title": "CodeIn कंप्यूटर",
     "skill.compute.desc":
       "लोकल कम्प्यूट इंजन जो पहली लॉन्च पर ऑटो-सेटअप होता है। किसी भी भाषा में लक्ष्य दें — यह प्लान करता है, कोड लिखता है, टेस्ट करता है और डिलीवर करता है। प्रोसेस आइसोलेशन pause, resume, cancel के साथ। LLM ऑटो-इंस्टॉल या मौजूदा मॉडल का उपयोग।",
@@ -464,7 +464,7 @@ const I18N = {
       "காற்று-இடைவெளி, பூஜ்ய-தொலைமறை. இணையம் இல்லாமல் எல்லா அம்சங்களும் இயங்கும். AES-256 மறையாக்கம்.",
     "skill.voice.title": "குரல் குறியீட்டு",
     "skill.voice.desc":
-      "தமிழ், ஹிந்தி, வங்காளம் அல்லது 11 மொழிகளில் பேசுங்கள், குறியீடு தோன்றுவதைப் பாருங்கள். நிகழ்நேர எழுத்தாக்கம்.",
+      "தமிழ், ஹிந்தி, வங்காளம் அல்லது 19 மொழிகளில் பேசுங்கள், குறியீடு தோன்றுவதைப் பாருங்கள். நிகழ்நேர எழுத்தாக்கம்.",
     "skill.compute.title": "CodeIn கணினி",
     "skill.compute.desc":
       "எந்த மொழியிலும் இலக்கை கொடுங்கள் — திட்டமிடும், குறியிடும், சோதிக்கும், வழங்கும். சாண்ட்பாக்ஸ் தனிமைப்படுத்தல்.",

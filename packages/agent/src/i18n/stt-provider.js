@@ -84,6 +84,16 @@ class STTProvider {
       "or",
       "as",
       "ur",
+      "sd",
+      "kok",
+      "mni",
+      "doi",
+      "brx",
+      "sat",
+      "mai",
+      "ne",
+      "sa",
+      "ks",
       "en",
     ];
     this.modelPath =

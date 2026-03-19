@@ -22,6 +22,9 @@ const GTTS_LANG_MAP = {
   en: "en",
   or: "or",
   as: "as",
+  sd: "sd",
+  ne: "ne",
+  sa: "sa",
 };
 
 const ESPEAK_LANG_MAP = {
@@ -36,6 +39,7 @@ const ESPEAK_LANG_MAP = {
   pa: "pa",
   ur: "ur",
   en: "en",
+  ne: "ne",
 };
 
 const PIPER_MODEL_MAP = {
@@ -119,6 +123,16 @@ class TTSProvider {
       "or",
       "as",
       "ur",
+      "sd",
+      "kok",
+      "mni",
+      "doi",
+      "brx",
+      "sat",
+      "mai",
+      "ne",
+      "sa",
+      "ks",
       "en",
     ];
     this.outputDir =

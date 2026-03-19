@@ -1,7 +1,8 @@
 /**
- * @fileoverview Language configuration for 18 Indian languages with multilingual support
+ * @fileoverview Language configuration for 22 Indian languages with multilingual support
  * Supports: Hindi, Bengali, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati,
- * Punjabi, Odia, Assamese, Urdu, Sindhi, Konkani, Manipuri, Dogri, Bodo, Santali
+ * Punjabi, Odia, Assamese, Urdu, Sindhi, Konkani, Manipuri, Dogri, Bodo, Santali,
+ * Maithili, Nepali, Sanskrit, Kashmiri
  */
 
 const LANGUAGE_CONFIG = {
@@ -257,6 +258,62 @@ const LANGUAGE_CONFIG = {
     technicalTermSupport: false,
     unicodeStart: 0x1c50,
     unicodeEnd: 0x1c7f,
+  },
+  mai: {
+    name: "मैथिली",
+    englishName: "Maithili",
+    nativeName: "मैथिली",
+    script: "Devanagari",
+    direction: "ltr",
+    rtl: false,
+    phoneticCode: "mai-IN",
+    region: "India",
+    speakers: "34M+",
+    technicalTermSupport: false,
+    unicodeStart: 0x0900,
+    unicodeEnd: 0x097f,
+  },
+  ne: {
+    name: "नेपाली",
+    englishName: "Nepali",
+    nativeName: "नेपाली",
+    script: "Devanagari",
+    direction: "ltr",
+    rtl: false,
+    phoneticCode: "ne-NP",
+    region: "Nepal / India",
+    speakers: "25M+",
+    technicalTermSupport: false,
+    unicodeStart: 0x0900,
+    unicodeEnd: 0x097f,
+  },
+  sa: {
+    name: "संस्कृतम्",
+    englishName: "Sanskrit",
+    nativeName: "संस्कृतम्",
+    script: "Devanagari",
+    direction: "ltr",
+    rtl: false,
+    phoneticCode: "sa-IN",
+    region: "India",
+    speakers: "0.02M+",
+    technicalTermSupport: false,
+    unicodeStart: 0x0900,
+    unicodeEnd: 0x097f,
+  },
+  ks: {
+    name: "کٲشُر",
+    englishName: "Kashmiri",
+    nativeName: "کٲشُر",
+    script: "Arabic/Devanagari",
+    direction: "rtl",
+    rtl: true,
+    phoneticCode: "ks-IN",
+    region: "India",
+    speakers: "7M+",
+    technicalTermSupport: false,
+    unicodeStart: 0x0600,
+    unicodeEnd: 0x06ff,
   },
   en: {
     name: "English",

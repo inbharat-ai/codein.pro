@@ -23,6 +23,11 @@ const LANGUAGES = [
   { label: "Dogri", code: "doi-IN", flag: "🇮🇳", native: "डोगरी" },
   { label: "Bodo", code: "brx-IN", flag: "🇮🇳", native: "बड़ो" },
   { label: "Santali", code: "sat-IN", flag: "🇮🇳", native: "ᱥᱟᱱᱛᱟᱲᱤ" },
+  { label: "Sindhi", code: "sd-IN", flag: "🇮🇳", native: "سنڌي" },
+  { label: "Maithili", code: "mai-IN", flag: "🇮🇳", native: "मैथिली" },
+  { label: "Nepali", code: "ne-NP", flag: "🇳🇵", native: "नेपाली" },
+  { label: "Sanskrit", code: "sa-IN", flag: "🇮🇳", native: "संस्कृतम्" },
+  { label: "Kashmiri", code: "ks-IN", flag: "🇮🇳", native: "کٲشُر" },
   { label: "English", code: "en-IN", flag: "🇮🇳", native: "English (India)" },
   { label: "English US", code: "en-US", flag: "🇺🇸", native: "English" },
 ];
