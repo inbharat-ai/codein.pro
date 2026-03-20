@@ -4,7 +4,7 @@
   "releaseName": "CodeIn v1.0.1-beta",
   "releaseNotes": "Bug fix release: correct app icon, fix startup when GUI not bundled, add 4 missing languages, fix installer typo.",
   "githubRepo": "inbharat-ai/codein.pro",
-  "releaseUrl": "https://github.com/inbharat-ai/codein.pro/releases/latest",
+  "releaseUrl": "https://github.com/inbharat-ai/codein.pro/releases/tag/v1.0.1-beta",
   "assets": {
     "win_x64": {
       "name": "CodeIn-1.0.1-x64.exe",
