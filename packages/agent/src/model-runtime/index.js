@@ -17,10 +17,10 @@ const MODELS_REGISTRY = path.join(CODIN_DIR, "models.json");
 
 // llama.cpp release versions and checksums
 const LLAMA_CPP_VERSION = "b3906";
-const LLAMA_CPP_RELEASE_BASE = `https://github.com/ggerganov/llama.cpp/releases/download/${LLAMA_CPP_VERSION}`;
+const LLAMA_CPP_RELEASE_BASE = `https://github.com/ggml-org/llama.cpp/releases/download/${LLAMA_CPP_VERSION}`;
 const RUNTIME_MANIFESTS = {
   win32: {
-    url: `${LLAMA_CPP_RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-win-cuda-cu12.2.0-x64.zip`,
+    url: `${LLAMA_CPP_RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-win-avx2-x64.zip`,
     executable: "llama-server.exe",
     checksumUrl: `${LLAMA_CPP_RELEASE_BASE}/sha256sum.txt`,
   },

@@ -19,11 +19,11 @@ const { execSync } = require("child_process");
 const { createHash } = require("crypto");
 
 const LLAMA_CPP_VERSION = "b3906";
-const RELEASE_BASE = `https://github.com/ggerganov/llama.cpp/releases/download/${LLAMA_CPP_VERSION}`;
+const RELEASE_BASE = `https://github.com/ggml-org/llama.cpp/releases/download/${LLAMA_CPP_VERSION}`;
 
 const MANIFESTS = {
   win32: {
-    url: `${RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-win-cuda-cu12.2.0-x64.zip`,
+    url: `${RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-win-avx2-x64.zip`,
     executable: "llama-server.exe",
     sha256: "(fetch from release notes)", // Set to actual SHA256 from GitHub release
   },
@@ -152,7 +152,8 @@ async function downloadForPlatform(platform) {
     process.exit(1);
   }
 
-  const outDir = path.join(ASSET_DIR, platform);
+  const arch = process.arch || "x64"; // x64, arm64
+  const outDir = path.join(ASSET_DIR, platform, arch);
   const destBinary = path.join(outDir, manifest.executable);
 
   if (fs.existsSync(destBinary)) {
@@ -189,14 +190,26 @@ async function downloadForPlatform(platform) {
       );
     }
 
-    fs.copyFileSync(found, destBinary);
+    // Copy ALL files from the same directory (includes ggml.dll, llama.dll, etc.)
+    const binDir = path.dirname(found);
+    const siblings = fs.readdirSync(binDir, { withFileTypes: true });
+    let copiedCount = 0;
+    for (const entry of siblings) {
+      if (entry.isFile()) {
+        const src = path.join(binDir, entry.name);
+        const dest = path.join(outDir, entry.name);
+        fs.copyFileSync(src, dest);
+        copiedCount++;
+      }
+    }
+    console.log(`  Copied ${copiedCount} files to ${outDir}`);
 
     // Make executable on Unix
     if (platform !== "win32") {
       fs.chmodSync(destBinary, 0o755);
     }
 
-    console.log(`✔ ${platform}/${manifest.executable} ready`);
+    console.log(`✔ ${platform}/${manifest.executable} + companion libs ready`);
   } finally {
     // Cleanup temp
     fs.rmSync(tmpDir, { recursive: true, force: true });

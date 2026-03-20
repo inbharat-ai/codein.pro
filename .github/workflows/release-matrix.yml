@@ -113,11 +113,13 @@ jobs:
           if ($len -lt [int]"${{ env.MIN_BIN_BYTES }}") { throw "Binary too small: $len" }
           & $bin --help | Out-Null
 
-      - name: Mirror binary to legacy assets path
+      - name: Mirror binaries to legacy assets path
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "electron-app/assets/llama/win32/x64" | Out-Null
-          Copy-Item "electron-app/resources/bin/win32/x64/llama-server.exe" "electron-app/assets/llama/win32/x64/llama-server.exe" -Force
+          # Copy ALL files (exe + DLLs like ggml.dll, llama.dll) to assets path
+          Copy-Item "electron-app/resources/bin/win32/x64/*" "electron-app/assets/llama/win32/x64/" -Recurse -Force
+          Get-ChildItem "electron-app/assets/llama/win32/x64" | Format-Table Name, Length
 
       # ── Install + build ──
       - name: Install electron-app dependencies
@@ -250,7 +252,9 @@ jobs:
             unzip -o "$DIR/llama.zip" -d "$DIR/tmp"
             FOUND=$(find "$DIR/tmp" -name "llama-server" -type f | head -1)
             test -n "$FOUND"
-            cp "$FOUND" "$DIR/llama-server"
+            # Copy all files from the bin directory (includes companion dylibs)
+            FOUND_DIR=$(dirname "$FOUND")
+            cp "$FOUND_DIR"/* "$DIR/" 2>/dev/null || true
             chmod +x "$DIR/llama-server"
             rm -rf "$DIR/tmp" "$DIR/llama.zip"
           fi
@@ -260,13 +264,16 @@ jobs:
           if [ "$BYTES" -lt "${{ env.MIN_BIN_BYTES }}" ]; then
             echo "Binary too small: $BYTES"; exit 1
           fi
+          echo "--- Bundled files ---"
+          ls -la "$DIR/"
           "$DIR/llama-server" --help >/dev/null || true
 
-      - name: Mirror binary to legacy assets path
+      - name: Mirror binaries to legacy assets path
         run: |
           set -euo pipefail
           mkdir -p "electron-app/assets/llama/darwin/${{ matrix.arch }}"
-          cp "electron-app/resources/bin/darwin/${{ matrix.arch }}/llama-server" "electron-app/assets/llama/darwin/${{ matrix.arch }}/llama-server"
+          # Copy ALL files (binary + companion libraries)
+          cp electron-app/resources/bin/darwin/${{ matrix.arch }}/* "electron-app/assets/llama/darwin/${{ matrix.arch }}/"
 
       # ── Install + build ──
       - name: Install dependencies
@@ -388,7 +395,9 @@ jobs:
             unzip -o "$DIR/llama.zip" -d "$DIR/tmp"
             FOUND=$(find "$DIR/tmp" -name "llama-server" -type f | head -1)
             test -n "$FOUND"
-            cp "$FOUND" "$DIR/llama-server"
+            # Copy all files from the bin directory (includes companion .so libs)
+            FOUND_DIR=$(dirname "$FOUND")
+            cp "$FOUND_DIR"/* "$DIR/" 2>/dev/null || true
             chmod +x "$DIR/llama-server"
             rm -rf "$DIR/tmp" "$DIR/llama.zip"
           fi
@@ -398,13 +407,16 @@ jobs:
           if [ "$BYTES" -lt "${{ env.MIN_BIN_BYTES }}" ]; then
             echo "Binary too small: $BYTES"; exit 1
           fi
+          echo "--- Bundled files ---"
+          ls -la "$DIR/"
           "$DIR/llama-server" --help >/dev/null || true
 
-      - name: Mirror binary to legacy assets path
+      - name: Mirror binaries to legacy assets path
         run: |
           set -euo pipefail
           mkdir -p "electron-app/assets/llama/linux/x64"
-          cp "electron-app/resources/bin/linux/x64/llama-server" "electron-app/assets/llama/linux/x64/llama-server"
+          # Copy ALL files (binary + companion libraries)
+          cp electron-app/resources/bin/linux/x64/* "electron-app/assets/llama/linux/x64/"
 
       # ── Install + build ──
       - name: Install dependencies

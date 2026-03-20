@@ -40,9 +40,15 @@ jobs:
         run: |
           mkdir -p electron-app/assets/llama/win32/x64
           curl -L -o /tmp/llama-win-x64.zip \
-            "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-win-cuda-cu12.2.0-x64.zip"
+            "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-win-avx2-x64.zip"
           unzip -o /tmp/llama-win-x64.zip -d /tmp/llama-win-x64
-          find /tmp/llama-win-x64 -name "llama-server.exe" -exec cp {} electron-app/assets/llama/win32/x64/llama-server.exe \;
+          # Copy llama-server.exe AND all companion DLLs (ggml.dll, llama.dll, etc.)
+          LLAMA_EXE=$(find /tmp/llama-win-x64 -name "llama-server.exe" -print -quit)
+          if [ -z "$LLAMA_EXE" ]; then echo "ERROR: llama-server.exe not found in archive"; exit 1; fi
+          LLAMA_DIR=$(dirname "$LLAMA_EXE")
+          cp "$LLAMA_EXE" electron-app/assets/llama/win32/x64/llama-server.exe
+          cp "$LLAMA_DIR"/*.dll electron-app/assets/llama/win32/x64/ 2>/dev/null || true
+          echo "--- Bundled files ---"
           ls -la electron-app/assets/llama/win32/x64/
 
       - name: Download llama-server (darwin-arm64)
@@ -51,8 +57,13 @@ jobs:
           curl -L -o /tmp/llama-darwin-arm64.zip \
             "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-macos-arm64.zip"
           unzip -o /tmp/llama-darwin-arm64.zip -d /tmp/llama-darwin-arm64
-          find /tmp/llama-darwin-arm64 -name "llama-server" -exec cp {} electron-app/assets/llama/darwin/arm64/llama-server \;
+          # Copy llama-server AND all companion libraries (*.dylib, *.so, etc.)
+          LLAMA_BIN=$(find /tmp/llama-darwin-arm64 -name "llama-server" -type f -print -quit)
+          if [ -z "$LLAMA_BIN" ]; then echo "ERROR: llama-server not found in archive"; exit 1; fi
+          LLAMA_DIR=$(dirname "$LLAMA_BIN")
+          cp "$LLAMA_DIR"/* electron-app/assets/llama/darwin/arm64/ 2>/dev/null || true
           chmod +x electron-app/assets/llama/darwin/arm64/llama-server
+          echo "--- Bundled files ---"
           ls -la electron-app/assets/llama/darwin/arm64/
 
       - name: Download llama-server (darwin-x64)
@@ -61,8 +72,13 @@ jobs:
           curl -L -o /tmp/llama-darwin-x64.zip \
             "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-macos-x64.zip"
           unzip -o /tmp/llama-darwin-x64.zip -d /tmp/llama-darwin-x64
-          find /tmp/llama-darwin-x64 -name "llama-server" -exec cp {} electron-app/assets/llama/darwin/x64/llama-server \;
+          # Copy llama-server AND all companion libraries (*.dylib, *.so, etc.)
+          LLAMA_BIN=$(find /tmp/llama-darwin-x64 -name "llama-server" -type f -print -quit)
+          if [ -z "$LLAMA_BIN" ]; then echo "ERROR: llama-server not found in archive"; exit 1; fi
+          LLAMA_DIR=$(dirname "$LLAMA_BIN")
+          cp "$LLAMA_DIR"/* electron-app/assets/llama/darwin/x64/ 2>/dev/null || true
           chmod +x electron-app/assets/llama/darwin/x64/llama-server
+          echo "--- Bundled files ---"
           ls -la electron-app/assets/llama/darwin/x64/
 
       - name: Download llama-server (linux-x64)
@@ -71,8 +87,13 @@ jobs:
           curl -L -o /tmp/llama-linux-x64.zip \
             "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-ubuntu-x64.zip"
           unzip -o /tmp/llama-linux-x64.zip -d /tmp/llama-linux-x64
-          find /tmp/llama-linux-x64 -name "llama-server" -exec cp {} electron-app/assets/llama/linux/x64/llama-server \;
+          # Copy llama-server AND all companion libraries (*.so, etc.)
+          LLAMA_BIN=$(find /tmp/llama-linux-x64 -name "llama-server" -type f -print -quit)
+          if [ -z "$LLAMA_BIN" ]; then echo "ERROR: llama-server not found in archive"; exit 1; fi
+          LLAMA_DIR=$(dirname "$LLAMA_BIN")
+          cp "$LLAMA_DIR"/* electron-app/assets/llama/linux/x64/ 2>/dev/null || true
           chmod +x electron-app/assets/llama/linux/x64/llama-server
+          echo "--- Bundled files ---"
           ls -la electron-app/assets/llama/linux/x64/
 
       - name: Upload llama assets

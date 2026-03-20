@@ -64,15 +64,11 @@
     ],
     "extraResources": [
       {
-        "from": "resources/bin/${platform}/${arch}",
-        "to": "llama/${platform}/${arch}",
+        "from": "assets/llama",
+        "to": "llama",
         "filter": [
           "**/*"
         ]
-      },
-      {
-        "from": "assets/llama/README.md",
-        "to": "llama/README.md"
       },
       {
         "from": "../packages/agent",
