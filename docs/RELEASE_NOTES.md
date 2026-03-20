@@ -1,3 +1,20 @@
+# CodeIn v1.0.2-beta — Release Notes (March 2026)
+
+## Critical Fix Release
+
+Fixes llama-server runtime failure on Windows and improves cross-platform binary bundling.
+
+### What Changed
+
+- **Fixed: ggml.dll not found** — llama-server.exe now ships with all companion DLLs (ggml.dll, llama.dll, llava_shared.dll)
+- **Fixed: CUDA dependency removed** — Switched Windows build from CUDA (requires NVIDIA toolkit) to AVX2 (CPU-only, works on all modern x64 CPUs)
+- **Fixed: electron-builder extraResources** — Corrected asset source path so all llama binaries and DLLs are included in the installer
+- **Fixed: CI workflows** — All 3 workflows (electron-release, release-matrix, download script) now copy companion libraries alongside the binary for all platforms
+- **Fixed: Agent runtime download** — Runtime auto-provisioning now downloads the AVX2 build instead of CUDA build
+- **Updated: All documentation** — Version references aligned to v1.0.2-beta across README, landing page, GUI locales, and package.json files
+
+---
+
 # CodeIn v1.0.1-beta — Release Notes (March 2026)
 
 ## Bug-Fix Release

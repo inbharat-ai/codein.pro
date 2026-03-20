@@ -13,7 +13,7 @@
 <br/>
 
 [![License](https://img.shields.io/badge/Apache_2.0-f97316?style=for-the-badge&label=license)](LICENSE)
-[![Version](https://img.shields.io/badge/v1.0.0--beta-6366f1?style=for-the-badge&label=version)](https://github.com/inbharat-ai/codein.pro/releases)
+[![Version](https://img.shields.io/badge/v1.0.2--beta-6366f1?style=for-the-badge&label=version)](https://github.com/inbharat-ai/codein.pro/releases)
 [![Node](https://img.shields.io/badge/Node.js_20.19+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![Stars](https://img.shields.io/github/stars/inbharat-ai/codein.pro?style=for-the-badge&logo=github&color=6366F1)](https://github.com/inbharat-ai/codein.pro)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-10b981?style=for-the-badge)](CONTRIBUTING.md)
@@ -34,7 +34,7 @@ CodeIn is an open-source AI coding IDE built as an Electron desktop application,
 
 At its core: a **Node.js HTTP server on `localhost:43120`** orchestrating 60 LLM provider integrations, a 13-agent autonomous swarm, Docker-sandboxed code execution, and voice-enabled prompting in 22 Indian languages. Everything runs on your machine. No cloud account required. No telemetry. Apache 2.0.
 
-The project is at **v1.0.0-beta** — the architecture is complete and the core feature set works end-to-end, with ongoing polish and stabilization before v1.0 stable.
+The project is at **v1.0.2-beta** — the architecture is complete and the core feature set works end-to-end, with ongoing polish and stabilization before v1.0 stable.
 
 ---
 
@@ -458,7 +458,7 @@ cd gui && npx tsc --noEmit          # TypeScript type check
 
 ## Project Status
 
-**Version:** v1.0.0-beta &nbsp;|&nbsp; **License:** Apache 2.0 &nbsp;|&nbsp; **Stage:** Public beta
+**Version:** v1.0.2-beta &nbsp;|&nbsp; **License:** Apache 2.0 &nbsp;|&nbsp; **Stage:** Public beta
 
 CodeIn's core architecture is complete and the primary feature set — multi-agent swarm, 60 provider integrations, local inference, and 22-language support — works end-to-end. The project is in active development toward v1.0 stable.
 

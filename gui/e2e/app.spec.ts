@@ -315,7 +315,7 @@ test.describe("Status bar content", () => {
   });
 
   test("status bar shows version string", async ({ page }) => {
-    await expect(page.locator(".ide-status-bar")).toContainText("v1.0.0");
+    await expect(page.locator(".ide-status-bar")).toContainText("v1.0.2");
   });
 
   test("status bar shows CodeIn tagline", async ({ page }) => {
