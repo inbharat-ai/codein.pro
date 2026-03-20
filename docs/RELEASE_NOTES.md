@@ -1,3 +1,19 @@
+# CodeIn v1.0.1-beta — Release Notes (March 2026)
+
+## Bug-Fix Release
+
+Fixes critical issues in the v1.0.0-beta initial release.
+
+### What Changed
+
+- **Fixed: App icon** — Brand logo now renders correctly on all platforms (was showing a procedural placeholder)
+- **Fixed: App fails to open** — GUI bundle is now correctly included via `extraResources`; added startup error dialog if resources are missing
+- **Fixed: Windows installer** — Corrected executable name typo (`CodIn.exe` → `CodeIn.exe`) in NSIS custom script
+- **Added: 4 missing Indian languages** — Maithili, Nepali, Sanskrit, Kashmiri now included (22 total as documented)
+- **Fixed: Landing page accuracy** — Provider count corrected to 60, tool count to 46 (Built-in + MCP), voice descriptions aligned
+
+---
+
 # CodeIn v1.0.0-beta — Release Notes (March 2026)
 
 ## First Public Beta
