@@ -1,18 +1,18 @@
-﻿/**
- * CodeIn Landing Page — Client-side logic
- * OS auto-detection · GitHub Releases integration · Download cards · FAQ
+/**
+ * CodeIn Landing Page � Client-side logic
+ * OS auto-detection � GitHub Releases integration � Download cards � FAQ
  */
 
-// ─── Configuration ──────────────────────────────────────────
+// --- Configuration ------------------------------------------
 const GITHUB_REPO = "inbharat-ai/codein.pro";
-const RELEASE_TAG = "v1.0.1-beta";
+const RELEASE_TAG = "v1.0.2-beta";
 const MANIFEST_URL = "downloads.json"; // local fallback
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${RELEASE_TAG}`;
 const RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases/tag/${RELEASE_TAG}`;
 const GITHUB_STARS_URL = `https://github.com/${GITHUB_REPO}`;
 let releaseExists = false; // set true when GitHub API returns a valid release
 
-// ─── OS Detection ───────────────────────────────────────────
+// --- OS Detection -------------------------------------------
 function detectOS() {
   const ua = navigator.userAgent.toLowerCase();
   const platform = navigator.platform?.toLowerCase() || "";
@@ -60,7 +60,7 @@ function detectArch() {
 const currentOS = detectOS();
 const currentArch = detectArch();
 
-// ─── Download Data ──────────────────────────────────────────
+// --- Download Data ------------------------------------------
 const PLATFORM_CONFIG = {
   windows: {
     label: "Windows",
@@ -120,7 +120,7 @@ const PLATFORM_CONFIG = {
 
 let manifest = null; // populated from JSON/API
 
-// ─── Fetching ───────────────────────────────────────────────
+// --- Fetching -----------------------------------------------
 async function loadManifest() {
   // Try GitHub Releases API first
   {
@@ -161,7 +161,7 @@ async function loadManifest() {
     }
   }
 
-  // Ultimate fallback — use baked-in data
+  // Ultimate fallback � use baked-in data
   manifest = generateFallbackManifest();
   releaseExists = true;
 }
@@ -223,38 +223,38 @@ function generateFallbackManifest() {
     releaseDate: "March 2026",
     assets: {
       win_x64: {
-        name: "CodeIn-1.0.1-x64.exe",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.1-x64.exe`,
+        name: "CodeIn-1.0.2-x64.exe",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-x64.exe`,
         sha256: "PENDING",
         size: "~120 MB",
       },
       win_x64_portable: {
-        name: "CodeIn-1.0.1-x64-portable.exe",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.1-x64-portable.exe`,
+        name: "CodeIn-1.0.2-x64-portable.exe",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-x64-portable.exe`,
         sha256: "PENDING",
         size: "~115 MB",
       },
       mac_arm64: {
-        name: "CodeIn-1.0.1-arm64.dmg",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.1-arm64.dmg`,
+        name: "CodeIn-1.0.2-arm64.dmg",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-arm64.dmg`,
         sha256: "PENDING",
         size: "~125 MB",
       },
       mac_x64: {
-        name: "CodeIn-1.0.1-x64.dmg",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.1-x64.dmg`,
+        name: "CodeIn-1.0.2-x64.dmg",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-x64.dmg`,
         sha256: "PENDING",
         size: "~130 MB",
       },
       linux_x64_appimage: {
-        name: "CodeIn-1.0.1-x64.AppImage",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.1-x64.AppImage`,
+        name: "CodeIn-1.0.2-x64.AppImage",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-x64.AppImage`,
         sha256: "PENDING",
         size: "~140 MB",
       },
       linux_x64_deb: {
-        name: "CodeIn-1.0.1-amd64.deb",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.1-amd64.deb`,
+        name: "CodeIn-1.0.2-amd64.deb",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-amd64.deb`,
         sha256: "PENDING",
         size: "~135 MB",
       },
@@ -262,7 +262,7 @@ function generateFallbackManifest() {
   };
 }
 
-// ─── Rendering ──────────────────────────────────────────────
+// --- Rendering ----------------------------------------------
 let activePlatform = currentOS;
 
 function showPlatform(platform) {
@@ -323,7 +323,7 @@ function renderDownloadCards(platform) {
         <div class="flex items-start justify-between mb-4 ${isPrimary ? "mt-2" : ""}">
           <div>
             <h3 class="text-lg font-semibold text-white mb-1">${asset.label}</h3>
-            <p class="text-sm text-gray-400">${data.name} · ${data.size}</p>
+            <p class="text-sm text-gray-400">${data.name} � ${data.size}</p>
           </div>
           <span class="px-2.5 py-1 rounded-lg ${badgeBg} text-xs font-mono">${asset.format}</span>
         </div>
@@ -353,7 +353,7 @@ function renderDownloadCards(platform) {
     .join("");
 }
 
-// ─── Hero Button Logic ──────────────────────────────────────
+// --- Hero Button Logic --------------------------------------
 function updateHeroForOS() {
   const config = PLATFORM_CONFIG[currentOS];
   const btnText = document.getElementById("hero-btn-text");
@@ -368,8 +368,8 @@ function updateHeroForOS() {
     if (ctaText)
       ctaText.textContent = `Download for ${config?.label || "your OS"}`;
   } else {
-    if (btnText) btnText.textContent = "Download CodeIn — Free & Open Source";
-    if (osLabel) osLabel.textContent = `${RELEASE_TAG} — Available Now`;
+    if (btnText) btnText.textContent = "Download CodeIn � Free & Open Source";
+    if (osLabel) osLabel.textContent = `${RELEASE_TAG} � Available Now`;
     if (ctaText) ctaText.textContent = "Download CodeIn";
   }
 }
@@ -405,11 +405,11 @@ function handleDownloadClick(event, url) {
   // Use a HEAD request to check if the asset exists
   fetch(url, { method: "HEAD", mode: "no-cors" })
     .then(() => {
-      // no-cors always resolves opaque — just navigate and let the browser handle it
+      // no-cors always resolves opaque � just navigate and let the browser handle it
       window.location.href = url;
     })
     .catch(() => {
-      // Network error — fall back to releases page
+      // Network error � fall back to releases page
       showToast("Download not available yet. Redirecting to releases page...");
       setTimeout(() => {
         window.location.href = RELEASES_PAGE;
@@ -424,7 +424,7 @@ function handleDownloadClick(event, url) {
   return false;
 }
 
-// ─── Clipboard ──────────────────────────────────────────────
+// --- Clipboard ----------------------------------------------
 async function copySha(hash) {
   try {
     await navigator.clipboard.writeText(hash);
@@ -459,7 +459,7 @@ function showToast(msg) {
   setTimeout(() => toast.remove(), 3000);
 }
 
-// ─── FAQ Toggle ─────────────────────────────────────────────
+// --- FAQ Toggle ---------------------------------------------
 function toggleFaq(btn) {
   const item = btn?.closest(".faq-item");
   if (!item) return;
@@ -482,7 +482,7 @@ function toggleFaq(btn) {
   }
 }
 
-// ─── Navbar Scroll Effect ───────────────────────────────────
+// --- Navbar Scroll Effect -----------------------------------
 function handleNavbarScroll() {
   const navbar = document.getElementById("navbar");
   if (!navbar) return;
@@ -503,7 +503,7 @@ function handleNavbarScroll() {
   }
 }
 
-// ─── Mobile Menu ────────────────────────────────────────────
+// --- Mobile Menu --------------------------------------------
 function setupMobileMenu() {
   const btn = document.getElementById("mobile-menu-btn");
   const menu = document.getElementById("mobile-menu");
@@ -533,7 +533,7 @@ function setupMobileMenu() {
   });
 }
 
-// ─── Intersection Observer for Animations ───────────────────
+// --- Intersection Observer for Animations -------------------
 function setupScrollAnimations() {
   const observer = new IntersectionObserver(
     (entries) => {
@@ -556,7 +556,7 @@ function setupScrollAnimations() {
     });
 }
 
-// ─── Language Switcher ──────────────────────────────────────
+// --- Language Switcher --------------------------------------
 function toggleLangMenu() {
   const menu = document.getElementById("lang-menu");
   if (menu) menu.classList.toggle("hidden");
@@ -595,7 +595,7 @@ function buildLangMenus() {
         const m = LANG_META[code];
         const badge =
           m.coverage === "beta"
-            ? ' <span class="text-[8px] px-1 rounded bg-yellow-500/20 text-yellow-400">β</span>'
+            ? ' <span class="text-[8px] px-1 rounded bg-yellow-500/20 text-yellow-400">�</span>'
             : "";
         return `<button onclick="switchLang('${code}')" data-lang="${code}" class="lang-btn-mobile px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-gray-300 hover:bg-white/10 transition-all">
         ${m.flag} ${m.native}${badge}
@@ -638,14 +638,14 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// ─── Utilities ──────────────────────────────────────────────
+// --- Utilities ----------------------------------------------
 function formatBytes(bytes) {
-  if (!bytes) return "—";
+  if (!bytes) return "�";
   const mb = bytes / (1024 * 1024);
   return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb.toFixed(0)} MB`;
 }
 
-// ─── Init ───────────────────────────────────────────────────
+// --- Init ---------------------------------------------------
 document.addEventListener("DOMContentLoaded", async () => {
   // Initialize i18n
   buildLangMenus();
