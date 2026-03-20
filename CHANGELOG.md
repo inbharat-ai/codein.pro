@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.3-beta - 2026-03-20
+
+### Fixed
+- **ggml.dll not found (root cause)** — CI silently swallowed DLL copy failures; replaced with explicit verification gates
+- **Binary branding** — Renamed `llama-server.exe` to `codein-llm.exe` across all platforms
+- **Runtime path resolution** — `LLMBootstrapService` and `AgentService` now check correct bundled resource paths
+- **DLL search order** — All `spawn()` calls set `cwd` to binary directory for Windows DLL discovery
+- **Nested ZIP extraction** — `model-runtime` flattens nested ZIP structures when extracting
+- **NSIS installer dialogs** — Suppressed DLL-not-found system error dialogs during install bootstrap
+
 ## 0.1.0 - 2026-02-27
 
 ### Added

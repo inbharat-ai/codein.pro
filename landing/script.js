@@ -1,11 +1,11 @@
-/**
+﻿/**
  * CodeIn Landing Page � Client-side logic
  * OS auto-detection � GitHub Releases integration � Download cards � FAQ
  */
 
 // --- Configuration ------------------------------------------
 const GITHUB_REPO = "inbharat-ai/codein.pro";
-const RELEASE_TAG = "v1.0.2-beta";
+const RELEASE_TAG = "v1.0.3-beta";
 const MANIFEST_URL = "downloads.json"; // local fallback
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${RELEASE_TAG}`;
 const RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases/tag/${RELEASE_TAG}`;
@@ -223,38 +223,38 @@ function generateFallbackManifest() {
     releaseDate: "March 2026",
     assets: {
       win_x64: {
-        name: "CodeIn-1.0.2-x64.exe",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-x64.exe`,
+        name: "CodeIn-1.0.3-x64.exe",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.3-x64.exe`,
         sha256: "PENDING",
         size: "~120 MB",
       },
       win_x64_portable: {
-        name: "CodeIn-1.0.2-x64-portable.exe",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-x64-portable.exe`,
+        name: "CodeIn-1.0.3-x64-portable.exe",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.3-x64-portable.exe`,
         sha256: "PENDING",
         size: "~115 MB",
       },
       mac_arm64: {
-        name: "CodeIn-1.0.2-arm64.dmg",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-arm64.dmg`,
+        name: "CodeIn-1.0.3-arm64.dmg",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.3-arm64.dmg`,
         sha256: "PENDING",
         size: "~125 MB",
       },
       mac_x64: {
-        name: "CodeIn-1.0.2-x64.dmg",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-x64.dmg`,
+        name: "CodeIn-1.0.3-x64.dmg",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.3-x64.dmg`,
         sha256: "PENDING",
         size: "~130 MB",
       },
       linux_x64_appimage: {
-        name: "CodeIn-1.0.2-x64.AppImage",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-x64.AppImage`,
+        name: "CodeIn-1.0.3-x64.AppImage",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.3-x64.AppImage`,
         sha256: "PENDING",
         size: "~140 MB",
       },
       linux_x64_deb: {
-        name: "CodeIn-1.0.2-amd64.deb",
-        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.2-amd64.deb`,
+        name: "CodeIn-1.0.3-amd64.deb",
+        url: `https://github.com/${GITHUB_REPO}/releases/download/${RELEASE_TAG}/CodeIn-1.0.3-amd64.deb`,
         sha256: "PENDING",
         size: "~135 MB",
       },

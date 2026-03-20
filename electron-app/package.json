@@ -1,7 +1,7 @@
 {
   "name": "@codein/electron-app",
   "productName": "CodeIn",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "CodeIn - Multilingual AI-powered code editor for Indian languages",
   "main": "dist/main/main.js",
   "author": {

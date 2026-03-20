@@ -1,3 +1,21 @@
+# CodeIn v1.0.3-beta — Release Notes (March 2026)
+
+## DLL Bundling & Branding Fix
+
+Fixes persistent ggml.dll system error on Windows launch and renames llama-server binary to CodeIn branding.
+
+### What Changed
+
+- **Fixed: ggml.dll not found (root cause)** — CI was silently swallowing DLL copy failures with `2>/dev/null || true`. Replaced with explicit copy-all + DLL verification gates that fail the build if DLLs are missing
+- **Fixed: Binary branding** — Renamed `llama-server.exe` to `codein-llm.exe` so Windows error dialogs show CodeIn, not third-party binary names
+- **Fixed: Runtime path resolution** — `LLMBootstrapService.findLlamaCppExecutable()` now correctly checks `resources/llama/{platform}/{arch}/` in packaged builds
+- **Fixed: DLL search order** — All `spawn()` calls now set `cwd` to the binary's directory, ensuring Windows finds companion DLLs
+- **Fixed: Nested ZIP extraction** — `model-runtime` now flattens nested ZIP structures when extracting llama binaries
+- **Fixed: NSIS installer dialogs** — Added `SetErrorMode` to suppress DLL-not-found system error dialogs during install bootstrap
+- **Updated: All documentation** — Version references aligned to v1.0.3-beta across README, landing page, and package.json files
+
+---
+
 # CodeIn v1.0.2-beta — Release Notes (March 2026)
 
 ## Critical Fix Release
