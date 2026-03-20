@@ -29,6 +29,8 @@ const fs = require("node:fs");
 const PLATFORM = process.platform; // win32 | darwin | linux
 const ARCH = process.arch; // x64 | arm64
 const BINARY_NAME =
+  PLATFORM === "win32" ? "codein-llm.exe" : "codein-llm";
+const LEGACY_BINARY_NAME =
   PLATFORM === "win32" ? "llama-server.exe" : "llama-server";
 
 const explicitLlamaPath = process.env.LLAMA_PATH;
@@ -36,8 +38,11 @@ const explicitLlamaPath = process.env.LLAMA_PATH;
 const LLAMA_CANDIDATES = [
   explicitLlamaPath,
   path.resolve(__dirname, "..", "resources", "bin", PLATFORM, ARCH, BINARY_NAME),
+  path.resolve(__dirname, "..", "resources", "bin", PLATFORM, ARCH, LEGACY_BINARY_NAME),
   path.resolve(__dirname, "..", "assets", "llama", PLATFORM, ARCH, BINARY_NAME),
+  path.resolve(__dirname, "..", "assets", "llama", PLATFORM, ARCH, LEGACY_BINARY_NAME),
   path.resolve(__dirname, "..", "assets", "llama", PLATFORM, BINARY_NAME),
+  path.resolve(__dirname, "..", "assets", "llama", PLATFORM, LEGACY_BINARY_NAME),
 ].filter(Boolean);
 
 const LLAMA_PATH = LLAMA_CANDIDATES.find((candidate) => fs.existsSync(candidate));

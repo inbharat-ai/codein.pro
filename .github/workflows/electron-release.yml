@@ -42,12 +42,17 @@ jobs:
           curl -L -o /tmp/llama-win-x64.zip \
             "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-win-avx2-x64.zip"
           unzip -o /tmp/llama-win-x64.zip -d /tmp/llama-win-x64
-          # Copy llama-server.exe AND all companion DLLs (ggml.dll, llama.dll, etc.)
+          # Copy ALL files from binary's directory (exe + ggml.dll, llama.dll, etc.)
           LLAMA_EXE=$(find /tmp/llama-win-x64 -name "llama-server.exe" -print -quit)
           if [ -z "$LLAMA_EXE" ]; then echo "ERROR: llama-server.exe not found in archive"; exit 1; fi
           LLAMA_DIR=$(dirname "$LLAMA_EXE")
-          cp "$LLAMA_EXE" electron-app/assets/llama/win32/x64/llama-server.exe
-          cp "$LLAMA_DIR"/*.dll electron-app/assets/llama/win32/x64/ 2>/dev/null || true
+          cp "$LLAMA_DIR"/* electron-app/assets/llama/win32/x64/
+          # Rename to codein-llm.exe for branding
+          mv electron-app/assets/llama/win32/x64/llama-server.exe electron-app/assets/llama/win32/x64/codein-llm.exe
+          # Verify critical DLLs are present
+          test -f electron-app/assets/llama/win32/x64/ggml.dll || { echo "FATAL: ggml.dll not found after copy"; exit 1; }
+          test -f electron-app/assets/llama/win32/x64/llama.dll || { echo "FATAL: llama.dll not found after copy"; exit 1; }
+          test -f electron-app/assets/llama/win32/x64/codein-llm.exe || { echo "FATAL: codein-llm.exe not found"; exit 1; }
           echo "--- Bundled files ---"
           ls -la electron-app/assets/llama/win32/x64/
 
@@ -57,12 +62,14 @@ jobs:
           curl -L -o /tmp/llama-darwin-arm64.zip \
             "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-macos-arm64.zip"
           unzip -o /tmp/llama-darwin-arm64.zip -d /tmp/llama-darwin-arm64
-          # Copy llama-server AND all companion libraries (*.dylib, *.so, etc.)
+          # Copy ALL files from binary's directory (exe + dylibs)
           LLAMA_BIN=$(find /tmp/llama-darwin-arm64 -name "llama-server" -type f -print -quit)
           if [ -z "$LLAMA_BIN" ]; then echo "ERROR: llama-server not found in archive"; exit 1; fi
           LLAMA_DIR=$(dirname "$LLAMA_BIN")
-          cp "$LLAMA_DIR"/* electron-app/assets/llama/darwin/arm64/ 2>/dev/null || true
-          chmod +x electron-app/assets/llama/darwin/arm64/llama-server
+          cp "$LLAMA_DIR"/* electron-app/assets/llama/darwin/arm64/
+          # Rename for branding
+          mv electron-app/assets/llama/darwin/arm64/llama-server electron-app/assets/llama/darwin/arm64/codein-llm
+          chmod +x electron-app/assets/llama/darwin/arm64/codein-llm
           echo "--- Bundled files ---"
           ls -la electron-app/assets/llama/darwin/arm64/
 
@@ -72,12 +79,14 @@ jobs:
           curl -L -o /tmp/llama-darwin-x64.zip \
             "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-macos-x64.zip"
           unzip -o /tmp/llama-darwin-x64.zip -d /tmp/llama-darwin-x64
-          # Copy llama-server AND all companion libraries (*.dylib, *.so, etc.)
+          # Copy ALL files from binary's directory (exe + dylibs)
           LLAMA_BIN=$(find /tmp/llama-darwin-x64 -name "llama-server" -type f -print -quit)
           if [ -z "$LLAMA_BIN" ]; then echo "ERROR: llama-server not found in archive"; exit 1; fi
           LLAMA_DIR=$(dirname "$LLAMA_BIN")
-          cp "$LLAMA_DIR"/* electron-app/assets/llama/darwin/x64/ 2>/dev/null || true
-          chmod +x electron-app/assets/llama/darwin/x64/llama-server
+          cp "$LLAMA_DIR"/* electron-app/assets/llama/darwin/x64/
+          # Rename for branding
+          mv electron-app/assets/llama/darwin/x64/llama-server electron-app/assets/llama/darwin/x64/codein-llm
+          chmod +x electron-app/assets/llama/darwin/x64/codein-llm
           echo "--- Bundled files ---"
           ls -la electron-app/assets/llama/darwin/x64/
 
@@ -87,12 +96,14 @@ jobs:
           curl -L -o /tmp/llama-linux-x64.zip \
             "https://github.com/ggml-org/llama.cpp/releases/download/b3906/llama-b3906-bin-ubuntu-x64.zip"
           unzip -o /tmp/llama-linux-x64.zip -d /tmp/llama-linux-x64
-          # Copy llama-server AND all companion libraries (*.so, etc.)
+          # Copy ALL files from binary's directory (exe + shared libs)
           LLAMA_BIN=$(find /tmp/llama-linux-x64 -name "llama-server" -type f -print -quit)
           if [ -z "$LLAMA_BIN" ]; then echo "ERROR: llama-server not found in archive"; exit 1; fi
           LLAMA_DIR=$(dirname "$LLAMA_BIN")
-          cp "$LLAMA_DIR"/* electron-app/assets/llama/linux/x64/ 2>/dev/null || true
-          chmod +x electron-app/assets/llama/linux/x64/llama-server
+          cp "$LLAMA_DIR"/* electron-app/assets/llama/linux/x64/
+          # Rename for branding
+          mv electron-app/assets/llama/linux/x64/llama-server electron-app/assets/llama/linux/x64/codein-llm
+          chmod +x electron-app/assets/llama/linux/x64/codein-llm
           echo "--- Bundled files ---"
           ls -la electron-app/assets/llama/linux/x64/
 
@@ -117,6 +128,16 @@ jobs:
         with:
           name: llama-binaries
           path: electron-app/assets/llama/
+
+      - name: Verify llama DLLs present
+        shell: pwsh
+        run: |
+          Write-Host "--- Verifying llama assets after artifact download ---"
+          Get-ChildItem -Recurse "electron-app/assets/llama/win32/x64/" | Format-Table Name, Length
+          if (-not (Test-Path "electron-app/assets/llama/win32/x64/ggml.dll")) { throw "FATAL: ggml.dll missing from downloaded artifact!" }
+          if (-not (Test-Path "electron-app/assets/llama/win32/x64/llama.dll")) { throw "FATAL: llama.dll missing from downloaded artifact!" }
+          if (-not (Test-Path "electron-app/assets/llama/win32/x64/codein-llm.exe")) { throw "FATAL: codein-llm.exe missing from downloaded artifact!" }
+          Write-Host "All required DLLs verified OK"
 
       - name: Install root dependencies
         run: npm install --ignore-scripts
@@ -166,6 +187,21 @@ jobs:
         run: npx electron-builder --win nsis portable --x64 --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Verify packaged DLLs
+        shell: pwsh
+        run: |
+          Write-Host "--- Verifying DLLs in packaged app ---"
+          $llamaDir = "electron-app/release/win-unpacked/resources/llama/win32/x64"
+          if (Test-Path $llamaDir) {
+            Get-ChildItem $llamaDir | Format-Table Name, Length
+            if (-not (Test-Path "$llamaDir/ggml.dll")) { throw "FATAL: ggml.dll missing from packaged app!" }
+            if (-not (Test-Path "$llamaDir/codein-llm.exe")) { throw "FATAL: codein-llm.exe missing from packaged app!" }
+            Write-Host "Packaged DLLs verified OK"
+          } else {
+            Write-Warning "win-unpacked dir not found (portable build may differ) — checking assets"
+            Get-ChildItem -Recurse "electron-app/release" -Filter "ggml.dll" | Format-Table FullName
+          }
 
       - name: List artifacts
         working-directory: electron-app/release

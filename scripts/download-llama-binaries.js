@@ -24,17 +24,20 @@ const RELEASE_BASE = `https://github.com/ggml-org/llama.cpp/releases/download/${
 const MANIFESTS = {
   win32: {
     url: `${RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-win-avx2-x64.zip`,
-    executable: "llama-server.exe",
-    sha256: "(fetch from release notes)", // Set to actual SHA256 from GitHub release
+    executable: "codein-llm.exe",
+    archiveExecutable: "llama-server.exe",
+    sha256: "(fetch from release notes)",
   },
   darwin: {
     url: `${RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-macos-arm64.zip`,
-    executable: "llama-server",
+    executable: "codein-llm",
+    archiveExecutable: "llama-server",
     sha256: "(fetch from release notes)",
   },
   linux: {
     url: `${RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-ubuntu-x64.zip`,
-    executable: "llama-server",
+    executable: "codein-llm",
+    archiveExecutable: "llama-server",
     sha256: "(fetch from release notes)",
   },
 };
@@ -183,10 +186,10 @@ async function downloadForPlatform(platform) {
     console.log(`  Extracting …`);
     extractZip(zipPath, tmpDir);
 
-    const found = findExecutable(tmpDir, manifest.executable);
+    const found = findExecutable(tmpDir, manifest.archiveExecutable);
     if (!found) {
       throw new Error(
-        `Could not find ${manifest.executable} in extracted archive`,
+        `Could not find ${manifest.archiveExecutable} in extracted archive`,
       );
     }
 
@@ -203,6 +206,15 @@ async function downloadForPlatform(platform) {
       }
     }
     console.log(`  Copied ${copiedCount} files to ${outDir}`);
+
+    // Rename to branded name
+    const origPath = path.join(outDir, manifest.archiveExecutable);
+    if (
+      fs.existsSync(origPath) &&
+      manifest.archiveExecutable !== manifest.executable
+    ) {
+      fs.renameSync(origPath, destBinary);
+    }
 
     // Make executable on Unix
     if (platform !== "win32") {

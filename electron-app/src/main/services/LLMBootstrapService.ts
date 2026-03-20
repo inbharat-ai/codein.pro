@@ -306,21 +306,27 @@ export class LLMBootstrapService {
       const logStream = fs.createWriteStream(logFile, { flags: "a" });
 
       // Start with reasonable defaults for Mistral-7B
-      this.llamaProcess = spawn(llamaCppExe, [
-        "-m",
-        modelPath,
-        "--port",
-        String(this.port),
-        "-c",
-        "2048", // context size
-        "-n",
-        "512", // max tokens to generate
-        "-ngl",
-        "99", // offload all layers to GPU if available
-        "--log-disable", // disable verbose logging
-        "-t",
-        "4", // threads
-      ]);
+      this.llamaProcess = spawn(
+        llamaCppExe,
+        [
+          "-m",
+          modelPath,
+          "--port",
+          String(this.port),
+          "-c",
+          "2048", // context size
+          "-n",
+          "512", // max tokens to generate
+          "-ngl",
+          "99", // offload all layers to GPU if available
+          "--log-disable", // disable verbose logging
+          "-t",
+          "4", // threads
+        ],
+        {
+          cwd: path.dirname(llamaCppExe), // Ensures Windows finds companion DLLs
+        },
+      );
 
       this.llamaProcess.stdout?.pipe(logStream);
       this.llamaProcess.stderr?.pipe(logStream);
@@ -343,19 +349,54 @@ export class LLMBootstrapService {
 
   /**
    * Find llama.cpp executable
-   * Check common install locations
+   * Check bundled resources path first, then common install locations
    */
   private findLlamaCppExecutable(): string | null {
-    const candidates = [
-      // Standard install paths
-      path.join(app.getPath("appData"), "codein", "bin", "llama-server"),
-      path.join(app.getPath("appData"), "codein", "bin", "llama-server.exe"),
-      // Bundled with app
-      path.join(app.getAppPath(), "bin", "llama-server"),
-      path.join(app.getAppPath(), "bin", "llama-server.exe"),
-      // System PATH (will need shell: true)
-      "llama-server",
-    ];
+    const execName =
+      process.platform === "win32" ? "codein-llm.exe" : "codein-llm";
+    const legacyExecName =
+      process.platform === "win32" ? "llama-server.exe" : "llama-server";
+
+    const candidates: string[] = [];
+
+    // Bundled resources paths (packaged Electron app)
+    if (app.isPackaged) {
+      candidates.push(
+        path.join(
+          process.resourcesPath,
+          "llama",
+          process.platform,
+          process.arch,
+          execName,
+        ),
+        path.join(
+          process.resourcesPath,
+          "llama",
+          process.platform,
+          process.arch,
+          legacyExecName,
+        ),
+        path.join(process.resourcesPath, "llama", process.platform, execName),
+        path.join(
+          process.resourcesPath,
+          "llama",
+          process.platform,
+          legacyExecName,
+        ),
+      );
+    }
+
+    // Standard install paths
+    candidates.push(
+      path.join(app.getPath("appData"), "codein", "bin", execName),
+      path.join(app.getPath("appData"), "codein", "bin", legacyExecName),
+    );
+
+    // Bundled with app (legacy)
+    candidates.push(
+      path.join(app.getAppPath(), "bin", execName),
+      path.join(app.getAppPath(), "bin", legacyExecName),
+    );
 
     for (const candidate of candidates) {
       try {

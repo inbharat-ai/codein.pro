@@ -95,7 +95,7 @@ jobs:
         run: |
           $dir = "electron-app/resources/bin/win32/x64"
           New-Item -ItemType Directory -Force -Path $dir | Out-Null
-          $bin = "$dir/llama-server.exe"
+          $bin = "$dir/codein-llm.exe"
           if (-not (Test-Path $bin)) {
             $tag = "${{ env.LLAMA_RELEASE }}"
             $url = "https://github.com/ggml-org/llama.cpp/releases/download/${tag}/llama-${tag}-bin-win-avx2-x64.zip"
@@ -107,10 +107,17 @@ jobs:
             $root = Split-Path $exe.FullName -Parent
             Copy-Item "$root\*" $dir -Recurse -Force
             Remove-Item -Recurse -Force "$dir/tmp","$dir/llama.zip" -ErrorAction SilentlyContinue
+            # Rename for branding
+            if (Test-Path "$dir/llama-server.exe") {
+              Rename-Item "$dir/llama-server.exe" "codein-llm.exe"
+            }
           }
           if (-not (Test-Path $bin)) { throw "Missing binary: $bin" }
           $len = (Get-Item $bin).Length
           if ($len -lt [int]"${{ env.MIN_BIN_BYTES }}") { throw "Binary too small: $len" }
+          # Verify DLLs
+          if (-not (Test-Path "$dir/ggml.dll")) { throw "FATAL: ggml.dll missing after extraction!" }
+          if (-not (Test-Path "$dir/llama.dll")) { throw "FATAL: llama.dll missing after extraction!" }
           & $bin --help | Out-Null
 
       - name: Mirror binaries to legacy assets path
@@ -120,6 +127,9 @@ jobs:
           # Copy ALL files (exe + DLLs like ggml.dll, llama.dll) to assets path
           Copy-Item "electron-app/resources/bin/win32/x64/*" "electron-app/assets/llama/win32/x64/" -Recurse -Force
           Get-ChildItem "electron-app/assets/llama/win32/x64" | Format-Table Name, Length
+          # Verify critical DLLs in assets path
+          if (-not (Test-Path "electron-app/assets/llama/win32/x64/ggml.dll")) { throw "FATAL: ggml.dll missing from assets!" }
+          if (-not (Test-Path "electron-app/assets/llama/win32/x64/codein-llm.exe")) { throw "FATAL: codein-llm.exe missing from assets!" }
 
       # ── Install + build ──
       - name: Install electron-app dependencies
@@ -139,8 +149,8 @@ jobs:
             Write-Warning "Skipping E2E inference smoke — no model downloaded"
             exit 0
           }
-          $env:LLAMA_PATH = "${{ github.workspace }}\\electron-app\\resources\\bin\\win32\\x64\\llama-server.exe"
-          $env:LLAMA_TEST_MODEL = "${{ github.workspace }}\\electron-app\\resources\\models\\tiny.gguf"
+          $env:LLAMA_PATH = "${{ github.workspace }}\electron-app\resources\bin\win32\x64\codein-llm.exe"
+          $env:LLAMA_TEST_MODEL = "${{ github.workspace }}\electron-app\resources\models\tiny.gguf"
           node --test electron-app/test/llama-spawn.e2e.test.cjs
 
       # ── Package ──
@@ -154,7 +164,7 @@ jobs:
         shell: pwsh
         continue-on-error: true
         run: |
-          $bin = "electron-app/resources/bin/win32/x64/llama-server.exe"
+          $bin = "electron-app/resources/bin/win32/x64/codein-llm.exe"
           $model = "electron-app/resources/models/tiny.gguf"
           if (-not (Test-Path $model)) {
             Write-Warning "Skipping inference smoke — no model downloaded"
@@ -244,7 +254,7 @@ jobs:
           set -euo pipefail
           DIR="electron-app/resources/bin/darwin/${{ matrix.arch }}"
           mkdir -p "$DIR"
-          if [ ! -f "$DIR/llama-server" ]; then
+          if [ ! -f "$DIR/codein-llm" ]; then
             TAG="${{ env.LLAMA_RELEASE }}"
             URL="https://github.com/ggml-org/llama.cpp/releases/download/${TAG}/llama-${TAG}-bin-macos-${{ matrix.arch }}.zip"
             echo "Downloading $URL"
@@ -254,19 +264,21 @@ jobs:
             test -n "$FOUND"
             # Copy all files from the bin directory (includes companion dylibs)
             FOUND_DIR=$(dirname "$FOUND")
-            cp "$FOUND_DIR"/* "$DIR/" 2>/dev/null || true
-            chmod +x "$DIR/llama-server"
+            cp "$FOUND_DIR"/* "$DIR/"
+            # Rename for branding
+            mv "$DIR/llama-server" "$DIR/codein-llm"
+            chmod +x "$DIR/codein-llm"
             rm -rf "$DIR/tmp" "$DIR/llama.zip"
           fi
-          test -f "$DIR/llama-server"
-          test -x "$DIR/llama-server"
-          BYTES=$(wc -c < "$DIR/llama-server")
+          test -f "$DIR/codein-llm"
+          test -x "$DIR/codein-llm"
+          BYTES=$(wc -c < "$DIR/codein-llm")
           if [ "$BYTES" -lt "${{ env.MIN_BIN_BYTES }}" ]; then
             echo "Binary too small: $BYTES"; exit 1
           fi
           echo "--- Bundled files ---"
           ls -la "$DIR/"
-          "$DIR/llama-server" --help >/dev/null || true
+          "$DIR/codein-llm" --help >/dev/null || true
 
       - name: Mirror binaries to legacy assets path
         run: |
@@ -292,7 +304,7 @@ jobs:
             echo "WARNING: Skipping E2E inference smoke — no model downloaded"
             exit 0
           fi
-          export LLAMA_PATH="${GITHUB_WORKSPACE}/electron-app/resources/bin/darwin/${{ matrix.arch }}/llama-server"
+          export LLAMA_PATH="${GITHUB_WORKSPACE}/electron-app/resources/bin/darwin/${{ matrix.arch }}/codein-llm"
           export LLAMA_TEST_MODEL="${GITHUB_WORKSPACE}/electron-app/resources/models/tiny.gguf"
           node --test electron-app/test/llama-spawn.e2e.test.cjs
 
@@ -307,7 +319,7 @@ jobs:
       - name: Inference smoke (if model available)
         continue-on-error: true
         run: |
-          BIN="electron-app/resources/bin/darwin/${{ matrix.arch }}/llama-server"
+          BIN="electron-app/resources/bin/darwin/${{ matrix.arch }}/codein-llm"
           MODEL="electron-app/resources/models/tiny.gguf"
           if [ ! -f "$MODEL" ]; then
             echo "WARNING: Skipping inference smoke — no model downloaded"
@@ -387,7 +399,7 @@ jobs:
           set -euo pipefail
           DIR="electron-app/resources/bin/linux/x64"
           mkdir -p "$DIR"
-          if [ ! -f "$DIR/llama-server" ]; then
+          if [ ! -f "$DIR/codein-llm" ]; then
             TAG="${{ env.LLAMA_RELEASE }}"
             URL="https://github.com/ggml-org/llama.cpp/releases/download/${TAG}/llama-${TAG}-bin-ubuntu-x64.zip"
             echo "Downloading $URL"
@@ -397,19 +409,21 @@ jobs:
             test -n "$FOUND"
             # Copy all files from the bin directory (includes companion .so libs)
             FOUND_DIR=$(dirname "$FOUND")
-            cp "$FOUND_DIR"/* "$DIR/" 2>/dev/null || true
-            chmod +x "$DIR/llama-server"
+            cp "$FOUND_DIR"/* "$DIR/"
+            # Rename for branding
+            mv "$DIR/llama-server" "$DIR/codein-llm"
+            chmod +x "$DIR/codein-llm"
             rm -rf "$DIR/tmp" "$DIR/llama.zip"
           fi
-          test -f "$DIR/llama-server"
-          test -x "$DIR/llama-server"
-          BYTES=$(wc -c < "$DIR/llama-server")
+          test -f "$DIR/codein-llm"
+          test -x "$DIR/codein-llm"
+          BYTES=$(wc -c < "$DIR/codein-llm")
           if [ "$BYTES" -lt "${{ env.MIN_BIN_BYTES }}" ]; then
             echo "Binary too small: $BYTES"; exit 1
           fi
           echo "--- Bundled files ---"
           ls -la "$DIR/"
-          "$DIR/llama-server" --help >/dev/null || true
+          "$DIR/codein-llm" --help >/dev/null || true
 
       - name: Mirror binaries to legacy assets path
         run: |
@@ -435,7 +449,7 @@ jobs:
             echo "WARNING: Skipping E2E inference smoke — no model downloaded"
             exit 0
           fi
-          export LLAMA_PATH="${GITHUB_WORKSPACE}/electron-app/resources/bin/linux/x64/llama-server"
+          export LLAMA_PATH="${GITHUB_WORKSPACE}/electron-app/resources/bin/linux/x64/codein-llm"
           export LLAMA_TEST_MODEL="${GITHUB_WORKSPACE}/electron-app/resources/models/tiny.gguf"
           node --test electron-app/test/llama-spawn.e2e.test.cjs
 
@@ -448,7 +462,7 @@ jobs:
       - name: Inference smoke (if model available)
         continue-on-error: true
         run: |
-          BIN="electron-app/resources/bin/linux/x64/llama-server"
+          BIN="electron-app/resources/bin/linux/x64/codein-llm"
           MODEL="electron-app/resources/models/tiny.gguf"
           if [ ! -f "$MODEL" ]; then
             echo "WARNING: Skipping inference smoke — no model downloaded"

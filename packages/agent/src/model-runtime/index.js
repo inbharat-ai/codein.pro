@@ -21,17 +21,20 @@ const LLAMA_CPP_RELEASE_BASE = `https://github.com/ggml-org/llama.cpp/releases/d
 const RUNTIME_MANIFESTS = {
   win32: {
     url: `${LLAMA_CPP_RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-win-avx2-x64.zip`,
-    executable: "llama-server.exe",
+    executable: "codein-llm.exe",
+    archiveExecutable: "llama-server.exe",
     checksumUrl: `${LLAMA_CPP_RELEASE_BASE}/sha256sum.txt`,
   },
   darwin: {
     url: `${LLAMA_CPP_RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-macos-arm64.zip`,
-    executable: "llama-server",
+    executable: "codein-llm",
+    archiveExecutable: "llama-server",
     checksumUrl: `${LLAMA_CPP_RELEASE_BASE}/sha256sum.txt`,
   },
   linux: {
     url: `${LLAMA_CPP_RELEASE_BASE}/llama-${LLAMA_CPP_VERSION}-bin-ubuntu-x64.zip`,
-    executable: "llama-server",
+    executable: "codein-llm",
+    archiveExecutable: "llama-server",
     checksumUrl: `${LLAMA_CPP_RELEASE_BASE}/sha256sum.txt`,
   },
 };
@@ -176,6 +179,34 @@ class ModelRuntimeManager {
 
       await this.extractArchive(archivePath, RUNTIME_DIR);
 
+      // ZIP may have nested structure — find the binary and flatten
+      if (!fs.existsSync(executablePath)) {
+        const archiveBinName =
+          manifest.archiveExecutable || manifest.executable;
+        const found = this.findFileRecursive(RUNTIME_DIR, archiveBinName);
+        if (found) {
+          const srcDir = path.dirname(found);
+          const entries = fs.readdirSync(srcDir, { withFileTypes: true });
+          for (const entry of entries) {
+            if (entry.isFile()) {
+              const src = path.join(srcDir, entry.name);
+              const dest = path.join(RUNTIME_DIR, entry.name);
+              if (src !== dest) {
+                fs.renameSync(src, dest);
+              }
+            }
+          }
+          // Rename to branded name if needed
+          const origInRuntime = path.join(RUNTIME_DIR, archiveBinName);
+          if (
+            archiveBinName !== manifest.executable &&
+            fs.existsSync(origInRuntime)
+          ) {
+            fs.renameSync(origInRuntime, executablePath);
+          }
+        }
+      }
+
       if (!fs.existsSync(executablePath)) {
         throw new Error(
           "llama.cpp extraction completed but executable not found",
@@ -305,16 +336,37 @@ class ModelRuntimeManager {
     });
   }
 
+  findFileRecursive(dir, name) {
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        if (entry.isFile() && entry.name === name) return full;
+        if (entry.isDirectory()) {
+          const found = this.findFileRecursive(full, name);
+          if (found) return found;
+        }
+      }
+    } catch {
+      // Ignore read errors
+    }
+    return null;
+  }
+
   findLlamaServerInPath() {
     const PATH = process.env.PATH || "";
     const paths = PATH.split(path.delimiter);
-    const executable =
-      os.platform() === "win32" ? "llama-server.exe" : "llama-server";
+    const names =
+      os.platform() === "win32"
+        ? ["codein-llm.exe", "llama-server.exe"]
+        : ["codein-llm", "llama-server"];
 
     for (const dir of paths) {
-      const fullPath = path.join(dir, executable);
-      if (fs.existsSync(fullPath)) {
-        return fullPath;
+      for (const name of names) {
+        const fullPath = path.join(dir, name);
+        if (fs.existsSync(fullPath)) {
+          return fullPath;
+        }
       }
     }
     return null;
@@ -632,6 +684,7 @@ class ModelRuntimeManager {
     console.log(`[ModelRuntime] Starting inference with ${model.name}...`);
 
     this.llamaProcess = spawn(executablePath, args, {
+      cwd: path.dirname(executablePath),
       stdio: ["ignore", "pipe", "pipe"],
     });
 

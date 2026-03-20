@@ -415,8 +415,8 @@ export class AgentService {
   }
 
   /**
-   * Resolve bundled llama-server path in packaged builds.
-   * Checks resources/llama/{platform}/{arch}/ first (new layout),
+   * Resolve bundled codein-llm (llama-server) path in packaged builds.
+   * Checks resources/llama/{platform}/{arch}/ first (codein-llm, then llama-server),
    * then resources/llama/{platform}/ (legacy flat layout),
    * then resources/bin/ (oldest layout).
    * On macOS/Linux, ensures the binary is executable (chmod +x).
@@ -430,9 +430,11 @@ export class AgentService {
     const platform = process.platform;
     const arch = process.arch; // x64, arm64, ia32, etc.
     const executableName =
+      platform === "win32" ? "codein-llm.exe" : "codein-llm";
+    const legacyExecName =
       platform === "win32" ? "llama-server.exe" : "llama-server";
 
-    // Priority 1: new arch-aware path  resources/llama/{platform}/{arch}/llama-server
+    // Priority 1: new arch-aware path  resources/llama/{platform}/{arch}/codein-llm
     const archAwarePath = path.join(
       process.resourcesPath,
       "llama",
@@ -440,21 +442,34 @@ export class AgentService {
       arch,
       executableName,
     );
-    // Priority 2: legacy flat path  resources/llama/{platform}/llama-server
+    // Priority 2: legacy name at new path
+    const archAwareLegacyPath = path.join(
+      process.resourcesPath,
+      "llama",
+      platform,
+      arch,
+      legacyExecName,
+    );
+    // Priority 3: legacy flat path  resources/llama/{platform}/codein-llm
     const legacyPlatformPath = path.join(
       process.resourcesPath,
       "llama",
       platform,
       executableName,
     );
-    // Priority 3: oldest path  resources/bin/llama-server
+    // Priority 4: oldest path  resources/bin/codein-llm
     const legacyBinPath = path.join(
       process.resourcesPath,
       "bin",
       executableName,
     );
 
-    const candidates = [archAwarePath, legacyPlatformPath, legacyBinPath];
+    const candidates = [
+      archAwarePath,
+      archAwareLegacyPath,
+      legacyPlatformPath,
+      legacyBinPath,
+    ];
 
     for (const candidate of candidates) {
       if (fs.existsSync(candidate)) {
