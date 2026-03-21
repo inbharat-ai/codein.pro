@@ -121,27 +121,40 @@ const PLATFORM_CONFIG = {
 let manifest = null; // populated from JSON/API
 
 // --- Fetching -----------------------------------------------
+async function fetchJSON(url, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      headers: { Accept: "application/vnd.github.v3+json" },
+      signal: controller.signal,
+    });
+    if (res.ok) return await res.json();
+  } catch (_) {
+  } finally {
+    clearTimeout(timeoutId);
+  }
+  return null;
+}
+
 async function loadManifest() {
-  // Try GitHub Releases API first
-  {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    try {
-      const res = await fetch(GITHUB_API, {
-        headers: { Accept: "application/vnd.github.v3+json" },
-        signal: controller.signal,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        manifest = parseGitHubRelease(data);
-        releaseExists = true;
-        updateReleaseMeta(data);
-        return;
-      }
-    } catch (_) {
-    } finally {
-      clearTimeout(timeoutId);
-    }
+  // Try target release tag first
+  const targetData = await fetchJSON(GITHUB_API);
+  if (targetData && targetData.assets && targetData.assets.length > 0) {
+    manifest = parseGitHubRelease(targetData);
+    releaseExists = true;
+    updateReleaseMeta(targetData);
+    return;
+  }
+
+  // Target tag has no assets (CI still building) — try latest release
+  const latestURL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
+  const latestData = await fetchJSON(latestURL);
+  if (latestData && latestData.assets && latestData.assets.length > 0) {
+    manifest = parseGitHubRelease(latestData);
+    releaseExists = true;
+    updateReleaseMeta(latestData);
+    return;
   }
 
   // Fallback to static manifest
@@ -161,7 +174,7 @@ async function loadManifest() {
     }
   }
 
-  // Ultimate fallback � use baked-in data
+  // Ultimate fallback — use baked-in data
   manifest = generateFallbackManifest();
   releaseExists = true;
 }
