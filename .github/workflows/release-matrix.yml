@@ -508,6 +508,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
+          pattern: codin-*
           path: all-artifacts/
 
       - name: Aggregate checksums

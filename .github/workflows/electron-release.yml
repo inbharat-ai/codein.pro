@@ -390,7 +390,18 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          path: artifacts/
+          name: codin-windows
+          path: artifacts/codin-windows/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: codin-macos
+          path: artifacts/codin-macos/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: codin-linux
+          path: artifacts/codin-linux/
 
       - name: Generate SHA256 checksums
         run: |

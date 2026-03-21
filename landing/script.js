@@ -172,6 +172,9 @@ function parseGitHubRelease(release) {
     const name = a.name.toLowerCase();
     let key = null;
 
+    // Only match CodeIn installer/package assets, skip raw binaries
+    if (!name.startsWith("codein")) continue;
+
     if (name.includes("portable") && name.endsWith(".exe"))
       key = "win_x64_portable";
     else if (name.endsWith(".exe") && !name.includes("blockmap"))
