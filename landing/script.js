@@ -142,19 +142,29 @@ async function loadManifest() {
   const targetData = await fetchJSON(GITHUB_API);
   if (targetData && targetData.assets && targetData.assets.length > 0) {
     manifest = parseGitHubRelease(targetData);
-    releaseExists = true;
-    updateReleaseMeta(targetData);
-    return;
+    if (Object.keys(manifest.assets).length > 0) {
+      releaseExists = true;
+      updateReleaseMeta(targetData);
+      return;
+    }
   }
 
-  // Target tag has no assets (CI still building) — try latest release
-  const latestURL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
-  const latestData = await fetchJSON(latestURL);
-  if (latestData && latestData.assets && latestData.assets.length > 0) {
-    manifest = parseGitHubRelease(latestData);
-    releaseExists = true;
-    updateReleaseMeta(latestData);
-    return;
+  // Target tag has no assets (CI still building) — find newest release with assets
+  const allReleases = await fetchJSON(
+    `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=10`,
+  );
+  if (Array.isArray(allReleases)) {
+    for (const rel of allReleases) {
+      if (rel.assets && rel.assets.length > 0) {
+        const parsed = parseGitHubRelease(rel);
+        if (Object.keys(parsed.assets).length > 0) {
+          manifest = parsed;
+          releaseExists = true;
+          updateReleaseMeta(rel);
+          return;
+        }
+      }
+    }
   }
 
   // Fallback to static manifest
