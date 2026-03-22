@@ -115,14 +115,15 @@ export class WindowManager {
 
     const { app } = require("electron");
 
-    // In development, load from Vite dev server
+    // In development, try Vite dev server or fall back to built GUI files
     if (process.env.NODE_ENV === "development" || !app.isPackaged) {
       const guiUrl = "http://localhost:5173";
-      try {
+      const viteRunning = await this.isPortOpen(5173);
+      if (viteRunning) {
         await this.mainWindow.loadURL(guiUrl);
         this.mainWindow.webContents.openDevTools();
-      } catch {
-        // Vite not running — try loading built files from workspace
+      } else {
+        // Vite not running — load pre-built GUI files from workspace
         const devGuiPath = path.join(
           __dirname,
           "..",
@@ -132,6 +133,11 @@ export class WindowManager {
           "dist",
           "index.html",
         );
+        if (!fs.existsSync(devGuiPath)) {
+          throw new Error(
+            `GUI not found at ${devGuiPath}. Run 'npm run build' in gui/ first, or start the Vite dev server.`,
+          );
+        }
         await this.mainWindow.loadFile(devGuiPath);
       }
     } else {
@@ -294,5 +300,26 @@ export class WindowManager {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send(channel, ...args);
     }
+  }
+
+  /**
+   * Check if a TCP port is open on localhost (used to detect Vite dev server).
+   * Returns within 500ms.
+   */
+  private isPortOpen(port: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      const net = require("net") as typeof import("net");
+      const socket = net.createConnection({ host: "127.0.0.1", port });
+      socket.setTimeout(500);
+      socket.once("connect", () => {
+        socket.destroy();
+        resolve(true);
+      });
+      socket.once("error", () => resolve(false));
+      socket.once("timeout", () => {
+        socket.destroy();
+        resolve(false);
+      });
+    });
   }
 }
