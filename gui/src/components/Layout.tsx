@@ -99,10 +99,14 @@ function useLayoutWebviewListeners() {
   useWebviewListener(
     "navigateTo",
     async (data) => {
-      if (data.toggle && location.pathname === data.path) {
+      const rawPath = typeof data?.path === "string" ? data.path : "";
+      const resolvedPath = rawPath.startsWith("/settings")
+        ? "/config?tab=settings"
+        : rawPath;
+      if (data.toggle && location.pathname === resolvedPath) {
         navigate("/");
       } else {
-        navigate(data.path);
+        navigate(resolvedPath);
       }
     },
     [location, navigate],
@@ -185,6 +189,7 @@ function useLayoutWebviewListeners() {
 const Layout = () => {
   const [showStagingIndicator, setShowStagingIndicator] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const ideMessenger = useContext(IdeMessengerContext);
 
@@ -214,6 +219,12 @@ const Layout = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: any) => {
+      if (isMetaEquivalentKeyPressed(event) && event.code === "Comma") {
+        event.preventDefault();
+        navigate("/config?tab=settings");
+        return;
+      }
+
       if (isMetaEquivalentKeyPressed(event) && event.code === "KeyC") {
         const selection = window.getSelection()?.toString();
         if (selection) {
@@ -229,7 +240,7 @@ const Layout = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (isNewUserOnboarding() && isHome) {

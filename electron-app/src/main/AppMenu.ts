@@ -69,7 +69,7 @@ export function buildAppMenu(windowManager: {
             const win = windowManager.getMainWindow();
             win?.webContents.send("webview:message", {
               messageType: "navigateTo",
-              data: { path: "/settings" },
+              data: { path: "/config?tab=settings" },
             });
           },
         },

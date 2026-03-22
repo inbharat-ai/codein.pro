@@ -118,7 +118,13 @@ export class WindowManager {
     // In development, try Vite dev server or fall back to built GUI files
     if (process.env.NODE_ENV === "development" || !app.isPackaged) {
       const guiUrl = "http://localhost:5173";
-      const viteRunning = await this.isPortOpen(5173);
+      // Guard against accidentally loading an unrelated app running on port 5173.
+      // To use live Vite UI, set CODEIN_USE_VITE_DEV_SERVER=1.
+      const useViteDevServer = process.env.CODEIN_USE_VITE_DEV_SERVER === "1";
+      const viteRunning = useViteDevServer
+        ? await this.isPortOpen(5173)
+        : false;
+
       if (viteRunning) {
         await this.mainWindow.loadURL(guiUrl);
         this.mainWindow.webContents.openDevTools();
