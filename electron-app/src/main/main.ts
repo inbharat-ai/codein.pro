@@ -308,11 +308,53 @@ class CodeInApp {
 // Create app instance
 const codinApp = new CodeInApp();
 
-// Handle uncaught exceptions
+// Handle uncaught exceptions — write to crash log + show dialog in packaged mode
 process.on("uncaughtException", (error) => {
   console.error("Uncaught exception:", error);
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const logDir = app.isReady()
+      ? app.getPath("userData")
+      : path.join(
+          process.env.APPDATA || process.env.HOME || require("os").tmpdir(),
+          "CodeIn",
+        );
+    fs.mkdirSync(logDir, { recursive: true });
+    const logPath = path.join(logDir, "crash.log");
+    const entry = `[${new Date().toISOString()}] uncaughtException: ${error.stack || error}\n`;
+    fs.appendFileSync(logPath, entry);
+  } catch {
+    // Best-effort logging
+  }
+  try {
+    if (app.isReady()) {
+      dialog.showErrorBox(
+        "CodeIn — Unexpected Error",
+        `${error.message}\n\nThe app may be unstable. Check crash.log for details.`,
+      );
+    }
+  } catch {
+    // Dialog may not be available
+  }
 });
 
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled rejection at:", promise, "reason:", reason);
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const logDir = app.isReady()
+      ? app.getPath("userData")
+      : path.join(
+          process.env.APPDATA || process.env.HOME || require("os").tmpdir(),
+          "CodeIn",
+        );
+    fs.mkdirSync(logDir, { recursive: true });
+    const logPath = path.join(logDir, "crash.log");
+    const entry = `[${new Date().toISOString()}] unhandledRejection: ${reason instanceof Error ? reason.stack : String(reason)}\n`;
+    fs.appendFileSync(logPath, entry);
+  } catch {
+    // Best-effort logging
+  }
 });

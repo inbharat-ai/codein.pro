@@ -18,17 +18,25 @@ interface WindowState {
 
 export class WindowManager {
   private mainWindow: BrowserWindow | null = null;
-  private store: Store;
+  private store: Store | null = null;
 
   constructor() {
-    this.store = new Store<Record<string, unknown>>({
-      name: "window-state",
-      defaults: {
-        width: 1200,
-        height: 800,
-        isMaximized: false,
-      },
-    });
+    try {
+      this.store = new Store<Record<string, unknown>>({
+        name: "window-state",
+        defaults: {
+          width: 1200,
+          height: 800,
+          isMaximized: false,
+        },
+      });
+    } catch (err) {
+      console.warn(
+        "CodeIn: Failed to load window-state store, using defaults:",
+        err,
+      );
+      this.store = null;
+    }
   }
 
   /**
@@ -64,14 +72,31 @@ export class WindowManager {
       this.mainWindow.maximize();
     }
 
+    // Register ready-to-show BEFORE loadGUI to avoid race condition:
+    // loadFile() can resolve and fire ready-to-show before we attach the listener.
+    let shown = false;
+    this.mainWindow.once("ready-to-show", () => {
+      if (!shown) {
+        shown = true;
+        this.mainWindow?.show();
+        this.mainWindow?.focus();
+      }
+    });
+
+    // Fallback: force-show after 10s if ready-to-show never fires (page load error)
+    setTimeout(() => {
+      if (!shown && this.mainWindow && !this.mainWindow.isDestroyed()) {
+        shown = true;
+        console.warn(
+          "CodeIn: ready-to-show did not fire within 10s, force-showing window",
+        );
+        this.mainWindow.show();
+        this.mainWindow.focus();
+      }
+    }, 10000);
+
     // Load the GUI
     await this.loadGUI();
-
-    // Show window when ready
-    this.mainWindow.once("ready-to-show", () => {
-      this.mainWindow?.show();
-      this.mainWindow?.focus();
-    });
 
     // Setup CSP headers
     this.setupCSP();
@@ -125,11 +150,11 @@ export class WindowManager {
    * Get saved window state or defaults
    */
   private getWindowState(): WindowState {
-    const width = this.store.get("width") as number;
-    const height = this.store.get("height") as number;
-    const x = this.store.get("x") as number | undefined;
-    const y = this.store.get("y") as number | undefined;
-    const isMaximized = this.store.get("isMaximized") as boolean;
+    const width = (this.store?.get("width") as number) ?? 1200;
+    const height = (this.store?.get("height") as number) ?? 800;
+    const x = this.store?.get("x") as number | undefined;
+    const y = this.store?.get("y") as number | undefined;
+    const isMaximized = (this.store?.get("isMaximized") as boolean) ?? false;
 
     // Validate that window is within screen bounds
     const primaryDisplay = screen.getPrimaryDisplay();
@@ -152,7 +177,7 @@ export class WindowManager {
    * Save window state
    */
   private saveWindowState(): void {
-    if (!this.mainWindow) return;
+    if (!this.mainWindow || !this.store) return;
 
     const bounds = this.mainWindow.getBounds();
     const isMaximized = this.mainWindow.isMaximized();
@@ -214,12 +239,12 @@ export class WindowManager {
     });
 
     this.mainWindow.on("maximize", () => {
-      this.store.set("isMaximized", true);
+      this.store?.set("isMaximized", true);
       this.sendToMainWindow("window:maximized");
     });
 
     this.mainWindow.on("unmaximize", () => {
-      this.store.set("isMaximized", false);
+      this.store?.set("isMaximized", false);
       this.sendToMainWindow("window:unmaximized");
       this.saveWindowState();
     });

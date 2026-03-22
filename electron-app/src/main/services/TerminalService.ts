@@ -1,21 +1,46 @@
 /**
  * Terminal Service
  * Manages terminal sessions using node-pty
+ *
+ * node-pty is loaded lazily on first terminal creation to prevent the entire
+ * main process from crashing if the native module is missing or ABI-incompatible.
  */
 
-import * as pty from "node-pty";
 import { v4 as uuidv4 } from "uuid";
 import * as os from "os";
 
+// Lazy-loaded — see getPty()
+let ptyModule: typeof import("node-pty") | null = null;
+let ptyLoadError: string | null = null;
+
 interface TerminalSession {
   id: string;
-  pty: pty.IPty;
+  pty: any; // IPty from node-pty, but typed as any since module is lazy-loaded
   onDataCallback?: (data: string) => void;
   onExitCallback?: (code: number) => void;
 }
 
 export class TerminalService {
   private terminals: Map<string, TerminalSession> = new Map();
+
+  /**
+   * Lazy-load node-pty. Returns the module or throws a descriptive error.
+   */
+  private getPty(): typeof import("node-pty") {
+    if (ptyModule) return ptyModule;
+    if (ptyLoadError) throw new Error(ptyLoadError);
+
+    try {
+      ptyModule = require("node-pty");
+      return ptyModule!;
+    } catch (err) {
+      ptyLoadError =
+        `Terminal unavailable: failed to load node-pty native module. ` +
+        `${err instanceof Error ? err.message : String(err)}`;
+      console.error("[TerminalService]", ptyLoadError);
+      throw new Error(ptyLoadError);
+    }
+  }
 
   private static readonly SENSITIVE_ENV_PATTERNS = [
     /^ANTHROPIC_API_KEY$/i,
@@ -50,6 +75,7 @@ export class TerminalService {
    * Create a new terminal session
    */
   public async create(cwd?: string): Promise<string> {
+    const pty = this.getPty();
     const id = uuidv4();
     const shell = this.getDefaultShell();
 

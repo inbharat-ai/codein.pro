@@ -178,6 +178,10 @@ jobs:
         working-directory: electron-app
         run: npm install
 
+      - name: Rebuild native modules for Electron
+        working-directory: electron-app
+        run: npx @electron/rebuild -f 28.2.0 -t prod
+
       - name: Build TypeScript
         working-directory: electron-app
         run: npm run build
@@ -275,6 +279,10 @@ jobs:
         working-directory: electron-app
         run: npm install
 
+      - name: Rebuild native modules for Electron
+        working-directory: electron-app
+        run: npx @electron/rebuild -f 28.2.0 -t prod
+
       - name: Build TypeScript
         working-directory: electron-app
         run: npm run build
@@ -358,6 +366,10 @@ jobs:
       - name: Install dependencies
         working-directory: electron-app
         run: npm install
+
+      - name: Rebuild native modules for Electron
+        working-directory: electron-app
+        run: npx @electron/rebuild -f 28.2.0 -t prod
 
       - name: Build TypeScript
         working-directory: electron-app
