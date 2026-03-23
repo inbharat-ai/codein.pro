@@ -250,11 +250,7 @@ export function History() {
           data-testid="history-sessions-note"
         >
           Chat history is saved to{" "}
-          <span className="italic">
-            {platform === "windows"
-              ? "%USERPROFILE%/.codein"
-              : "~/.codein/sessions"}
-          </span>
+          <span className="italic">~/.codein/sessions</span>
         </span>
       </div>
     </div>

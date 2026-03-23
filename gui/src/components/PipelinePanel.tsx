@@ -102,7 +102,7 @@ export default function PipelinePanel() {
   );
 
   return (
-    <div className="panel-container" style={{ maxWidth: 800 }}>
+    <div className="panel-container">
       <div className="panel-header">
         <h2>Pipeline</h2>
         <p>Create and manage autonomous coding pipelines</p>

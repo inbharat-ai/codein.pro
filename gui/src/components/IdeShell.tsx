@@ -339,12 +339,6 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
       {/* ── Main Content Area ── */}
       <ErrorBoundary>
         <div className="ide-main-wrapper">
-          {/* Page title bar (hidden on Chat to keep it clean) */}
-          {pageTitle && (
-            <header className="ide-page-header">
-              <h1 className="ide-page-title">{pageTitle}</h1>
-            </header>
-          )}
           <main id="main-content" className="ide-main">
             {children}
           </main>

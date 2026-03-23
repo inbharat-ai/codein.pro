@@ -71,10 +71,8 @@ test.describe("Activity bar", () => {
     await expect(page.locator(".ide-logo")).toBeVisible();
   });
 
-  test("AI Chat button is present with correct aria-label", async ({
-    page,
-  }) => {
-    await expect(page.locator('button[aria-label="AI Chat"]')).toBeVisible();
+  test("Chat button is present with correct aria-label", async ({ page }) => {
+    await expect(page.locator('button[aria-label="Chat"]')).toBeVisible();
   });
 
   test("History button is present with correct aria-label", async ({
@@ -89,11 +87,26 @@ test.describe("Activity bar", () => {
     await expect(page.locator('button[aria-label="Settings"]')).toBeVisible();
   });
 
-  test("all top activity buttons render", async ({ page }) => {
-    // We expect 8 top items (chat, history, search, swarm, gpu, git, ai-hub, computer)
+  test("core and tools activity buttons render (Chat, History, Search, Git, Agents + More toggle)", async ({
+    page,
+  }) => {
+    // Core(2) + Tools(3) + More toggle(1) = 6 visible top buttons by default
+    // Advanced section is collapsed initially
     const topButtons = page.locator(".ide-activity-top .ide-activity-btn");
     const count = await topButtons.count();
-    expect(count).toBeGreaterThanOrEqual(8);
+    expect(count).toBeGreaterThanOrEqual(6);
+  });
+
+  test("expanding advanced section reveals more buttons", async ({ page }) => {
+    // Click the "Show more panels" toggle
+    const moreBtn = page.locator('button[aria-label="Show more panels"]');
+    await moreBtn.click();
+
+    // Advanced section should now show additional buttons (Research, Pipeline, GPU, AI Hub, Computer Use)
+    const topButtons = page.locator(".ide-activity-top .ide-activity-btn");
+    const count = await topButtons.count();
+    // 6 base + 5 advanced = 11 minimum
+    expect(count).toBeGreaterThanOrEqual(11);
   });
 
   test("status bar is present with ready text", async ({ page }) => {
@@ -293,15 +306,35 @@ test.describe("Activity bar navigation", () => {
     await expect(historyBtn).toHaveClass(/active/, { timeout: 5000 });
   });
 
-  test("clicking AI Chat button marks it as active", async ({ page }) => {
+  test("clicking Chat button marks it as active", async ({ page }) => {
     // First navigate away to History
     await page.locator('button[aria-label="History"]').click();
 
     // Then navigate back to Chat
-    const chatBtn = page.locator('button[aria-label="AI Chat"]');
+    const chatBtn = page.locator('button[aria-label="Chat"]');
     await chatBtn.click();
 
     await expect(chatBtn).toHaveClass(/active/, { timeout: 5000 });
+  });
+
+  test("clicking Search navigates to repo intelligence panel", async ({
+    page,
+  }) => {
+    const searchBtn = page.locator('button[aria-label="Search"]');
+    await searchBtn.click();
+    await expect(searchBtn).toHaveClass(/active/, { timeout: 5000 });
+  });
+
+  test("clicking Git navigates to git panel", async ({ page }) => {
+    const gitBtn = page.locator('button[aria-label="Git"]');
+    await gitBtn.click();
+    await expect(gitBtn).toHaveClass(/active/, { timeout: 5000 });
+  });
+
+  test("clicking Agents navigates to swarm panel", async ({ page }) => {
+    const agentsBtn = page.locator('button[aria-label="Agents"]');
+    await agentsBtn.click();
+    await expect(agentsBtn).toHaveClass(/active/, { timeout: 5000 });
   });
 });
 
@@ -315,7 +348,7 @@ test.describe("Status bar content", () => {
   });
 
   test("status bar shows version string", async ({ page }) => {
-    await expect(page.locator(".ide-status-bar")).toContainText("v1.0.2");
+    await expect(page.locator(".ide-status-bar")).toContainText("v1.0.3");
   });
 
   test("status bar shows CodeIn tagline", async ({ page }) => {
@@ -376,5 +409,48 @@ test.describe("Keyboard accessibility", () => {
       }
     }
     expect(focused).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 9 — Panel rendering (smoke tests)
+// ---------------------------------------------------------------------------
+
+test.describe("Panel smoke tests", () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoApp(page);
+  });
+
+  test("Git panel renders header when navigated to", async ({ page }) => {
+    await page.locator('button[aria-label="Git"]').click();
+    await expect(page.locator("h2", { hasText: "Git" })).toBeVisible({
+      timeout: 5000,
+    });
+  });
+
+  test("Search panel renders header when navigated to", async ({ page }) => {
+    await page.locator('button[aria-label="Search"]').click();
+    await expect(page.locator("h2", { hasText: "Code Search" })).toBeVisible({
+      timeout: 5000,
+    });
+  });
+
+  test("Settings page renders when navigated to", async ({ page }) => {
+    await page.locator('button[aria-label="Settings"]').click();
+    // Settings page should show config tabs
+    await expect(page.locator(".ide-main")).toBeVisible({ timeout: 5000 });
+  });
+
+  test("Advanced panels accessible after expanding More section", async ({
+    page,
+  }) => {
+    // Expand advanced section
+    const moreBtn = page.locator('button[aria-label="Show more panels"]');
+    await moreBtn.click();
+
+    // Click GPU Monitor
+    const gpuBtn = page.locator('button[aria-label="GPU Monitor"]');
+    await gpuBtn.click();
+    await expect(gpuBtn).toHaveClass(/active/, { timeout: 5000 });
   });
 });

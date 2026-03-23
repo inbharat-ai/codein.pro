@@ -181,7 +181,7 @@ export function HelpSection() {
             <div className="flex flex-col">
               <ConfigRow
                 title="Documentation"
-                description="Learn how to configure and use Continue"
+                description="Learn how to configure and use CodeIn"
                 icon={LinkIcon}
                 onClick={() =>
                   ideMessenger.post("openUrl", "https://docs.continue.dev/")

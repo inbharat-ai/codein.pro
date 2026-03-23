@@ -18,7 +18,7 @@
     "branch": "main",
     "language": "TypeScript",
     "tagline": "CodeIn — \u092d\u093e\u0930\u0924 \u0915\u0947 \u0932\u093f\u090f AI \u0915\u094b\u0921 \u090f\u0921\u093f\u091f\u0930",
-    "version": "v1.0.2"
+    "version": "v1.0.3"
   },
   "modes": {
     "chat": "\u091a\u0948\u091f",

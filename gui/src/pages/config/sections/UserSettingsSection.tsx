@@ -176,7 +176,7 @@ export function UserSettingsSection() {
                 <UserSetting
                   type="toggle"
                   title="Allow Anonymous Telemetry"
-                  description="Allows Continue to send anonymous telemetry."
+                  description="Allows CodeIn to send anonymous telemetry."
                   value={allowAnonymousTelemetry}
                   disabled={disableTelemetryToggle}
                   onChange={(value) =>
@@ -311,7 +311,7 @@ export function UserSettingsSection() {
                   <UserSetting
                     type="toggle"
                     title="Only use system message tools"
-                    description=" Continue will not attempt to use native tool calling and will only use system message tools."
+                    description=" CodeIn will not attempt to use native tool calling and will only use system message tools."
                     value={onlyUseSystemMessageTools}
                     onChange={(value) =>
                       handleUpdate({ onlyUseSystemMessageTools: value })

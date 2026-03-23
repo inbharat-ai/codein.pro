@@ -109,7 +109,7 @@ export function BackgroundModeView({
             disabled={isLoggingIn}
             className="bg-primary text-primary-foreground hover:bg-primary-hover rounded-lg px-6 py-2 disabled:opacity-50"
           >
-            {isLoggingIn ? "Signing in..." : "Sign In to Continue"}
+            {isLoggingIn ? "Signing in..." : "Sign In to CodeIn"}
           </button>
         </div>
       </div>
