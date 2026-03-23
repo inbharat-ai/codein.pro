@@ -2,7 +2,7 @@
   "version": "1.0.3-beta",
   "releaseDate": "2026-03-20",
   "releaseName": "CodeIn v1.0.3-beta",
-  "releaseNotes": "Fix release: bundle ggml.dll and companion DLLs with llama-server, switch to AVX2 CPU-only build for broader compatibility.",
+  "releaseNotes": "Major UI/UX overhaul: professional IDE shell with activity bar, redesigned panels, local-first onboarding, 24% smaller bundle, 7 branding fixes, 35 E2E tests, agent dev-mode spawn fix.",
   "githubRepo": "inbharat-ai/codein.pro",
   "releaseUrl": "https://github.com/inbharat-ai/codein.pro/releases/tag/v1.0.3-beta",
   "assets": {
