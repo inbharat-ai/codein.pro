@@ -77,7 +77,10 @@ export default function RepoIntelligencePanel() {
   return (
     <div className="panel-container">
       <div className="panel-header">
-        <h2>Repository Intelligence</h2>
+        <h2>Code Search</h2>
+        <p>
+          Scan and search your codebase for functions, classes, and patterns
+        </p>
       </div>
 
       <section className="panel-section">

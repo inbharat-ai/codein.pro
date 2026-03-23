@@ -146,7 +146,8 @@ export default function GitPanel() {
   return (
     <div className="panel-container">
       <div className="panel-header">
-        <h2>Git Workflow</h2>
+        <h2>Git</h2>
+        <p>View status, stage changes, commit, and manage branches</p>
       </div>
 
       <section className="panel-section">
@@ -154,15 +155,9 @@ export default function GitPanel() {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Repository path"
+            placeholder="Repository path (e.g., . for current)"
             value={repoPath}
             onChange={(e) => setRepoPath(e.target.value)}
-            className="flex-1 rounded px-3 py-1.5 text-sm focus:outline-none"
-            style={{
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "rgba(255,255,255,0.07)",
-              color: "var(--vscode-input-foreground, #e8e6f0)",
-            }}
           />
           <Button
             onClick={handleGetStatus}

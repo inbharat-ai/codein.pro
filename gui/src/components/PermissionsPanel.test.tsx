@@ -45,7 +45,7 @@ describe("PermissionsPanel", () => {
   it("renders without crashing", () => {
     mockAgentFetch.mockImplementation(() => new Promise(() => {}));
     render(<PermissionsPanel />);
-    expect(screen.getByText("System Permissions")).toBeInTheDocument();
+    expect(screen.getByText("Permissions")).toBeInTheDocument();
   });
 
   it("shows loading state initially", () => {

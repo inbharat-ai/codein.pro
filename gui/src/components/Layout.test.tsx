@@ -106,6 +106,7 @@ function createMockStore() {
           lastSessionId: null,
           title: "test",
           mode: "chat",
+          isStreaming: false,
           isInEdit: false,
         },
       ) => state,
@@ -116,7 +117,15 @@ function createMockStore() {
         },
       ) => state,
       editModeState: (state = { codeToEdit: [] }) => state,
-      config: (state = {}) => state,
+      config: (
+        state = {
+          config: {
+            selectedModelByRole: {
+              chat: { title: "Claude", model: "claude-3-opus" },
+            },
+          },
+        },
+      ) => state,
       indexing: (state = {}) => state,
       tabs: (state = {}) => state,
       profiles: (state = {}) => state,

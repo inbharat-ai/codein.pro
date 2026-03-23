@@ -38,7 +38,7 @@ describe("MCPToolsPanel", () => {
 
   it("renders without crashing", async () => {
     render(<MCPToolsPanel />);
-    expect(screen.getByText("MCP Tools")).toBeTruthy();
+    expect(screen.getByText("MCP Servers")).toBeTruthy();
   });
 
   it("shows empty state when no servers are configured", async () => {

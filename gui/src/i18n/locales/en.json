@@ -1,14 +1,16 @@
 {
   "activityBar": {
-    "chat": "AI Chat",
+    "chat": "Chat",
     "history": "History",
     "search": "Search",
-    "gpu": "GPU Panel",
+    "gpu": "GPU Monitor",
     "docs": "Docs & Rules",
-    "swarm": "Swarm",
+    "swarm": "Agents",
     "git": "Git",
     "aiHub": "AI Hub",
-    "computer": "Computer",
+    "computer": "Computer Use",
+    "research": "Research",
+    "pipeline": "Pipeline",
     "settings": "Settings"
   },
   "statusBar": {

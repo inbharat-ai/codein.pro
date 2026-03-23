@@ -42,6 +42,7 @@ function ConfigPage() {
                 tabs={section.tabs}
                 activeTab={activeTab}
                 onTabClick={handleTabClick}
+                label={section.label}
                 showTopDivider={section.showTopDivider}
                 showBottomDivider={section.showBottomDivider}
                 className={section.className}

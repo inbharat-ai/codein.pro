@@ -40,36 +40,39 @@ export function ModeSelector() {
   );
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2">
-      <div className="text-xs uppercase tracking-wide opacity-70">Mode</div>
-      <div
-        className="flex gap-2"
-        role="radiogroup"
-        aria-label="Chat mode"
-        onKeyDown={handleKeyDown}
-      >
-        {options.map((option) => {
-          const isActive = mode === option;
-          return (
-            <button
-              key={option}
-              type="button"
-              role="radio"
-              aria-checked={isActive}
-              tabIndex={isActive ? 0 : -1}
-              disabled={isStreaming}
-              onClick={() => !isStreaming && dispatch(setMode(option))}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                isActive
-                  ? "bg-codin-indigo-700 text-white"
-                  : "bg-codin-bg-surface text-codin-fg"
-              } ${isStreaming ? "cursor-not-allowed opacity-50" : ""}`}
-            >
-              {LABELS[option]}
-            </button>
-          );
-        })}
-      </div>
+    <div
+      className="flex items-center gap-0.5 rounded-lg p-0.5"
+      style={{ background: "var(--codin-bg-surface, #201e3a)" }}
+      role="radiogroup"
+      aria-label="Chat mode"
+      onKeyDown={handleKeyDown}
+    >
+      {options.map((option) => {
+        const isActive = mode === option;
+        return (
+          <button
+            key={option}
+            type="button"
+            role="radio"
+            aria-checked={isActive}
+            tabIndex={isActive ? 0 : -1}
+            disabled={isStreaming}
+            onClick={() => !isStreaming && dispatch(setMode(option))}
+            className="relative rounded-md px-3 py-1 text-xs font-medium transition-all"
+            style={{
+              background: isActive
+                ? "var(--codin-indigo-700, #4338ca)"
+                : "transparent",
+              color: isActive ? "#fff" : "var(--codin-fg-muted, #8b88ad)",
+              cursor: isStreaming ? "not-allowed" : "pointer",
+              opacity: isStreaming ? 0.5 : 1,
+              boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.3)" : "none",
+            }}
+          >
+            {LABELS[option]}
+          </button>
+        );
+      })}
     </div>
   );
 }

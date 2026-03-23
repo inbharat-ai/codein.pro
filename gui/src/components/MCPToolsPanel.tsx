@@ -131,9 +131,22 @@ export function MCPToolsPanel() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4" style={{ maxWidth: 800 }}>
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">MCP Tools</h2>
+        <div>
+          <h2
+            className="text-lg font-semibold"
+            style={{ color: "var(--codin-fg-primary)" }}
+          >
+            MCP Servers
+          </h2>
+          <p
+            className="mt-0.5 text-xs"
+            style={{ color: "var(--codin-fg-muted)" }}
+          >
+            Connect external tools via the Model Context Protocol
+          </p>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={() => setShowActivity(!showActivity)}

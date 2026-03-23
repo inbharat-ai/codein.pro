@@ -55,7 +55,8 @@ export default function ResearchPanel() {
   return (
     <div className="panel-container">
       <div className="panel-header">
-        <h2>Research & Documentation</h2>
+        <h2>Research</h2>
+        <p>Search the web and documentation for code references</p>
       </div>
 
       <section className="panel-section">

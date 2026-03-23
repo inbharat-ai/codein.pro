@@ -48,12 +48,14 @@ describe("GitPanel", () => {
 
   it("renders without crashing", () => {
     render(<GitPanel />);
-    expect(screen.getByText("Git Workflow")).toBeInTheDocument();
+    expect(screen.getByText("Git")).toBeInTheDocument();
   });
 
   it("shows the repository path input and Check Status button on first render", () => {
     render(<GitPanel />);
-    expect(screen.getByPlaceholderText("Repository path")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Check Status" }),
     ).toBeInTheDocument();
@@ -77,7 +79,9 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    const input = screen.getByPlaceholderText("Repository path");
+    const input = screen.getByPlaceholderText(
+      "Repository path (e.g., . for current)",
+    );
     fireEvent.change(input, { target: { value: "/home/user/project" } });
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
@@ -105,9 +109,12 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/repo" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/repo" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await screen.findByText("Loading...");
@@ -138,9 +145,12 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/repo" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/repo" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await waitFor(() =>
@@ -159,9 +169,12 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/repo" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/repo" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await waitFor(() =>
@@ -183,9 +196,12 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/repo" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/repo" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await waitFor(() =>
@@ -205,9 +221,12 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/repo" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/repo" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await waitFor(() =>
@@ -228,9 +247,12 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/repo" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/repo" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await waitFor(() =>
@@ -257,9 +279,12 @@ describe("GitPanel", () => {
     mockAgentFetch.mockRejectedValue(new Error("ENOENT: no such directory"));
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/nonexistent" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/nonexistent" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await waitFor(() =>
@@ -278,9 +303,12 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/repo" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/repo" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await waitFor(() =>
@@ -306,9 +334,12 @@ describe("GitPanel", () => {
     );
 
     render(<GitPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Repository path"), {
-      target: { value: "/repo" },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText("Repository path (e.g., . for current)"),
+      {
+        target: { value: "/repo" },
+      },
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Status" }));
 
     await waitFor(() =>

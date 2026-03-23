@@ -130,7 +130,8 @@ export default function PermissionsPanel() {
   return (
     <div className="panel-container">
       <div className="panel-header">
-        <h2>System Permissions</h2>
+        <h2>Permissions</h2>
+        <p>Review and manage tool access permissions for your workspace</p>
       </div>
 
       <section className="panel-section">

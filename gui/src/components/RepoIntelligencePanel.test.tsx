@@ -18,7 +18,7 @@ describe("RepoIntelligencePanel", () => {
 
   it("renders without crashing", () => {
     render(<RepoIntelligencePanel />);
-    expect(screen.getByText("Repository Intelligence")).toBeInTheDocument();
+    expect(screen.getByText("Code Search")).toBeInTheDocument();
   });
 
   it("renders the Scan Workspace button", () => {

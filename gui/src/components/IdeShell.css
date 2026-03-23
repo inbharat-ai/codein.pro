@@ -1,6 +1,9 @@
 /**
  * CodeIn IDE Shell Styles
  * Premium dark IDE layout with indigo/saffron design system
+ *
+ * Layout: Activity Bar (48px) | Main Content | Status Bar (26px)
+ * Groups: Core → Tools → [Advanced] → Settings
  */
 
 /* ── Shell Grid ── */
@@ -31,6 +34,13 @@
   width: 48px;
   user-select: none;
   z-index: 10;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.ide-activity-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .ide-activity-top,
@@ -49,14 +59,23 @@
   padding-bottom: 8px;
 }
 
-/* Logo */
+/* ── Section Divider ── */
+.ide-section-divider {
+  width: 24px;
+  height: 1px;
+  margin: 4px auto;
+  background: var(--codin-border, rgba(99, 102, 241, 0.12));
+  flex-shrink: 0;
+}
+
+/* ── Logo ── */
 .ide-logo {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 48px;
   height: 42px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   cursor: default;
 }
 
@@ -75,20 +94,21 @@
   filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4));
 }
 
-/* Activity Buttons */
+/* ── Activity Buttons ── */
 .ide-activity-btn {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 48px;
-  height: 44px;
+  height: 40px;
   padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
   transition: all var(--codin-transition-fast, 120ms ease);
   border-left: 2px solid transparent;
+  flex-shrink: 0;
 }
 
 .ide-activity-btn:hover {
@@ -115,7 +135,28 @@
   color: var(--codin-accent-primary-hover, #818cf8);
 }
 
-/* Tooltip */
+/* ── More/Expand Button ── */
+.ide-more-btn {
+  height: 32px;
+  border-left-color: transparent !important;
+}
+
+.ide-more-btn .ide-activity-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}
+
+.ide-more-btn:hover .ide-activity-icon {
+  opacity: 1;
+}
+
+.ide-more-btn.expanded .ide-activity-icon {
+  opacity: 0.8;
+  color: var(--codin-fg-secondary, #a8a5c0);
+}
+
+/* ── Tooltip ── */
 .ide-activity-tooltip {
   position: absolute;
   left: 54px;
@@ -131,7 +172,6 @@
   letter-spacing: 0.2px;
   white-space: nowrap;
   pointer-events: none;
-  /* Keep tooltip inside the activity bar stacking context, below main content */
   z-index: 9;
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.4),
@@ -139,7 +179,6 @@
   animation: tooltipFade 0.12s ease-out;
 }
 
-/* Hide tooltip when parent button is active so it never overlays the open panel */
 .ide-activity-btn.active .ide-activity-tooltip {
   display: none;
 }
@@ -155,20 +194,50 @@
   }
 }
 
+/* ── Main Content Wrapper ── */
+.ide-main-wrapper {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Page Header ── */
+.ide-page-header {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  background: var(--codin-bg-secondary, #141320);
+  border-bottom: 1px solid var(--codin-border, rgba(99, 102, 241, 0.12));
+  flex-shrink: 0;
+}
+
+.ide-page-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--codin-fg-secondary, #a8a5c0);
+  margin: 0;
+  text-transform: none;
+}
+
 /* ── Main Content ── */
 .ide-main {
-  grid-area: main;
   overflow: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 0;
-  animation: codin-fade-in 0.18s ease-out;
+  min-height: 0;
+  animation: codin-fade-in 0.15s ease-out;
 }
 
 @keyframes codin-fade-in {
   from {
-    opacity: 0.85;
+    opacity: 0.9;
   }
   to {
     opacity: 1;
@@ -197,19 +266,19 @@
 .ide-status-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .ide-status-center {
   font-size: 10px;
-  opacity: 0.7;
+  opacity: 0.5;
   letter-spacing: 0.3px;
 }
 
 .ide-status-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 0 6px;
   border-radius: 3px;
   cursor: default;
@@ -220,22 +289,66 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-.ide-status-icon {
-  width: 13px;
-  height: 13px;
+/* ── Live Status Dot ── */
+.ide-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
-.ide-status-branch {
+.ide-status-dot.ready {
+  background: var(--codin-success, #22c55e);
+}
+
+.ide-status-dot.streaming {
+  background: var(--codin-accent-saffron, #f59e0b);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.ide-status-streaming {
+  font-weight: 500;
+  color: var(--codin-saffron-300, #fcd34d);
+}
+
+/* ── Status Bar Segments ── */
+.ide-status-mode {
+  font-weight: 500;
+  text-transform: capitalize;
+  padding: 0 8px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ide-status-model {
+  font-size: 10px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--codin-fg-secondary, #a8a5c0);
+}
+
+.ide-status-version {
+  font-size: 10px;
+  color: var(--codin-saffron-300, #fcd34d);
   font-weight: 500;
 }
 
-.ide-status-lang {
-  text-transform: uppercase;
+.ide-status-tagline {
   font-size: 10px;
+  opacity: 0.6;
   letter-spacing: 0.5px;
-  color: var(--codin-saffron-300, #fcd34d);
-  font-weight: 500;
 }
 
 /* ── Responsive ── */
@@ -248,7 +361,7 @@
   }
   .ide-activity-btn {
     width: 40px;
-    height: 38px;
+    height: 36px;
   }
   .ide-activity-icon {
     width: 18px;
@@ -256,5 +369,12 @@
   }
   .ide-status-center {
     display: none;
+  }
+  .ide-status-model {
+    display: none;
+  }
+  .ide-page-header {
+    height: 32px;
+    padding: 0 12px;
   }
 }

@@ -41,205 +41,136 @@ interface TabOption {
 
 interface TabSection {
   id: string;
+  label?: string;
   tabs: TabOption[];
   showTopDivider?: boolean;
   showBottomDivider?: boolean;
   className?: string;
 }
 
+const iconClass = "xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0";
+
+function wrap(Section: React.ComponentType) {
+  return (
+    <ErrorBoundary>
+      <ConfigSection>
+        <Section />
+      </ConfigSection>
+    </ErrorBoundary>
+  );
+}
+
+/**
+ * Settings page tab structure
+ *
+ * AI Setup     — Models, Rules, Tools, MCP Servers
+ * Workspace    — Run, Git, Deploy, Config Files, Indexing, Code Graph
+ * Account      — Organizations, Agent Activity
+ * ---
+ * General      — Settings, Help
+ */
 export const topTabSections: TabSection[] = [
   {
-    id: "top",
+    id: "nav",
     tabs: [
       {
         id: "back",
         label: "Back",
         component: <div />,
-        icon: <ArrowLeftIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
+        icon: <ArrowLeftIcon className={iconClass} />,
       },
     ],
   },
   {
-    id: "blocks",
+    id: "ai-setup",
+    label: "AI Setup",
     showTopDivider: true,
     tabs: [
       {
         id: "models",
         label: "Models",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <ModelsSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: <CubeIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
+        component: wrap(ModelsSection),
+        icon: <CubeIcon className={iconClass} />,
       },
       {
         id: "rules",
         label: "Rules",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <RulesSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: <PencilIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
+        component: wrap(RulesSection),
+        icon: <PencilIcon className={iconClass} />,
       },
       {
         id: "tools",
         label: "Tools",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <ToolsSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <WrenchScrewdriverIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
+        component: wrap(ToolsSection),
+        icon: <WrenchScrewdriverIcon className={iconClass} />,
+      },
+      {
+        id: "mcp",
+        label: "MCP Servers",
+        component: wrap(McpSection),
+        icon: <ServerStackIcon className={iconClass} />,
       },
     ],
   },
   {
-    id: "actions",
+    id: "workspace",
+    label: "Workspace",
     showTopDivider: true,
     tabs: [
       {
-        id: "agent-activity",
-        label: "Agent Activity",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <AgentActivitySection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <ClipboardDocumentListIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
-      },
-      {
         id: "run",
-        label: "Run",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <RunSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <PlayCircleIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
+        label: "Run & Debug",
+        component: wrap(RunSection),
+        icon: <PlayCircleIcon className={iconClass} />,
       },
       {
         id: "git",
         label: "Git",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <GitSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <CodeBracketSquareIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
+        component: wrap(GitSection),
+        icon: <CodeBracketSquareIcon className={iconClass} />,
       },
       {
         id: "deploy",
         label: "Deploy",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <DeploySection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <RocketLaunchIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
+        component: wrap(DeploySection),
+        icon: <RocketLaunchIcon className={iconClass} />,
       },
-      {
-        id: "mcp",
-        label: "MCP",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <McpSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <ServerStackIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
-      },
-    ],
-  },
-  {
-    id: "agents-orgs",
-    showTopDivider: true,
-    tabs: [
       {
         id: "configs",
-        label: "Configs",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <ConfigsSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: <DocumentIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
+        label: "Config Files",
+        component: wrap(ConfigsSection),
+        icon: <DocumentIcon className={iconClass} />,
       },
-      {
-        id: "organizations",
-        label: "Organizations",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <OrganizationsSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <BuildingOfficeIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
-      },
-    ],
-  },
-  {
-    id: "indexing",
-    showTopDivider: true,
-    tabs: [
       {
         id: "indexing",
         label: "Indexing",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <IndexingSettingsSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <CircleStackIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
+        component: wrap(IndexingSettingsSection),
+        icon: <CircleStackIcon className={iconClass} />,
       },
       {
         id: "code-graph",
         label: "Code Graph",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <GitNexusSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: <ShareIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
+        component: wrap(GitNexusSection),
+        icon: <ShareIcon className={iconClass} />,
+      },
+    ],
+  },
+  {
+    id: "account",
+    label: "Account",
+    showTopDivider: true,
+    tabs: [
+      {
+        id: "organizations",
+        label: "Organizations",
+        component: wrap(OrganizationsSection),
+        icon: <BuildingOfficeIcon className={iconClass} />,
+      },
+      {
+        id: "agent-activity",
+        label: "Activity Log",
+        component: wrap(AgentActivitySection),
+        icon: <ClipboardDocumentListIcon className={iconClass} />,
       },
     ],
   },
@@ -247,33 +178,19 @@ export const topTabSections: TabSection[] = [
 
 export const bottomTabSections: TabSection[] = [
   {
-    id: "bottom",
+    id: "general",
     tabs: [
       {
         id: "settings",
-        label: "Settings",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <UserSettingsSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: <Cog6ToothIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />,
+        label: "General",
+        component: wrap(UserSettingsSection),
+        icon: <Cog6ToothIcon className={iconClass} />,
       },
       {
         id: "help",
         label: "Help",
-        component: (
-          <ErrorBoundary>
-            <ConfigSection>
-              <HelpSection />
-            </ConfigSection>
-          </ErrorBoundary>
-        ),
-        icon: (
-          <QuestionMarkCircleIcon className="xs:h-4 xs:w-4 h-3 w-3 flex-shrink-0" />
-        ),
+        component: wrap(HelpSection),
+        icon: <QuestionMarkCircleIcon className={iconClass} />,
       },
     ],
   },

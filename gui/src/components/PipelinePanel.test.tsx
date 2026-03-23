@@ -65,7 +65,7 @@ describe("PipelinePanel", () => {
 
   it("renders without crashing", async () => {
     await renderPanel();
-    expect(screen.getByText("Autonomous Coding Pipeline")).toBeInTheDocument();
+    expect(screen.getByText("Pipeline")).toBeInTheDocument();
   });
 
   it("shows the goal textarea and Create button", async () => {

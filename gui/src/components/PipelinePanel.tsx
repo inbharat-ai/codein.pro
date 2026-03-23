@@ -102,79 +102,40 @@ export default function PipelinePanel() {
   );
 
   return (
-    <div style={{ padding: "16px", maxWidth: 800 }}>
-      <h2 style={{ marginTop: 0 }}>Autonomous Coding Pipeline</h2>
+    <div className="panel-container" style={{ maxWidth: 800 }}>
+      <div className="panel-header">
+        <h2>Pipeline</h2>
+        <p>Create and manage autonomous coding pipelines</p>
+      </div>
 
       {/* Create form */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          marginBottom: 16,
-          padding: 12,
-          border: "1px solid var(--codin-border, #2a2845)",
-          borderRadius: 6,
-        }}
-      >
+      <section className="panel-section">
+        <h3>New Pipeline</h3>
         <textarea
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
           placeholder="Describe what you want to build..."
           aria-label="Pipeline description"
           rows={3}
-          style={{
-            width: "100%",
-            resize: "vertical",
-            padding: 8,
-            fontFamily: "inherit",
-            borderRadius: 4,
-            border: "1px solid var(--codin-border, #2a2845)",
-            backgroundColor: "var(--codin-bg-surface, #201e3a)",
-            color: "var(--codin-fg-primary, #e8e6f0)",
-          }}
+          style={{ width: "100%" }}
         />
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="search-box">
           <input
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             placeholder="Language (optional)"
             aria-label="Language"
-            style={{
-              flex: 1,
-              padding: 6,
-              borderRadius: 4,
-              border: "1px solid var(--codin-border, #2a2845)",
-              backgroundColor: "var(--codin-bg-surface, #201e3a)",
-              color: "var(--codin-fg-primary, #e8e6f0)",
-            }}
           />
           <input
             value={framework}
             onChange={(e) => setFramework(e.target.value)}
             placeholder="Framework (optional)"
             aria-label="Framework"
-            style={{
-              flex: 1,
-              padding: 6,
-              borderRadius: 4,
-              border: "1px solid var(--codin-border, #2a2845)",
-              backgroundColor: "var(--codin-bg-surface, #201e3a)",
-              color: "var(--codin-fg-primary, #e8e6f0)",
-            }}
           />
           <button
             onClick={createPipeline}
             disabled={creating || !goal.trim()}
-            style={{
-              padding: "6px 16px",
-              borderRadius: 4,
-              border: "none",
-              backgroundColor: "var(--codin-indigo-700, #4338ca)",
-              color: "#ffffff",
-              cursor: creating ? "wait" : "pointer",
-              opacity: creating || !goal.trim() ? 0.5 : 1,
-            }}
+            className="btn-primary"
           >
             {creating ? "Creating..." : "Create"}
           </button>
@@ -209,7 +170,7 @@ export default function PipelinePanel() {
             </div>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Pipeline list */}
       {pipelines.length === 0 ? (
@@ -218,25 +179,36 @@ export default function PipelinePanel() {
           message="Create your first pipeline to automate your workflow."
         />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="results-list" style={{ maxHeight: "none" }}>
           {pipelines.map((p) => (
             <div
               key={p.id}
+              className="result-card"
               style={{
-                padding: 12,
-                border: "1px solid var(--codin-border, #2a2845)",
-                borderRadius: 6,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
               }}
             >
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                <div
+                  style={{
+                    fontWeight: 600,
+                    marginBottom: 4,
+                    color: "var(--codin-fg-primary)",
+                  }}
+                >
                   {p.goal.slice(0, 120)}
                   {p.goal.length > 120 ? "..." : ""}
                 </div>
-                <div style={{ display: "flex", gap: 12, fontSize: 12 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    fontSize: 12,
+                    color: "var(--codin-fg-muted)",
+                  }}
+                >
                   <span
                     style={{
                       color: STATUS_COLORS[p.status] || "#888",
