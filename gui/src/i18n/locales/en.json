@@ -19,7 +19,7 @@
     "branch": "main",
     "language": "TypeScript",
     "tagline": "CodeIn — AI-Powered Code Editor for Bharat",
-    "version": "v1.0.3"
+    "version": "v1.1.0"
   },
   "modes": {
     "chat": "Chat",

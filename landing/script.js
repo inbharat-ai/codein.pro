@@ -5,7 +5,7 @@
 
 // --- Configuration ------------------------------------------
 const GITHUB_REPO = "inbharat-ai/codein.pro";
-const RELEASE_TAG = "v1.0.3-beta";
+const RELEASE_TAG = "v1.1.0-beta";
 const MANIFEST_URL = "downloads.json"; // local fallback
 const GITHUB_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${RELEASE_TAG}`;
 const RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases/tag/${RELEASE_TAG}`;
