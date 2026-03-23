@@ -29,6 +29,15 @@ function createMockStore() {
           },
         },
       }),
+      workspace: () => ({
+        workspacePath: null,
+        expandedDirs: [],
+        openFiles: [],
+        activeFilePath: null,
+        terminalVisible: false,
+        sidebarVisible: false,
+        chatPanelVisible: false,
+      }),
     },
   });
 }

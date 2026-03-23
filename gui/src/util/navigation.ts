@@ -27,6 +27,7 @@ export const ROUTES = {
   AI_HUB: "/ai-hub",
   COMPUTER: "/computer",
   HISTORY: "/history",
+  WORKSPACE: "/workspace",
   // EXAMPLE_ROUTE_WITH_PARAMS: (params: ParamsType) => `/route/${params}`,
 };
 

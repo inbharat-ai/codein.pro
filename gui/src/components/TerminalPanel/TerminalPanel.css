@@ -1,0 +1,57 @@
+.terminal-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--codin-bg-primary, #0f0e17);
+  border-top: 1px solid var(--codin-border, rgba(99, 102, 241, 0.12));
+  overflow: hidden;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  height: 28px;
+  background: var(--codin-bg-secondary, #141320);
+  border-bottom: 1px solid var(--codin-border, rgba(99, 102, 241, 0.12));
+  flex-shrink: 0;
+}
+
+.terminal-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--codin-fg-muted, #8b88ad);
+  text-transform: uppercase;
+}
+
+.terminal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--codin-fg-muted, #8b88ad);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.terminal-close-btn:hover {
+  background: var(--codin-bg-hover, #262450);
+  color: var(--codin-fg-primary, #e8e6f0);
+}
+
+.terminal-content {
+  flex: 1;
+  min-height: 0;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.terminal-content .xterm {
+  height: 100%;
+}

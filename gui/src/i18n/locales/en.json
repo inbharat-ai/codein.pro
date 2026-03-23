@@ -1,6 +1,7 @@
 {
   "activityBar": {
     "chat": "Chat",
+    "files": "Files",
     "history": "History",
     "search": "Search",
     "gpu": "GPU Monitor",

@@ -25,6 +25,7 @@ import aiHubReducer from "./slices/aiHubSlice";
 import computerReducer from "./slices/computerSlice";
 import tabsReducer from "./slices/tabsSlice";
 import uiReducer from "./slices/uiSlice";
+import workspaceReducer from "./slices/workspaceSlice";
 
 const rootReducer = combineReducers({
   session: sessionReducer,
@@ -37,6 +38,7 @@ const rootReducer = combineReducers({
   swarm: swarmReducer,
   aiHub: aiHubReducer,
   computer: computerReducer,
+  workspace: workspaceReducer,
 });
 
 const saveSubsetFilters = [
@@ -70,6 +72,11 @@ const saveSubsetFilters = [
     "selectedProfileId",
     "selectedOrganizationId",
     "organizations",
+  ]),
+  createFilter("workspace", [
+    "workspacePath",
+    "sidebarVisible",
+    "chatPanelVisible",
   ]),
 ];
 

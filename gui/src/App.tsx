@@ -53,6 +53,9 @@ const RepoIntelligencePanel = React.lazy(
   () => import("./components/RepoIntelligencePanel"),
 );
 const ResearchPanel = React.lazy(() => import("./components/ResearchPanel"));
+const WorkspaceLayout = React.lazy(
+  () => import("./components/WorkspaceLayout"),
+);
 
 // ── Helper: wrap a lazy component in Suspense ────────────────────────
 function lazySuspense(
@@ -81,6 +84,10 @@ const router = createMemoryRouter([
       {
         path: ROUTES.HOME,
         element: <Chat />,
+      },
+      {
+        path: ROUTES.WORKSPACE,
+        element: lazySuspense(WorkspaceLayout, "Loading workspace..."),
       },
       {
         path: ROUTES.HISTORY,

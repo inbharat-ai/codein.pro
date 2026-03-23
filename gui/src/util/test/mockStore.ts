@@ -80,6 +80,15 @@ export const getEmptyRootState: () => RootState = () => {
       activeTab: "run",
       error: null,
     },
+    workspace: {
+      workspacePath: null,
+      expandedDirs: [],
+      openFiles: [],
+      activeFilePath: null,
+      terminalVisible: false,
+      sidebarVisible: false,
+      chatPanelVisible: false,
+    },
   };
   const { streamAborter, ...serializableSession } = INITIAL_SESSION_STATE;
   const sessionCopy = copyOf(serializableSession) as Omit<
@@ -121,7 +130,18 @@ export const createMockStore = (
       swarm: swarmReducer,
       aiHub: aiHubReducer,
       computer: computerReducer,
-    },
+      workspace: (
+        state = {
+          workspacePath: null,
+          expandedDirs: [],
+          openFiles: [],
+          activeFilePath: null,
+          terminalVisible: false,
+          sidebarVisible: false,
+          chatPanelVisible: false,
+        },
+      ) => state,
+    } as any,
     preloadedState: {
       ...getEmptyRootState(),
       ...initialState,

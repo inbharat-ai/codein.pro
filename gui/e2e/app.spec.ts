@@ -413,7 +413,46 @@ test.describe("Keyboard accessibility", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Suite 9 — Panel rendering (smoke tests)
+// Suite 9 — Workspace / IDE mode
+// ---------------------------------------------------------------------------
+
+test.describe("Workspace IDE mode", () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoApp(page);
+  });
+
+  test("Files button is present in activity bar", async ({ page }) => {
+    await expect(page.locator('button[aria-label="Files"]')).toBeVisible();
+  });
+
+  test("clicking Files navigates to workspace and shows Files as active", async ({
+    page,
+  }) => {
+    const filesBtn = page.locator('button[aria-label="Files"]');
+    await filesBtn.click();
+    await expect(filesBtn).toHaveClass(/active/, { timeout: 5000 });
+  });
+
+  test("workspace shows editor placeholder when no files are open", async ({
+    page,
+  }) => {
+    await page.locator('button[aria-label="Files"]').click();
+    await expect(
+      page.locator("text=Open a file from the explorer"),
+    ).toBeVisible({ timeout: 5000 });
+  });
+
+  test("can navigate back to Chat from workspace", async ({ page }) => {
+    await page.locator('button[aria-label="Files"]').click();
+    await page.waitForTimeout(500);
+    const chatBtn = page.locator('button[aria-label="Chat"]');
+    await chatBtn.click();
+    await expect(chatBtn).toHaveClass(/active/, { timeout: 5000 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Suite 10 — Panel rendering (smoke tests)
 // ---------------------------------------------------------------------------
 
 test.describe("Panel smoke tests", () => {

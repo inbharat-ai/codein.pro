@@ -123,7 +123,17 @@ test.describe("UX Audit Screenshots", () => {
     });
   });
 
-  test("11 - Mode selector states", async ({ page }) => {
+  test("11 - Workspace / IDE mode", async ({ page }) => {
+    await gotoApp(page);
+    await page.locator('button[aria-label="Files"]').click();
+    await page.waitForTimeout(1000);
+    await page.screenshot({
+      path: "test-results/screenshots/11-workspace.png",
+      fullPage: true,
+    });
+  });
+
+  test("12 - Mode selector states", async ({ page }) => {
     await gotoApp(page);
     await page
       .locator('[role="radiogroup"][aria-label="Chat mode"]')

@@ -1,13 +1,14 @@
 /**
  * CodeIn IDE Shell
- * Professional IDE layout: Activity Bar | Main Content | Status Bar
+ * Professional IDE layout: Activity Bar | Sidebar | Main Content | Status Bar
  *
  * Activity bar groups:
- *   Core     — Chat, History (always visible, primary workflow)
+ *   Core     — Chat, Files, History (always visible, primary workflow)
  *   Tools    — Search, Git, Agents (developer tools)
  *   Advanced — GPU, AI Hub, Computer Use (power user, collapsed by default)
  *   Bottom   — Settings (always pinned)
  *
+ * Sidebar shows the File Explorer when "Files" is active.
  * Status bar shows live mode, model, and streaming state.
  */
 
@@ -25,14 +26,22 @@ import {
   ChevronUpIcon,
   BeakerIcon,
   QueueListIcon,
+  FolderIcon,
 } from "@heroicons/react/24/outline";
+import { Allotment } from "allotment";
+import "allotment/dist/style.css";
 import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAppSelector } from "../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { selectSelectedChatModel } from "../redux/slices/configSlice";
+import {
+  setSidebarVisible,
+  toggleSidebar,
+} from "../redux/slices/workspaceSlice";
 import { ROUTES } from "../util/navigation";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { FileExplorer } from "./FileExplorer/FileExplorer";
 import "./IdeShell.css";
 
 interface ActivityItem {
@@ -52,6 +61,13 @@ const coreActivities: ActivityItem[] = [
     label: "Chat",
     i18nKey: "activityBar.chat",
     route: ROUTES.HOME,
+  },
+  {
+    id: "files",
+    icon: FolderIcon,
+    label: "Files",
+    i18nKey: "activityBar.files",
+    route: ROUTES.WORKSPACE,
   },
   {
     id: "history",
@@ -136,15 +152,9 @@ const bottomActivities: ActivityItem[] = [
 
 /* ── Route-to-ID matching ─────────────────────────────────────────── */
 
-const allItems = [
-  ...coreActivities,
-  ...toolActivities,
-  ...advancedActivities,
-  ...bottomActivities,
-];
-
 function getActiveId(pathname: string): string {
   if (pathname === "/" || pathname === "/index.html") return "chat";
+  if (pathname.includes("workspace")) return "files";
   if (pathname === ROUTES.HISTORY) return "history";
   if (pathname.includes("swarm")) return "agents";
   if (pathname.includes("gpu")) return "gpu";
@@ -158,22 +168,6 @@ function getActiveId(pathname: string): string {
     return "settings";
   return "chat";
 }
-
-/* ── Page title map ───────────────────────────────────────────────── */
-
-const PAGE_TITLES: Record<string, string> = {
-  chat: "",
-  history: "Session History",
-  search: "Code Search",
-  git: "Git",
-  agents: "Multi-Agent Swarm",
-  research: "Research",
-  pipeline: "Pipeline",
-  gpu: "GPU Monitor",
-  "ai-hub": "AI Hub",
-  computer: "Computer Use",
-  settings: "Settings",
-};
 
 /* ── Activity Button ──────────────────────────────────────────────── */
 
@@ -219,7 +213,12 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Sidebar state
+  const sidebarVisible = useAppSelector((s) => s.workspace.sidebarVisible);
+  const isOnWorkspace = location.pathname.includes("workspace");
 
   // Live status bar data
   const mode = useAppSelector((state) => state.session.mode);
@@ -229,7 +228,6 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
   const modelName = selectedModel?.title || selectedModel?.model || "—";
 
   const activeId = getActiveId(location.pathname);
-  const pageTitle = PAGE_TITLES[activeId] || "";
 
   // Auto-expand advanced section if an advanced item is active
   const isAdvancedActive = advancedActivities.some((a) => a.id === activeId);
@@ -237,14 +235,27 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
 
   const handleNavClick = useCallback(
     (item: ActivityItem) => {
-      navigate(item.route);
+      if (item.id === "files") {
+        // Navigate to workspace and open sidebar
+        navigate(item.route);
+        dispatch(setSidebarVisible(true));
+      } else {
+        // Close sidebar when navigating away from workspace
+        if (sidebarVisible && item.id !== "files") {
+          dispatch(setSidebarVisible(false));
+        }
+        navigate(item.route);
+      }
     },
-    [navigate],
+    [navigate, dispatch, sidebarVisible],
   );
 
   const toggleAdvanced = useCallback(() => {
     setShowAdvanced((prev) => !prev);
   }, []);
+
+  // Show sidebar on workspace route
+  const showSidebar = sidebarVisible && isOnWorkspace;
 
   return (
     <div className="ide-shell">
@@ -269,7 +280,7 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
               </svg>
             </div>
 
-            {/* Core — Chat, History */}
+            {/* Core — Chat, Files, History */}
             {coreActivities.map((item) => (
               <ActivityButton
                 key={item.id}
@@ -336,12 +347,30 @@ export const IdeShell: React.FC<{ children: React.ReactNode }> = ({
         </nav>
       </ErrorBoundary>
 
-      {/* ── Main Content Area ── */}
+      {/* ── Content Area (Sidebar + Main) ── */}
       <ErrorBoundary>
-        <div className="ide-main-wrapper">
-          <main id="main-content" className="ide-main">
-            {children}
-          </main>
+        <div className="ide-content-area">
+          {showSidebar ? (
+            <Allotment proportionalLayout={false}>
+              <Allotment.Pane
+                minSize={180}
+                preferredSize={260}
+                maxSize={400}
+                snap
+              >
+                <FileExplorer />
+              </Allotment.Pane>
+              <Allotment.Pane minSize={300}>
+                <main id="main-content" className="ide-main">
+                  {children}
+                </main>
+              </Allotment.Pane>
+            </Allotment>
+          ) : (
+            <main id="main-content" className="ide-main">
+              {children}
+            </main>
+          )}
         </div>
       </ErrorBoundary>
 

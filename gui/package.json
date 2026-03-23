@@ -42,6 +42,7 @@
     "@tiptap/suggestion": "^2.1.13",
     "@types/diff": "^7.0.2",
     "@types/uuid": "^10.0.0",
+    "allotment": "^1.20.5",
     "anser": "^2.3.2",
     "clsx": "^2.1.1",
     "core": "file:../core",

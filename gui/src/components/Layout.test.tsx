@@ -139,6 +139,17 @@ function createMockStore() {
         },
       ) => state,
       computer: (state = {}) => state,
+      workspace: (
+        state = {
+          workspacePath: null,
+          expandedDirs: [],
+          openFiles: [],
+          activeFilePath: null,
+          terminalVisible: false,
+          sidebarVisible: false,
+          chatPanelVisible: false,
+        },
+      ) => state,
     },
   });
 }

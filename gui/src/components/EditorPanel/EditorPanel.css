@@ -1,0 +1,103 @@
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--codin-bg-primary, #0f0e17);
+  overflow: hidden;
+}
+
+.editor-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--codin-fg-muted, #8b88ad);
+}
+
+.editor-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Editor Tabs ── */
+
+.editor-tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 35px;
+  background: var(--codin-bg-secondary, #141320);
+  border-bottom: 1px solid var(--codin-border, rgba(99, 102, 241, 0.12));
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+}
+
+.editor-tabs::-webkit-scrollbar {
+  height: 0;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 100%;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--codin-fg-muted, #8b88ad);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 120ms ease;
+  flex-shrink: 0;
+}
+
+.editor-tab:hover {
+  background: var(--codin-bg-hover, #262450);
+  color: var(--codin-fg-primary, #e8e6f0);
+}
+
+.editor-tab.active {
+  color: var(--codin-fg-primary, #e8e6f0);
+  background: var(--codin-bg-primary, #0f0e17);
+  border-bottom-color: var(--codin-accent-saffron, #f59e0b);
+}
+
+.editor-tab-dirty {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--codin-accent-saffron, #f59e0b);
+  flex-shrink: 0;
+}
+
+.editor-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-tab-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 80ms ease;
+  flex-shrink: 0;
+}
+
+.editor-tab:hover .editor-tab-close,
+.editor-tab.active .editor-tab-close {
+  opacity: 0.5;
+}
+
+.editor-tab-close:hover {
+  opacity: 1 !important;
+  background: var(--codin-bg-hover, #262450);
+}
