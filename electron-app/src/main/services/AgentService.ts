@@ -409,9 +409,11 @@ export class AgentService {
       // Fall back to system PATH node — users must have Node installed
       return nodeName;
     }
-    // In development the Electron binary also runs as Node when
-    // ELECTRON_RUN_AS_NODE=1 is set
-    return process.execPath;
+    // In development, use system Node from PATH.
+    // process.execPath points to the Electron binary which cannot be
+    // reliably spawned as a child process on Windows.
+    const nodeName = process.platform === "win32" ? "node.exe" : "node";
+    return nodeName;
   }
 
   /**

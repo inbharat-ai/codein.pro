@@ -26,10 +26,10 @@ export function OnboardingCard({ isDialog }: OnboardingCardProps) {
     setLocalStorage("onboardingStatus", "Started");
   }
 
-  // Default to MODELS_ADD_ON tab if no active tab is set
+  // Default to LOCAL tab — CodeIn is local-first
   useEffect(() => {
     if (!activeTab) {
-      setActiveTab(OnboardingModes.MODELS_ADD_ON);
+      setActiveTab(OnboardingModes.LOCAL);
     }
   }, [activeTab, setActiveTab]);
 
@@ -46,8 +46,8 @@ export function OnboardingCard({ isDialog }: OnboardingCardProps) {
     }
   }
 
-  // Always show tabs view, defaulting to Models Add-On
-  const currentTab = activeTab || OnboardingModes.MODELS_ADD_ON;
+  // Always show tabs view, defaulting to Local
+  const currentTab = activeTab || OnboardingModes.LOCAL;
 
   return (
     <ReusableCard

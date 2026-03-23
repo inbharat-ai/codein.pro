@@ -32,12 +32,27 @@ export default defineConfig({
         manualChunks: {
           "vendor-react": ["react", "react-dom", "react-router-dom"],
           "vendor-redux": ["@reduxjs/toolkit", "react-redux"],
-          "vendor-markdown": ["react-markdown", "rehype-highlight"],
+          "vendor-markdown": [
+            "react-markdown",
+            "rehype-highlight",
+            "rehype-katex",
+            "remark-math",
+          ],
           "vendor-tiptap": [
             "@tiptap/core",
             "@tiptap/react",
             "@tiptap/starter-kit",
           ],
+          "vendor-ui": [
+            "@headlessui/react",
+            "@heroicons/react",
+            "downshift",
+            "react-tooltip",
+          ],
+          "vendor-xterm": ["xterm", "xterm-addon-fit"],
+          "vendor-cytoscape": ["cytoscape"],
+          "vendor-telemetry": ["posthog-js"],
+          "vendor-utils": ["lodash", "dompurify", "uuid", "diff", "anser"],
         },
       },
     },
