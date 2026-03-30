@@ -48,7 +48,12 @@ export async function getAllPromptFiles(
   const workspaceDirs = await ide.getWorkspaceDirs();
   let promptFiles: { path: string; content: string }[] = [];
 
-  let dirsToCheck = [DEFAULT_PROMPTS_FOLDER_V2, DEFAULT_PROMPTS_FOLDER_V2_LEGACY, DEFAULT_RULES_FOLDER, DEFAULT_RULES_FOLDER_LEGACY];
+  let dirsToCheck = [
+    DEFAULT_PROMPTS_FOLDER_V2,
+    DEFAULT_PROMPTS_FOLDER_V2_LEGACY,
+    DEFAULT_RULES_FOLDER,
+    DEFAULT_RULES_FOLDER_LEGACY,
+  ];
   if (checkV1DefaultFolder) {
     dirsToCheck.push(DEFAULT_PROMPTS_FOLDER_V1);
   }

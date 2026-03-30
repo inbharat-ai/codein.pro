@@ -226,7 +226,7 @@ export function AgentsList({ isCreatingAgent = false }: AgentsListProps) {
         isInWorkspace: isAgentInCurrentWorkspace(agent),
         repoName: getAgentRepoName(agent),
       })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
     [agents, workspaces],
   );
 

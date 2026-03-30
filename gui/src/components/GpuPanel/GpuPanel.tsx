@@ -31,14 +31,14 @@ const GpuPanel: React.FC = () => {
     if (!session.isOffline) {
       session.refreshStatus(tab, setTab);
     }
-  }, [session.isOffline]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session.isOffline]); // eslint-disable-line
 
   // Auto-load data when switching tabs
   useEffect(() => {
     if (!session.connected) return;
     if (tab === "gpus") void session.loadGpuTypes();
     if (tab === "pods") void session.loadPods();
-  }, [tab, session.connected]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tab, session.connected]); // eslint-disable-line
 
   const handleStop = async () => {
     const stopped = await session.stop();

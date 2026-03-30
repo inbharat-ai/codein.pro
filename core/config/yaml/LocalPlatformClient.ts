@@ -69,21 +69,21 @@ export class LocalPlatformClient implements PlatformClient {
             ]
           : [joinPathsToUri(folder, ".env")];
         for (const envFilePath of envPaths) {
-        try {
-          const fileExists = await this.ide.fileExists(envFilePath);
-          if (fileExists) {
-            const envContent = await this.ide.readFile(envFilePath);
-            const env = dotenv.parse(envContent);
-            if (fqsn.secretName in env) {
-              return env[fqsn.secretName];
+          try {
+            const fileExists = await this.ide.fileExists(envFilePath);
+            if (fileExists) {
+              const envContent = await this.ide.readFile(envFilePath);
+              const env = dotenv.parse(envContent);
+              if (fqsn.secretName in env) {
+                return env[fqsn.secretName];
+              }
             }
+          } catch (error) {
+            console.warn(
+              `Error reading workspace .env file at ${envFilePath}: ${error instanceof Error ? error.message : String(error)}`,
+            );
+            // Continue to next env path / workspace folder
           }
-        } catch (error) {
-          console.warn(
-            `Error reading workspace .env file at ${envFilePath}: ${error instanceof Error ? error.message : String(error)}`,
-          );
-          // Continue to next env path / workspace folder
-        }
         }
       }
 

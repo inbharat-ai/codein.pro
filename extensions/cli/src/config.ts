@@ -4,10 +4,7 @@ import {
   constructLlmApi,
   LLMConfig,
 } from "@codein/openai-adapters";
-import {
-  Configuration,
-  DefaultApi,
-} from "@codein/sdk/dist/api/dist/index.js";
+import { Configuration, DefaultApi } from "@codein/sdk/dist/api/dist/index.js";
 
 import {
   AuthConfig,

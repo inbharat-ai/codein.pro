@@ -1,3 +1,3 @@
-# Continue React App
+# CodeIn GUI
 
-The Continue React app is a notebook-like interface to the Continue server. It allows the user to submit arbitrary text input, then communicates with the server to takes steps, which are displayed as a sequence of editable cells. The React app should sit beside an IDE, as in the VS Code extension.
+The CodeIn GUI is a React 18 + Redux Toolkit interface to the CodeIn agent runtime. It provides a full IDE experience with Monaco editor, file explorer, integrated terminal (xterm.js), and an AI chat interface with rich TipTap input. The GUI can run standalone in a browser or embedded within the Electron desktop app and VS Code extension.

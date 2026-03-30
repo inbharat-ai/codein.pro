@@ -20,6 +20,7 @@ import { ChatHeader } from "./ChatHeader";
 import { ChatMessageList } from "./ChatMessageList";
 import { useSendInput } from "./useSendInput";
 
+// eslint-disable-next-line no-barrel-files/no-barrel-files
 export { MAIN_EDITOR_INPUT_ID } from "./chatConstants";
 
 export function Chat() {

@@ -1,7 +1,4 @@
-import {
-  ConfigValidationError,
-  parseMarkdownRule,
-} from "@codein/config-yaml";
+import { ConfigValidationError, parseMarkdownRule } from "@codein/config-yaml";
 import z from "zod";
 import { IDE, Skill } from "../..";
 import { walkDir } from "../../indexing/walkDir";

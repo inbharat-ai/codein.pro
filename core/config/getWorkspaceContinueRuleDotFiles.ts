@@ -13,7 +13,10 @@ export async function getWorkspaceContinueRuleDotFiles(ide: IDE) {
     try {
       // Check .codeinrules first, then .continuerules for backward compat
       let found = false;
-      for (const dotFileName of [SYSTEM_PROMPT_DOT_FILE_NEW, SYSTEM_PROMPT_DOT_FILE]) {
+      for (const dotFileName of [
+        SYSTEM_PROMPT_DOT_FILE_NEW,
+        SYSTEM_PROMPT_DOT_FILE,
+      ]) {
         const dotFile = joinPathsToUri(dir, dotFileName);
         const exists = await ide.fileExists(dotFile);
         if (exists) {

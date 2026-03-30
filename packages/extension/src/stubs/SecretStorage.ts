@@ -52,7 +52,9 @@ export class SecretStorage {
       // Copy old key to new location and delete old key
       await this.secrets.store(ENCRYPTION_KEY_NAME, oldKey);
       await this.secrets.delete(OLD_ENCRYPTION_KEY_NAME);
-      console.log("Migrated encryption key from dev.continue.continue to dev.codein.codein");
+      console.log(
+        "Migrated encryption key from dev.continue.continue to dev.codein.codein",
+      );
     }
   }
 

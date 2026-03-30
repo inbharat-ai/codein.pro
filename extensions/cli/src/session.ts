@@ -53,7 +53,9 @@ function getSessionDir(): string {
 
   // Use CODEIN_GLOBAL_DIR / CONTINUE_GLOBAL_DIR if set (for testing)
   const continueHome =
-    process.env.CODEIN_GLOBAL_DIR || process.env.CONTINUE_GLOBAL_DIR || path.join(os.homedir(), ".codein");
+    process.env.CODEIN_GLOBAL_DIR ||
+    process.env.CONTINUE_GLOBAL_DIR ||
+    path.join(os.homedir(), ".codein");
   const sessionDir = path.join(continueHome, "sessions");
 
   // Create directory if it doesn't exist

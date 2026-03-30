@@ -35,3 +35,8 @@ coverage
 packages/codein-sdk
 .conductor
 THOROUGH_CODE_INSPECTION_AUDIT.json
+
+# Build artifacts
+electron-app/release
+electron-app/dist
+gui/test-results

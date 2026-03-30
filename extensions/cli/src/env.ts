@@ -12,7 +12,8 @@ export const env = {
     process.env.WORKOS_CLIENT_ID ?? "client_01J0FW6XN8N2XJAECF7NE0Y65J",
   appUrl: process.env.HUB_URL || "https://continue.dev",
   continueHome: (() => {
-    const envDir = process.env.CODEIN_GLOBAL_DIR || process.env.CONTINUE_GLOBAL_DIR;
+    const envDir =
+      process.env.CODEIN_GLOBAL_DIR || process.env.CONTINUE_GLOBAL_DIR;
     if (envDir) return envDir;
     const homeDir = os.homedir();
     const newPath = path.join(homeDir, ".codein");

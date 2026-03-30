@@ -24,8 +24,10 @@ export function isContinueConfigRelatedUri(uri: string): boolean {
       (uri.endsWith(".yaml") ||
         uri.endsWith(".yml") ||
         uri.endsWith(".json"))) ||
-    [...BLOCK_TYPES, "agents", "assistants"].some((blockType) =>
-      uri.includes(`.codein/${blockType}`) || uri.includes(`.continue/${blockType}`),
+    [...BLOCK_TYPES, "agents", "assistants"].some(
+      (blockType) =>
+        uri.includes(`.codein/${blockType}`) ||
+        uri.includes(`.continue/${blockType}`),
     )
   );
 }

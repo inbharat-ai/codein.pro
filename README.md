@@ -13,7 +13,7 @@
 <br/>
 
 [![License](https://img.shields.io/badge/Apache_2.0-f97316?style=for-the-badge&label=license)](LICENSE)
-[![Version](https://img.shields.io/badge/v1.0.2--beta-6366f1?style=for-the-badge&label=version)](https://github.com/inbharat-ai/codein.pro/releases)
+[![Version](https://img.shields.io/badge/v1.1.0--beta-6366f1?style=for-the-badge&label=version)](https://github.com/inbharat-ai/codein.pro/releases)
 [![Node](https://img.shields.io/badge/Node.js_20.19+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![Stars](https://img.shields.io/github/stars/inbharat-ai/codein.pro?style=for-the-badge&logo=github&color=6366F1)](https://github.com/inbharat-ai/codein.pro)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-10b981?style=for-the-badge)](CONTRIBUTING.md)
@@ -34,7 +34,7 @@ CodeIn is an open-source AI coding IDE built as an Electron desktop application,
 
 At its core: a **Node.js HTTP server on `localhost:43120`** orchestrating 60 LLM provider integrations, a 13-agent autonomous swarm, Docker-sandboxed code execution, and voice-enabled prompting in 22 Indian languages. Everything runs on your machine. No cloud account required. No telemetry. Apache 2.0.
 
-The project is at **v1.0.3-beta** — the architecture is complete and the core feature set works end-to-end, with ongoing polish and stabilization before v1.0 stable.
+The project is at **v1.1.0-beta** — the architecture is complete and the core feature set works end-to-end, with ongoing polish and stabilization before v1.0 stable.
 
 ---
 
@@ -312,14 +312,14 @@ codein.pro/
 ├── packages/
 │   ├── agent/              # Agent runtime — Node.js HTTP server (port 43120)
 │   │   ├── src/
-│   │   │   ├── index.js    #   Server bootstrap + 27 route modules
+│   │   │   ├── index.js    #   Server bootstrap (526 lines) + 27 route modules
 │   │   │   ├── mas/        #   Multi-Agent Swarm (13 agents, 4 topologies)
 │   │   │   ├── routes/     #   HTTP route handlers
 │   │   │   ├── ai-hub/     #   Multi-provider AI management
 │   │   │   ├── mcp/        #   MCP client manager
 │   │   │   ├── gpu-orchestration/  # RunPod integration
 │   │   │   └── security/   #   Sandbox, validators, rate limiter
-│   │   └── test/           #   193 test suites · 1,788 tests
+│   │   └── test/           #   108 test suites
 │   │
 │   ├── extension/          # VS Code / JetBrains adapter
 │   ├── codein-sdk/         # SDK for programmatic agent integration
@@ -341,7 +341,7 @@ codein.pro/
 │   │   ├── pages/          #   Main GUI routes
 │   │   ├── redux/          #   State slices (session, swarm, config, ui…)
 │   │   └── util/           #   Auth, agent config, helpers
-│   └── (68 test files · 641 tests)
+│   └── (528 test files · 3,200+ tests)
 │
 ├── electron-app/           # Electron 28 desktop shell
 ├── extensions/
@@ -442,11 +442,11 @@ npm install && npm run build
 
 ## Testing
 
-| Package          | Runner                   |  Suites |     Tests |
-| :--------------- | :----------------------- | ------: | --------: |
-| `packages/agent` | Node.js test runner      |     193 |     1,788 |
-| `gui`            | Vitest + Testing Library |      68 |       641 |
-| **Total**        |                          | **261** | **2,429** |
+| Package          | Runner                   |  Suites |      Tests |
+| :--------------- | :----------------------- | ------: | ---------: |
+| `packages/agent` | Node.js test runner      |     108 |      1,788 |
+| `gui`            | Vitest + Testing Library |     528 |     3,200+ |
+| **Total**        |                          | **636** | **4,988+** |
 
 ```bash
 cd packages/agent && npm test       # Agent runtime tests
@@ -458,7 +458,7 @@ cd gui && npx tsc --noEmit          # TypeScript type check
 
 ## Project Status
 
-**Version:** v1.0.3-beta &nbsp;|&nbsp; **License:** Apache 2.0 &nbsp;|&nbsp; **Stage:** Public beta
+**Version:** v1.1.0-beta &nbsp;|&nbsp; **License:** Apache 2.0 &nbsp;|&nbsp; **Stage:** Public beta
 
 CodeIn's core architecture is complete and the primary feature set — multi-agent swarm, 60 provider integrations, local inference, and 22-language support — works end-to-end. The project is in active development toward v1.0 stable.
 
@@ -486,7 +486,7 @@ CodeIn's core architecture is complete and the primary feature set — multi-age
 
 **Known technical debt (being addressed):**
 
-- `packages/agent/src/index.js` is monolithic (~1,100 lines); route modularization in progress
+- ~~`packages/agent/src/index.js` was monolithic~~ — refactored to 526 lines with 27 route modules extracted
 - `gui/src/redux/slices/sessionSlice` is large; normalization planned
 - Mixed styling (Tailwind + styled-components + plain CSS); consolidating to Tailwind
 - No API versioning on route endpoints yet
@@ -497,7 +497,8 @@ CodeIn's core architecture is complete and the primary feature set — multi-age
 
 | Milestone                         | Target  |     Status     |
 | :-------------------------------- | :------ | :------------: |
-| v1.0-beta public launch           | Q1 2026 |     🟡 Now     |
+| v1.0-beta public launch           | Q1 2026 |    ✅ Done     |
+| v1.1.0-beta (IDE shell, editor)   | Q1 2026 |    ✅ Done     |
 | GitNexus code graph GA            | Q2 2026 | 🔄 In progress |
 | Computer Use GA                   | Q2 2026 | 🔄 In progress |
 | Vibe Coding GA                    | Q2 2026 | 🔄 In progress |

@@ -68,4 +68,5 @@ export const INITIAL_SESSION_STATE: SessionState = {
 };
 
 // Re-export PayloadAction for use by reducer files
+// eslint-disable-next-line no-barrel-files/no-barrel-files
 export type { PayloadAction };

@@ -23,6 +23,7 @@ import {
   useLoadSubmenuItems,
 } from "./submenu/useSubmenuItems";
 
+// eslint-disable-next-line no-barrel-files/no-barrel-files
 export { useSubmenuContextProviders };
 
 export const SubmenuContextProvidersProvider = ({

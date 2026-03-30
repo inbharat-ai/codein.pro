@@ -1,6 +1,6 @@
 {
-  "name": "continue-binary",
-  "version": "1.0.2",
+  "name": "codein-binary",
+  "version": "1.1.0",
   "description": "",
   "bin": "../../out/index.js",
   "pkg": {

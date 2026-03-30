@@ -45,8 +45,7 @@ vi.mock("../auth/workos.js", () => ({
 
 // Mock the config-yaml package
 vi.mock("@codein/config-yaml", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@codein/config-yaml")>();
+  const actual = await importOriginal<typeof import("@codein/config-yaml")>();
   return {
     ...actual,
     decodePackageIdentifier: vi.fn((id) => ({
@@ -533,9 +532,7 @@ describe("Agent file Integration Tests", () => {
       });
 
       // mergeUnrolledAssistants would combine this with base config prompts
-      const { mergeUnrolledAssistants } = await import(
-        "@codein/config-yaml"
-      );
+      const { mergeUnrolledAssistants } = await import("@codein/config-yaml");
       const baseConfig = {
         name: "original",
         version: "1.0.0",

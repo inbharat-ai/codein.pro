@@ -1,8 +1,4 @@
-import {
-  AgentFile,
-  ModelConfig,
-  parseAgentFile,
-} from "@codein/config-yaml";
+import { AgentFile, ModelConfig, parseAgentFile } from "@codein/config-yaml";
 import JSZip from "jszip";
 
 import { getAccessToken, loadAuthConfig } from "./auth/workos.js";

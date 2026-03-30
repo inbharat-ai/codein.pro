@@ -11,7 +11,8 @@ export class ConfigJsonConverterCodeLensProvider
     _: vscode.CancellationToken,
   ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
     if (
-      (!document.uri.fsPath.includes(".codein") && !document.uri.fsPath.includes(".continue")) ||
+      (!document.uri.fsPath.includes(".codein") &&
+        !document.uri.fsPath.includes(".continue")) ||
       !document.uri.fsPath.endsWith("config.json")
     ) {
       return [];
