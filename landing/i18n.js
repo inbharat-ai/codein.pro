@@ -34,7 +34,7 @@ const I18N = {
     "nav.github": "GitHub",
 
     // --- Hero ---
-    "hero.badge": "v1.0.3-beta — Open Source & Free Forever",
+    "hero.badge": "v1.1.0-beta — Open Source & Free Forever",
     "hero.title1": "Code in every",
     "hero.title2": "language of Bharat",
     "hero.subtitle":
@@ -386,7 +386,7 @@ const I18N = {
     "nav.faq": "प्रश्नोत्तर",
     "nav.github": "गिटहब",
 
-    "hero.badge": "v1.0.3-beta — ओपन सोर्स, हमेशा मुफ़्त",
+    "hero.badge": "v1.1.0-beta — ओपन सोर्स, हमेशा मुफ़्त",
     "hero.title1": "भारत की हर भाषा में",
     "hero.title2": "कोड लिखो",
     "hero.subtitle":
@@ -733,7 +733,7 @@ const I18N = {
     "nav.faq": "கே & பதில்",
     "nav.github": "GitHub",
 
-    "hero.badge": "v1.0.3-beta — திறந்த மூலம், எப்போதும் இலவசம்",
+    "hero.badge": "v1.1.0-beta — திறந்த மூலம், எப்போதும் இலவசம்",
     "hero.title1": "பாரதத்தின் ஒவ்வொரு",
     "hero.title2": "மொழியிலும் குறியிடு",
     "hero.subtitle":
@@ -1027,7 +1027,7 @@ const I18N = {
     "nav.faq": "ప్రశ్నలు",
     "nav.github": "GitHub",
 
-    "hero.badge": "v1.0.3-beta — ఓపెన్ సోర్స్, ఎల్లప్పుడూ ఉచితం",
+    "hero.badge": "v1.1.0-beta — ఓపెన్ సోర్స్, ఎల్లప్పుడూ ఉచితం",
     "hero.title1": "భారత్ లోని ప్రతి",
     "hero.title2": "భాషలో కోడ్ చేయండి",
     "hero.subtitle":
@@ -1244,7 +1244,7 @@ const I18N = {
     "nav.faq": "জিজ্ঞাসা",
     "nav.github": "GitHub",
 
-    "hero.badge": "v1.0.3-beta — ওপেন সোর্স, চিরকাল বিনামূল্যে",
+    "hero.badge": "v1.1.0-beta — ওপেন সোর্স, চিরকাল বিনামূল্যে",
     "hero.title1": "ভারতের প্রতিটি",
     "hero.title2": "ভাষায় কোড করুন",
     "hero.subtitle":
@@ -1459,7 +1459,7 @@ const I18N = {
     "nav.faq": "प्रश्नोत्तरी",
     "nav.github": "GitHub",
 
-    "hero.badge": "v1.0.3-beta — ओपन सोर्स, कायम मोफत",
+    "hero.badge": "v1.1.0-beta — ओपन सोर्स, कायम मोफत",
     "hero.title1": "भारताच्या प्रत्येक",
     "hero.title2": "भाषेत कोड करा",
     "hero.subtitle":
@@ -1640,7 +1640,7 @@ const I18N = {
 
   /* ═══════════════════════ GUJARATI ═══════════════════════ */
   gu: {
-    "hero.badge": "v1.0.3-beta — ઓપન સોર્સ, હંમેશા મફત",
+    "hero.badge": "v1.1.0-beta — ઓપન સોર્સ, હંમેશા મફત",
     "hero.title1": "ભારતની દરેક",
     "hero.title2": "ભાષામાં કોડ કરો",
     "hero.subtitle":
@@ -1655,7 +1655,7 @@ const I18N = {
 
   /* ═══════════════════════ KANNADA ═══════════════════════ */
   kn: {
-    "hero.badge": "v1.0.3-beta — ಮುಕ್ತ ಮೂಲ, ಶಾಶ್ವತ ಉಚಿತ",
+    "hero.badge": "v1.1.0-beta — ಮುಕ್ತ ಮೂಲ, ಶಾಶ್ವತ ಉಚಿತ",
     "hero.title1": "ಭಾರತದ ಪ್ರತಿ",
     "hero.title2": "ಭಾಷೆಯಲ್ಲಿ ಕೋಡ್ ಮಾಡಿ",
     "hero.subtitle":
@@ -1669,7 +1669,7 @@ const I18N = {
 
   /* ═══════════════════════ MALAYALAM ═══════════════════════ */
   ml: {
-    "hero.badge": "v1.0.3-beta — ഓപ്പൺ സോഴ്സ്, என்றும் സൗജன്യം",
+    "hero.badge": "v1.1.0-beta — ഓപ്പൺ സോഴ്സ്, என்றும் സൗജன്യം",
     "hero.title1": "ഭാരതത്തിന്റെ ഓരോ",
     "hero.title2": "ഭാഷയിലും കോഡ് ചെയ്യൂ",
     "hero.subtitle":
@@ -1683,7 +1683,7 @@ const I18N = {
 
   /* ═══════════════════════ PUNJABI ═══════════════════════ */
   pa: {
-    "hero.badge": "v1.0.3-beta — ਓਪਨ ਸੋਰਸ, ਹਮੇਸ਼ਾ ਮੁਫ਼ਤ",
+    "hero.badge": "v1.1.0-beta — ਓਪਨ ਸੋਰਸ, ਹਮੇਸ਼ਾ ਮੁਫ਼ਤ",
     "hero.title1": "ਭਾਰਤ ਦੀ ਹਰ",
     "hero.title2": "ਭਾਸ਼ਾ ਵਿੱਚ ਕੋਡ ਕਰੋ",
     "hero.subtitle":
