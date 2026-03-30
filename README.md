@@ -55,28 +55,28 @@ The project is at **v1.1.0-beta** — the architecture is complete and the core 
 
 ### AI Engine
 
-| Feature                         | Description                                                                                                                                                                              |     Status     |
-| :------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------: |
-| **60+ LLM Providers**           | OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, Together, Fireworks, OpenRouter, and 48 more. Per-request cost tracking, health monitoring, failover chains. |       ✅       |
-| **Local Inference (llama.cpp)** | Fully offline inference. Qwen2.5 Coder 1.5B ships as default. No cloud dependency required to run the IDE.                                                                               |       ✅       |
-| **Multi-Agent Swarm**           | 13 specialist agents with 4 orchestration topologies. Circuit breakers, 3-tier blackboard memory, SQLite persistence, audit logging.                                                     |       ✅       |
-| **MCP Tool Protocol**           | Connect any MCP server (stdio or HTTP). Tool discovery, argument validation, JSON-RPC 2.0, audit trail.                                                                                  |       ✅       |
-| **Autonomous Planner**          | Plan → Execute → Test → Diagnose → Revise → Retry loop with configurable retry limits and cost caps.                                                                                     |       ✅       |
-| **Code Knowledge Graph**        | GitNexus integration for AST-backed symbol resolution, call graph tracing, and hybrid BM25+semantic search.                                                                              | 🔄 In progress |
-| **Vibe Coding**                 | Upload a screenshot or describe UI intent — CodeIn generates a spec and writes production code autonomously.                                                                             | 🔄 In progress |
+| Feature                         | Description                                                                                                                                                                              | Status |
+| :------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----: |
+| **60+ LLM Providers**           | OpenAI, Anthropic, Gemini, Groq, Mistral, Deepseek, Ollama, Azure, Bedrock, Together, Fireworks, OpenRouter, and 48 more. Per-request cost tracking, health monitoring, failover chains. |   ✅   |
+| **Local Inference (llama.cpp)** | Fully offline inference. Qwen2.5 Coder 1.5B ships as default. No cloud dependency required to run the IDE.                                                                               |   ✅   |
+| **Multi-Agent Swarm**           | 13 specialist agents with 4 orchestration topologies. Circuit breakers, 3-tier blackboard memory, SQLite persistence, audit logging.                                                     |   ✅   |
+| **MCP Tool Protocol**           | Connect any MCP server (stdio or HTTP). Tool discovery, argument validation, JSON-RPC 2.0, audit trail.                                                                                  |   ✅   |
+| **Autonomous Planner**          | Plan → Execute → Test → Diagnose → Revise → Retry loop with configurable retry limits and cost caps.                                                                                     |   ✅   |
+| **Code Knowledge Graph**        | GitNexus integration for AST-backed symbol resolution, call graph tracing, and hybrid BM25+semantic search.                                                                              |   ✅   |
+| **Vibe Coding**                 | Upload a screenshot or describe UI intent — CodeIn generates a spec and writes production code autonomously.                                                                             |   ✅   |
 
 ### Development Tools
 
-| Feature               | Description                                                                                                              |     Status     |
-| :-------------------- | :----------------------------------------------------------------------------------------------------------------------- | :------------: |
-| **Repo Intelligence** | AST symbol finding, change impact analysis, semantic search, safe multi-file refactoring.                                |       ✅       |
-| **Git Automation**    | Branching, commits, diffs, staging, PR creation — agent-orchestrated with human approval gates.                          |       ✅       |
-| **Docker Sandbox**    | Secure agent code execution: dropped capabilities, read-only root, resource limits, network isolation.                   |       ✅       |
-| **Web Research**      | Agents search the web, fetch documentation, cache responses, and synthesize results autonomously.                        |       ✅       |
-| **Background Agents** | Run agents on independent tasks in the background; monitor progress without blocking the main chat.                      |       ✅       |
-| **GPU on Demand**     | RunPod integration: browse GPUs, spin up pods (A100, H100, RTX 4090), submit serverless inference jobs with budget caps. |       ✅       |
-| **Computer Use**      | Goal-based screen automation with skill templates and audit trails. Vision pipeline for UI interaction.                  | 🔄 In progress |
-| **Terminal Manager**  | Agent-controlled terminal sessions with timeout protection and cross-platform shell support.                             |       ✅       |
+| Feature               | Description                                                                                                              | Status |
+| :-------------------- | :----------------------------------------------------------------------------------------------------------------------- | :----: |
+| **Repo Intelligence** | AST symbol finding, change impact analysis, semantic search, safe multi-file refactoring.                                |   ✅   |
+| **Git Automation**    | Branching, commits, diffs, staging, PR creation — agent-orchestrated with human approval gates.                          |   ✅   |
+| **Docker Sandbox**    | Secure agent code execution: dropped capabilities, read-only root, resource limits, network isolation.                   |   ✅   |
+| **Web Research**      | Agents search the web, fetch documentation, cache responses, and synthesize results autonomously.                        |   ✅   |
+| **Background Agents** | Run agents on independent tasks in the background; monitor progress without blocking the main chat.                      |   ✅   |
+| **GPU on Demand**     | RunPod integration: browse GPUs, spin up pods (A100, H100, RTX 4090), submit serverless inference jobs with budget caps. |   ✅   |
+| **Computer Use**      | Goal-based screen automation with skill templates and audit trails. Vision pipeline for UI interaction.                  |   ✅   |
+| **Terminal Manager**  | Agent-controlled terminal sessions with timeout protection and cross-platform shell support.                             |   ✅   |
 
 ### Editor and UI
 
@@ -477,12 +477,10 @@ CodeIn's core architecture is complete and the primary feature set — multi-age
 - VS Code extension + JetBrains adapter + CLI
 - Electron desktop with auto-update
 - JWT authentication, rate limiting, audit logging
-
-**In progress:**
-
-- Code Knowledge Graph (GitNexus) — AST-backed graph queries, Cypher interface, execution flow tracing
-- Computer Use vision pipeline — advanced screen-state understanding beyond current skill templates
-- Vibe Coding Mode — image-to-UI pipeline; intent parsing and spec generation functional, full code generation pipeline maturing
+- Code Knowledge Graph (GitNexus) — AST-backed graph queries, call graph tracing, hybrid search
+- Computer Use — goal-based screen automation with vision pipeline
+- Vibe Coding — screenshot/intent to production code generation
+- IDE workspace layout — file explorer, Monaco editor, xterm.js terminal, resizable panels
 
 **Known technical debt (being addressed):**
 
@@ -495,18 +493,18 @@ CodeIn's core architecture is complete and the primary feature set — multi-age
 
 ## Roadmap
 
-| Milestone                         | Target  |     Status     |
-| :-------------------------------- | :------ | :------------: |
-| v1.0-beta public launch           | Q1 2026 |    ✅ Done     |
-| v1.1.0-beta (IDE shell, editor)   | Q1 2026 |    ✅ Done     |
-| GitNexus code graph GA            | Q2 2026 | 🔄 In progress |
-| Computer Use GA                   | Q2 2026 | 🔄 In progress |
-| Vibe Coding GA                    | Q2 2026 | 🔄 In progress |
-| VS Code Marketplace listing       | Q2 2026 |   📋 Planned   |
-| JetBrains Marketplace listing     | Q2 2026 |   📋 Planned   |
-| Route API versioning (`/api/v2/`) | Q2 2026 |   📋 Planned   |
-| sessionSlice normalization + perf | Q2 2026 |   📋 Planned   |
-| v1.0 stable release               | Q3 2026 |   📋 Planned   |
+| Milestone                         | Target  |   Status   |
+| :-------------------------------- | :------ | :--------: |
+| v1.0-beta public launch           | Q1 2026 |  ✅ Done   |
+| v1.1.0-beta (IDE shell, editor)   | Q1 2026 |  ✅ Done   |
+| GitNexus code graph GA            | Q1 2026 |  ✅ Done   |
+| Computer Use GA                   | Q1 2026 |  ✅ Done   |
+| Vibe Coding GA                    | Q1 2026 |  ✅ Done   |
+| VS Code Marketplace listing       | Q2 2026 | 📋 Planned |
+| JetBrains Marketplace listing     | Q2 2026 | 📋 Planned |
+| Route API versioning (`/api/v2/`) | Q2 2026 | 📋 Planned |
+| sessionSlice normalization + perf | Q2 2026 | 📋 Planned |
+| v1.0 stable release               | Q3 2026 | 📋 Planned |
 
 ---
 
