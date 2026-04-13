@@ -527,7 +527,7 @@ jobs:
         run: find all-artifacts/ -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' -o -name '*.AppImage' -o -name '*.deb' \) -exec ls -la {} \;
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.version || github.ref_name }}
           name: "CodeIn ${{ github.event.inputs.version || github.ref_name }}"
